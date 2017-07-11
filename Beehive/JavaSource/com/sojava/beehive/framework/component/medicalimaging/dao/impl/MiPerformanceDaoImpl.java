@@ -37,11 +37,11 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 			/*
 			 * Sharing Mode
 			 */
-			calMode = new SharingMode(getSession(), session, workStatistic);
+//			calMode = new SharingMode(getSession(), session, workStatistic);
 			/*
 			 * Single Mode
 			 */
-//			calMode = new SingleMode(getSession(), session, workStatistic);
+			calMode = new SingleMode(getSession(), session, workStatistic);
 
 			//Calculate the Main data of Work statistic.
 			calMode.calMainInfo();
@@ -49,7 +49,7 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 			calMode.calRbrvsPrice();
 
 			t.commit();
-			
+
 			/*
 			 * 核算开始
 			 */
@@ -310,7 +310,8 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeTechnicianStaffId is not null"
-				+ " and reportTime between :begin and :end"
+				+ " and executeTechnicianCoef > 0"
+				+ " and reportDate between :begin and :end"
 			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
@@ -323,7 +324,8 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeTechnicianAssociateStaffId is not null"
-				+ " and reportTime between :begin and :end"
+				+ " and executeTechnicianAssociateCoef > 0"
+				+ " and reportDate between :begin and :end"
 			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
@@ -336,7 +338,8 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeDiagnosticianStaffId is not null"
-				+ " and reportTime between :begin and :end"
+				+ " and executeDiagnosticianCoef > 0"
+				+ " and reportDate between :begin and :end"
 				+ " and status=:status"
 			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
@@ -351,9 +354,9 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeVerifierStaffId is not null"
-				+ " and executeVerifierCoef>0"
-				+ " and executeDiagnosticianIsStudent=1"
-				+ " and reportTime between :begin and :end"
+				+ " and executeVerifierCoef > 0"
+				+ " and executeDiagnosticianIsStudent = 1"
+				+ " and reportDate between :begin and :end"
 				+ " and status=:status"
 			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
@@ -392,7 +395,8 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ " executeTechnicianStaffId is not null"
-				+ " and reportTime between :begin and :end"
+				+ " and executeTechnicianCoef > 0"
+				+ " and reportDate between :begin and :end"
 				+ " group by rbrvsId, technicianValue"
 				+ " order by rbrvsId"
 			);
@@ -423,7 +427,8 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeTechnicianAssociateStaffId is not null"
-				+ " and reportTime between :begin and :end"
+				+ " and executeTechnicianAssociateCoef > 0"
+				+ " and reportDate between :begin and :end"
 				+ " group by rbrvsId, technicianValue"
 				+ " order by rbrvsId"
 			);
@@ -454,7 +459,8 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeDiagnosticianStaffId is not null"
-				+ " and reportTime between :begin and :end"
+				+ " and executeDiagnosticianCoef > 0"
+				+ " and reportDate between :begin and :end"
 				+ " and status=:status"
 				+ " group by rbrvsId, diagnosticianValue"
 				+ " order by rbrvsId"
@@ -487,9 +493,9 @@ class SingleMode implements Mode {
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeVerifierStaffId is not null"
-				+ " and executeVerifierCoef>0"
-				+ " and executeDiagnosticianIsStudent=1"
-				+ " and reportTime between :begin and :end"
+				+ " and executeVerifierCoef > 0"
+				+ " and executeDiagnosticianIsStudent = 1"
+				+ " and reportDate between :begin and :end"
 				+ " and status=:status"
 				+ " group by rbrvsId, diagnosticianValue"
 				+ " order by rbrvsId"
@@ -517,45 +523,55 @@ class SingleMode implements Mode {
 	}
 
 	public void calPerformance() throws Exception {
+/*
 		Query stmt;
 
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "rbrvsId,"
-				+ "price,"
-				+ "count(rbrvsId) as quantity,"
-				+ "coalesce(staffId, 0) as staffId,"
-				+ "coalesce(staffCoef, 0) as staffCoef,"
-				+ "type,"
-				+ "kind,"
-				+ "dept"
-				+ " from "
-				+ "VMiExectuedPerformanceSingleMode"
-				+ " where "
-				+ "workStatisticsId=:workStatisticsId"
-				+ " and reportTime between :begin and :end"
-				+ " group by rbrvsId,price,staffId,staffCoef,type,kind,dept"
+				+ "	b.price,"
+				+ "count() as amount"
+				+ "	a.reportDate,"
+				+ "	a.reportTime,"
+				+ "	a.executeTechnicianStaffId as staffId,"
+				+ "	a.executeTechnician as staffName,"
+				+ "	a.executeTechnicianCoef as staffCoef,"
+				+ "	b.type,"
+				+ "	b.kind,"
+				+ "	a.kind as dept"
+				+ "	from VMiExecuted a,"
+				+ "	RbrvsPrice b"
+				+ "	where "
+				+ "	a.executeTechnicianStaffId is not null"
+				+ "	and coalesce(a.executeTechnicianCoef, 0) > 0"
+				+ "	and a.rbrvsId=b.rbrvsId"
+				+ "	and b.type=:type"
+				+ "	and b.kind=:kind"
+				+ " and a.kind=:dept"
+				+ " and a.reportDate between :begin and :end"
+				+ " and b.workStatisticsId=:workStatisticsId"
 			);
 		stmt.setInteger("workStatisticsId", workStatistic.getId());
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
-		stmt.list();
-//		for (Object[] recs: (List<Object[]>) stmt.list()) {
-//			RbrvsPrice rbrvsPrice = new RbrvsPrice(
-//					workStatistic,
-//					new DicRbrvs((int) recs[0]),
-//					(double) recs[1],
-//					(double) recs[2],
-//					0,
-//					0,
-//					Integer.parseInt(Long.toString((long) recs[3])),
-//					"审片",
-//					"工作量"
-//				);
-//			rbrvsPrice.setPrice(workStatistic.getDiagnoPointValue()*rbrvsPrice.getPoint());
-//			rbrvsPrice.setAmount(rbrvsPrice.getPrice()*rbrvsPrice.getQuantity());
-//		}
-
+		stmt.setString("type", "操作");
+		stmt.setString("kind", "工作量");
+		stmt.setString("dept", "影像科");
+		for (Object[] recs: (List<Object[]>) stmt.list()) {
+			RbrvsPrice rbrvsPrice = new RbrvsPrice(
+					workStatistic,
+					new DicRbrvs((int) recs[0]),
+					(double) recs[1],
+					(double) recs[2],
+					0,
+					0,
+					Integer.parseInt(Long.toString((long) recs[3])),
+					"审片",
+					"工作量"
+				);
+			rbrvsPrice.setPrice(workStatistic.getDiagnoPointValue()*rbrvsPrice.getPoint());
+			rbrvsPrice.setAmount(rbrvsPrice.getPrice()*rbrvsPrice.getQuantity());
+		}
+*/
 /*
 		double techCoef, assocCoef, diagnoCoef, verifierCoef;
 		//Tech Coef

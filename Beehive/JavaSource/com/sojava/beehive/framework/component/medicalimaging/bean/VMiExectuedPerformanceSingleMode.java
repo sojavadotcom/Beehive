@@ -26,6 +26,7 @@ import java.util.Date;
 		+ "	a.rbrvs_id,"
 		+ "	a.rbrvs_name,"
 		+ "	b.price,"
+		+ "	a.report_date,"
 		+ "	a.report_time,"
 		+ "	a.execute_technician_staff_id as staff_id,"
 		+ "	a.execute_technician as staff_name,"
@@ -41,13 +42,14 @@ import java.util.Date;
 		+ "	and a.rbrvs_id=b.rbrvs_id"
 		+ "	and b.type='操作'"
 		+ "	and b.kind='工作量'"
-		+ "	union "
+		+ "	union all "
 		+ "	select "
 		+ "	b.work_statistics_id,"
 		+ "	b.id as rbrvs_price_id,"
 		+ "	a.rbrvs_id,"
 		+ "	a.rbrvs_name,"
 		+ "	b.price,"
+		+ "	a.report_date,"
 		+ "	a.report_time,"
 		+ "	a.execute_technician_associate_staff_id as staff_id,"
 		+ "	a.execute_technician_associate as staff_name,"
@@ -63,13 +65,14 @@ import java.util.Date;
 		+ "	and a.rbrvs_id=b.rbrvs_id"
 		+ "	and b.type='辅助'"
 		+ "	and b.kind='工作量'"
-		+ "	union "
+		+ "	union all "
 		+ "	select "
 		+ "	b.work_statistics_id,"
 		+ "	b.id as rbrvs_price_id,"
 		+ "	a.rbrvs_id,"
 		+ "	a.rbrvs_name,"
 		+ "	b.price,"
+		+ "	a.report_date,"
 		+ "	a.report_time,"
 		+ "	a.execute_diagnostician_staff_id as staff_id,"
 		+ "	a.execute_diagnostician as staff_name,"
@@ -86,13 +89,14 @@ import java.util.Date;
 		+ "	and b.type='阅片'"
 		+ "	and b.kind='工作量'"
 		+ "	and a.status='已审核'"
-		+ "	union "
+		+ "	union all "
 		+ "	select "
 		+ "	b.work_statistics_id,"
 		+ "	b.id as rbrvs_price_id,"
 		+ "	a.rbrvs_id,"
 		+ "	a.rbrvs_name,"
 		+ "	b.price,"
+		+ "	a.report_date,"
 		+ "	a.report_time,"
 		+ "	a.execute_verifier_staff_id as staff_id,"
 		+ "	a.execute_verifier as staff_name,"
@@ -110,7 +114,8 @@ import java.util.Date;
 		+ "	and b.type='审片'"
 		+ "	and b.kind='工作量'"
 		+ "	and a.status='已审核'"
-		+ ") a")
+		+ ") a"
+	)
 public class VMiExectuedPerformanceSingleMode implements Serializable {
 	private static final long serialVersionUID = 4428779434428300573L;
 
@@ -127,6 +132,9 @@ public class VMiExectuedPerformanceSingleMode implements Serializable {
 
 	@Column(name="rbrvs_price_id")
 	private Integer rbrvsPriceId;
+
+	@Column(name="report_date")
+	private Date reportDate;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="report_time")
@@ -254,6 +262,14 @@ public class VMiExectuedPerformanceSingleMode implements Serializable {
 
 	public void setStaffCoef(Double staffCoef) {
 		this.staffCoef = staffCoef;
+	}
+
+	public Date getReportDate() {
+		return reportDate;
+	}
+
+	public void setReportDate(Date reportDate) {
+		this.reportDate = reportDate;
 	}
 
 }

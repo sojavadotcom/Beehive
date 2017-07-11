@@ -57,6 +57,16 @@ require(["dojo/domReady!"], function() {
 	</div>
 	<div style="margin: 5px 0;">
 		<div class="dijitInline">
+			<label style="font-weight: bold;">诊断组占比：</label>
+			<input name="diagnoRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" value="65" required="required" missingMessage="请填写诊断组占比" message="请填写诊断组占比" constraints="{max:100, min:0}" maxLength="3" style="width: 50px;" />%
+		</div>
+		<div class="dijitInline">
+			<label style="font-weight: bold;">投照组占比：</label>
+			<input name="techRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" value="35" required="required" missingMessage="请填写投照组占比" message="请填写投照组占比" constraints="{max:100, min:0}" maxLength="3" style="width: 50px;" />%
+		</div>
+	</div>
+	<div style="margin: 5px 0;">
+		<div class="dijitInline">
 			<label style="font-weight: bold;">管理绩效占比：</label>
 			<input name="manageRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" value="20" required="required" missingMessage="请填写管理绩效占比" message="请填写管理绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onInput="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
 		</div>
@@ -115,6 +125,10 @@ require(["dojo/domReady!"], function() {
 						medicalTotal: rec.medicalTotal,
 						manageRate: rec.manageRate,
 						manageTotal: rec.manageTotal,
+						techRate: rec.techRate,
+						techTotal: rec.techTotal,
+						diagnoRate: rec.diagnoRate,
+						diagnoTotal: rec.diagnoTotal,
 						year: rec.year,
 						month: rec.month,
 						beginDate: dojo.date.locale.format(rec.beginDate, {selector: 'date', datePattern: 'yyyy-MM-dd'}),

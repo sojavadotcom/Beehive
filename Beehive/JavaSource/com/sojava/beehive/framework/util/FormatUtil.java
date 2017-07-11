@@ -2,6 +2,7 @@ package com.sojava.beehive.framework.util;
 
 import java.io.Serializable;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,6 +14,7 @@ public class FormatUtil implements Serializable {
 	public final static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public final static DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 	public final static DateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public final static DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.00");
 
 	public final static Date parseDate(String date) throws ParseException, Exception {
 		return DATE_FORMAT.parse(date.replaceAll(Pattern.quote("\\"), "-").replaceAll(Pattern.quote("/"), "-"));
@@ -68,5 +70,9 @@ public class FormatUtil implements Serializable {
 		case 12: return 3;
 		default: return 0;
 		}
+	}
+
+	public final static double formatDecimal(double value) {
+		return Double.parseDouble(DECIMAL_FORMAT.format(value));
 	}
 }

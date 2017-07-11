@@ -33,21 +33,22 @@ import java.util.Date;
 		+ "a.medical_part,"
 		+ "a.execute_technician_staff_id,"
 		+ "a.execute_technician,"
-		+ "tc.points as execute_technician_coef,"
+		+ "coalesce(tc.points, 0) as execute_technician_coef,"
 		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then null else a.execute_technician_associate_staff_id end as execute_technician_associate_staff_id,"
 		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then null else a.execute_technician_associate end as execute_technician_associate,"
-		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then null else tac.points end as execute_technician_associate_coef,"
+		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then 0 else coalesce(tac.points, 0) end as execute_technician_associate_coef,"
 		+ "a.execute_diagnostician_staff_id,"
 		+ "a.execute_diagnostician,"
-		+ "dc.points as execute_diagnostician_coef,"
+		+ "coalesce(dc.points, 0) as execute_diagnostician_coef,"
 		+ "d.is_student as execute_diagnostician_is_student,"
 		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then null else a.execute_verifier_staff_id end as execute_verifier_staff_id,"
 		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then null else a.execute_verifier end as execute_verifier,"
-		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then null else coalesce(vc.points, 0) end as execute_verifier_coef,"
+		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then 0 else coalesce(vc.points, 0) end as execute_verifier_coef,"
 		+ "a.execute_nurse_staff_id,"
 		+ "a.execute_nurse,"
-		+ "nc.points as execute_nurse_coef,"
+		+ "coalesce(nc.points, 0) as execute_nurse_coef,"
 		+ "a.register_time,"
+		+ "a.report_time::date as report_date,"
 		+ "a.report_time,"
 		+ "a.status,"
 		+ "a.data_flag,"
@@ -167,6 +168,9 @@ public class VMiExecuted implements Serializable {
 	@Column(name="register_time")
 	private Date registerTime;
 
+	@Column(name="report_date")
+	private Date reportDate;
+
 	@Column(name="report_time")
 	private Date reportTime;
 
@@ -212,6 +216,7 @@ public class VMiExecuted implements Serializable {
 		this.setPatientType(miExecuted.getPatientType());
 		this.setRegisterNo(miExecuted.getRegisterNo());
 		this.setRegisterTime(miExecuted.getRegisterTime());
+		this.setReportDate(miExecuted.getReportDate());
 		this.setReportTime(miExecuted.getReportTime());
 		this.setStatus(miExecuted.getStatus());
 		this.setRbrvsId(miExecuted.getRbrvsId());
@@ -514,6 +519,14 @@ public class VMiExecuted implements Serializable {
 
 	public void setExecuteDiagnosticianIsStudent(Integer executeDiagnosticianIsStudent) {
 		this.executeDiagnosticianIsStudent = executeDiagnosticianIsStudent;
+	}
+
+	public Date getReportDate() {
+		return reportDate;
+	}
+
+	public void setReportDate(Date reportDate) {
+		this.reportDate = reportDate;
 	}
 
 }
