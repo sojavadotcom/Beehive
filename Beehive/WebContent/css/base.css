@@ -1,0 +1,11 @@
+@CHARSET "UTF-8";
+@IMPORT url("/css/user/login.css");
+@IMPORT url("/css/user/password.css");
+@IMPORT url("/css/worksheet/repair/index.css");
+
+* {padding: 0px; margin: 0px; font-family: 'Arial', '微软雅黑', '宋体'; font-size: 14px;}
+html, body {margin: 0px; padding: 0px; overflow: hidden; width: 100%; height: 100%;}
+#menubar,#box {margin:0px; padding: 0px; width: 100%;}
+
+.iconRepair {background:url('/images/icons/16/repair.gif') no-repeat; text-align: center; width: 16px; height: 16px;}
+.iconVerified {background:url('/images/icons/16/verified.gif') no-repeat; text-align: center; width: 16px; height: 16px;}
