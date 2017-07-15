@@ -28,22 +28,31 @@ import java.util.Date;
 		+ "a.medical_item,"
 		+ "a.rbrvs_id,"
 		+ "b.name as rbrvs_name,"
+		+ "a.medical_part,"
 		+ "b.technician as technician_value,"
 		+ "b.diagnostician as diagnostician_value,"
-		+ "a.medical_part,"
+//Technician
 		+ "a.execute_technician_staff_id,"
 		+ "a.execute_technician,"
 		+ "coalesce(tc.points, 0) as execute_technician_coef,"
+		+ "b.technician*coalesce(tc.points, 0) as execute_technician_value,"
+//Assist
 		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then null else a.execute_technician_associate_staff_id end as execute_technician_associate_staff_id,"
 		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then null else a.execute_technician_associate end as execute_technician_associate,"
 		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then 0 else coalesce(tac.points, 0) end as execute_technician_associate_coef,"
+		+ "case when coalesce(a.execute_technician_staff_id, 0)=coalesce(a.execute_technician_associate_staff_id, 0) then 0 else b.technician*coalesce(tac.points, 0) end as execute_assist_value,"
+//Diagnostician
 		+ "a.execute_diagnostician_staff_id,"
 		+ "a.execute_diagnostician,"
 		+ "coalesce(dc.points, 0) as execute_diagnostician_coef,"
+		+ "b.diagnostician*coalesce(dc.points,0) as execute_diagnostician_value,"
 		+ "d.is_student as execute_diagnostician_is_student,"
+//Verifier
 		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then null else a.execute_verifier_staff_id end as execute_verifier_staff_id,"
 		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then null else a.execute_verifier end as execute_verifier,"
 		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then 0 else coalesce(vc.points, 0) end as execute_verifier_coef,"
+		+ "case when coalesce(a.execute_diagnostician_staff_id, 0)=coalesce(a.execute_verifier_staff_id, 0) then 0 else b.diagnostician*coalesce(vc.points,0) end as execute_verifier_value,"
+//Nurse Deprecatede
 		+ "a.execute_nurse_staff_id,"
 		+ "a.execute_nurse,"
 		+ "coalesce(nc.points, 0) as execute_nurse_coef,"
@@ -59,7 +68,7 @@ import java.util.Date;
 		+ " left join medicalimaging.staff t on a.execute_technician_staff_id=t.id"
 		+ " left join medicalimaging.dic_coefficient tc on t.tech_coef_id=tc.id"
 		+ " left join medicalimaging.staff ta on a.execute_technician_associate_staff_id=ta.id"
-		+ " left join medicalimaging.dic_coefficient tac on ta.tech_coef_id=tac.id"
+		+ " left join medicalimaging.dic_coefficient tac on ta.tech_assist_coef_id=tac.id"
 		+ " left join medicalimaging.staff d on a.execute_diagnostician_staff_id=d.id"
 		+ " left join medicalimaging.dic_coefficient dc on d.diagno_coef_id=dc.id"
 		+ " left join medicalimaging.staff v on a.execute_verifier_staff_id=v.id"
@@ -113,6 +122,18 @@ public class VMiExecuted implements Serializable {
 
 	@Column(name="diagnostician_value")
 	private Double diagnosticianValue;
+
+	@Column(name="execute_technician_value")
+	private Double executeTechnicianValue;
+
+	@Column(name="execute_diagnostician_value")
+	private Double executeDiagnosticianValue;
+
+	@Column(name="execute_assist_value")
+	private Double executeAssistValue;
+
+	@Column(name="execute_verifier_value")
+	private Double executeVerifierValue;
 
 	@Column(name="medical_part")
 	private String medicalPart;
@@ -527,6 +548,38 @@ public class VMiExecuted implements Serializable {
 
 	public void setReportDate(Date reportDate) {
 		this.reportDate = reportDate;
+	}
+
+	public Double getExecuteTechnicianValue() {
+		return executeTechnicianValue;
+	}
+
+	public void setExecuteTechnicianValue(Double executeTechnicianValue) {
+		this.executeTechnicianValue = executeTechnicianValue;
+	}
+
+	public Double getExecuteDiagnosticianValue() {
+		return executeDiagnosticianValue;
+	}
+
+	public void setExecuteDiagnosticianValue(Double executeDiagnosticianValue) {
+		this.executeDiagnosticianValue = executeDiagnosticianValue;
+	}
+
+	public Double getExecuteAssistValue() {
+		return executeAssistValue;
+	}
+
+	public void setExecuteAssistValue(Double executeAssistValue) {
+		this.executeAssistValue = executeAssistValue;
+	}
+
+	public Double getExecuteVerifierValue() {
+		return executeVerifierValue;
+	}
+
+	public void setExecuteVerifierValue(Double executeVerifierValue) {
+		this.executeVerifierValue = executeVerifierValue;
 	}
 
 }

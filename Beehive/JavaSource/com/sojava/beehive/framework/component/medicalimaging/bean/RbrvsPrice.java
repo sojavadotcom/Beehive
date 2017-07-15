@@ -25,7 +25,8 @@ public class RbrvsPrice implements Serializable {
 
 	private Double point;
 
-	private Double points;
+	@Column(name="points")
+	private Double pointTotal;
 
 	private Double price;
 
@@ -34,6 +35,9 @@ public class RbrvsPrice implements Serializable {
 	private String type;
 
 	private Double amount;
+
+	@Column(name="staff_id")
+	private Integer staffId;
 
 	//bi-directional many-to-one association to CalculatePerformance
 	@OneToMany(mappedBy="rbrvsPrice")
@@ -60,7 +64,7 @@ public class RbrvsPrice implements Serializable {
 		this.workStatistic = rbrvsPrice.getWorkStatistic();
 		this.dicRbrvs = rbrvsPrice.getDicRbrvs();
 		this.point = rbrvsPrice.getPoint();
-		this.points = rbrvsPrice.getPoints();
+		this.pointTotal = rbrvsPrice.getPointTotal();
 		this.price = rbrvsPrice.getPrice();
 		this.amount = rbrvsPrice.getAmount();
 		this.quantity = rbrvsPrice.getQuantity();
@@ -68,11 +72,24 @@ public class RbrvsPrice implements Serializable {
 		this.kind = rbrvsPrice.getKind();
 	}
 
-	public RbrvsPrice(WorkStatistic workStatistic, DicRbrvs dicRbrvs, double point, double points, double price, double amount, int quantity, String type, String kind) {
+	public RbrvsPrice(WorkStatistic workStatistic, DicRbrvs dicRbrvs, double point, double pointTotal, double price, double amount, int quantity, String type, String kind) {
 		this.workStatistic = workStatistic;
 		this.dicRbrvs = dicRbrvs;
 		this.point = point;
-		this.points = points;
+		this.pointTotal = pointTotal;
+		this.price = price;
+		this.amount = amount;
+		this.quantity = quantity;
+		this.type = type;
+		this.kind = kind;
+	}
+
+	public RbrvsPrice(WorkStatistic workStatistic, DicRbrvs dicRbrvs, int staffId, double point, double pointTotal, double price, double amount, int quantity, String type, String kind) {
+		this.workStatistic = workStatistic;
+		this.dicRbrvs = dicRbrvs;
+		this.staffId = staffId;
+		this.point = point;
+		this.pointTotal = pointTotal;
 		this.price = price;
 		this.amount = amount;
 		this.quantity = quantity;
@@ -104,12 +121,12 @@ public class RbrvsPrice implements Serializable {
 		this.point = point;
 	}
 
-	public Double getPoints() {
-		return this.points;
+	public Double getPointTotal() {
+		return this.pointTotal;
 	}
 
-	public void setPoints(Double points) {
-		this.points = points;
+	public void setPointTotal(Double pointTotal) {
+		this.pointTotal = pointTotal;
 	}
 
 	public Double getPrice() {
@@ -166,6 +183,14 @@ public class RbrvsPrice implements Serializable {
 
 	public void setDicRbrvs(DicRbrvs dicRbrvs) {
 		this.dicRbrvs = dicRbrvs;
+	}
+
+	public Integer getStaffId() {
+		return staffId;
+	}
+
+	public void setStaffId(Integer staffId) {
+		this.staffId = staffId;
 	}
 
 }

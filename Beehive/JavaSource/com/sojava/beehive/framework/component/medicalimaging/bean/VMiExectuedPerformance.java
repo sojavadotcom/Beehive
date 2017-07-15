@@ -2,6 +2,9 @@ package com.sojava.beehive.framework.component.medicalimaging.bean;
 
 import java.io.Serializable;
 import javax.persistence.*;
+
+import org.hibernate.annotations.Subselect;
+
 import java.util.Date;
 
 
@@ -10,13 +13,83 @@ import java.util.Date;
  * 
  */
 @Entity
-@Table(name="v_mi_exectued_performance", schema="medicalimaging")
+//@Table(name="v_mi_exectued_performance", schema="medicalimaging")
+@Subselect(
+		"select "
+		+ "row_number() OVER (order by kind, type, work_statistics_id, rbrvs_id) AS id,"
+		+ "a.*"
+		+ " from ("
+		+ "	select "
+		+ "	b.work_statistics_id,"
+		+ "	b.id as rbrvs_price_id,"
+		+ "	c.id as rbrvs_id,"
+		+ "	c.name as rbrvs_name,"
+		+ "	b.price,"
+		+ "	a.report_date,"
+		+ "	a.report_time,"
+		+ " a.technician_value as point,"
+		+ "	a.execute_technician_staff_id as worker1_id,"
+		+ "	a.execute_technician as worker1_name,"
+		+ "	a.execute_technician_coef as worker1_coef,"
+		+ " a.execute_diagnostician_is_student,"
+		+ "	a.execute_technician_associate_staff_id as worker2_id,"
+		+ "	a.execute_technician_associate as worker2_name,"
+		+ "	a.execute_technician_associate_coef as worker2_coef,"
+		+ "	b.type,"
+		+ "	b.kind,"
+		+ "	a.kind as dept"
+		+ "	from "
+		+ "	medicalimaging.v_mi_executed a,"
+		+ "	medicalimaging.rbrvs_price b,"
+		+ "	medicalimaging.dic_rbrvs c"
+		+ "	where "
+		+ "	(a.execute_technician_staff_id is not null or a.execute_technician_associate_staff_id is not null)"
+		+ "	and a.rbrvs_id=b.rbrvs_id"
+		+ "	and a.rbrvs_id=c.id"
+		+ "	and b.type='投照'"
+		+ "	and b.kind='工作量'"
+		+ "	union all "
+		+ "	select "
+		+ "	b.work_statistics_id,"
+		+ "	b.id as rbrvs_price_id,"
+		+ "	c.id as rbrvs_id,"
+		+ "	c.name as rbrvs_name,"
+		+ "	b.price,"
+		+ "	a.report_date,"
+		+ "	a.report_time,"
+		+ " a.diagnostician_value as point,"
+		+ "	a.execute_diagnostician_staff_id as worker1_id,"
+		+ "	a.execute_diagnostician as worker1_name,"
+		+ "	a.execute_diagnostician_coef as worker1_coef,"
+		+ " a.execute_diagnostician_is_student,"
+		+ "	a.execute_verifier_staff_id as worker2_id,"
+		+ "	a.execute_verifier as worker2_name,"
+		+ "	a.execute_verifier_coef as worker2_coef,"
+		+ "	b.type,"
+		+ "	b.kind,"
+		+ "	a.kind as dept"
+		+ "	from "
+		+ "	medicalimaging.v_mi_executed a,"
+		+ "	medicalimaging.rbrvs_price b,"
+		+ "	medicalimaging.dic_rbrvs c"
+		+ "	where "
+		+ "	a.rbrvs_id=b.rbrvs_id"
+		+ "	and a.rbrvs_id=c.id"
+		+ "	and a.status='已审核'"
+		+ "	and b.type='诊断'"
+		+ "	and b.kind='工作量'"
+		+ ") a"
+	)
 @NamedQuery(name="VMiExectuedPerformance.findAll", query="SELECT v FROM VMiExectuedPerformance v")
 public class VMiExectuedPerformance implements Serializable {
-	private static final long serialVersionUID = 5121105264840066633L;
+	private static final long serialVersionUID = -8691153908036595973L;
 
 	@Id
 	private Integer id;
+
+	private String dept;
+
+	private String kind;
 
 	private Double price;
 
@@ -29,15 +102,15 @@ public class VMiExectuedPerformance implements Serializable {
 	@Column(name="rbrvs_price_id")
 	private Integer rbrvsPriceId;
 
+	@Temporal(TemporalType.DATE)
+	@Column(name="report_date")
+	private Date reportDate;
+
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="report_time")
 	private Date reportTime;
 
 	private String type;
-
-	private String kind;
-
-	private String dept;
 
 	@Column(name="work_statistics_id")
 	private Integer workStatisticsId;
@@ -60,16 +133,21 @@ public class VMiExectuedPerformance implements Serializable {
 	@Column(name="worker2_name")
 	private String worker2Name;
 
-	@Column(name="worker3_coef")
-	private Double worker3Coef;
+	private Double point;
 
-	@Column(name="worker3_id")
-	private Integer worker3Id;
+	@Column(name="execute_diagnostician_is_student")
+	private Integer executeDiagnosticianIsStudent;
 
-	@Column(name="worker3_name")
-	private String worker3Name;
+	public VMiExectuedPerformance() {
+	}
 
-	public VMiExectuedPerformance() {}
+	public String getDept() {
+		return this.dept;
+	}
+
+	public void setDept(String dept) {
+		this.dept = dept;
+	}
 
 	public Integer getId() {
 		return this.id;
@@ -117,6 +195,14 @@ public class VMiExectuedPerformance implements Serializable {
 
 	public void setRbrvsPriceId(Integer rbrvsPriceId) {
 		this.rbrvsPriceId = rbrvsPriceId;
+	}
+
+	public Date getReportDate() {
+		return this.reportDate;
+	}
+
+	public void setReportDate(Date reportDate) {
+		this.reportDate = reportDate;
 	}
 
 	public Date getReportTime() {
@@ -191,36 +277,20 @@ public class VMiExectuedPerformance implements Serializable {
 		this.worker2Name = worker2Name;
 	}
 
-	public Double getWorker3Coef() {
-		return this.worker3Coef;
+	public Double getPoint() {
+		return point;
 	}
 
-	public void setWorker3Coef(Double worker3Coef) {
-		this.worker3Coef = worker3Coef;
+	public void setPoint(Double point) {
+		this.point = point;
 	}
 
-	public Integer getWorker3Id() {
-		return this.worker3Id;
+	public Integer getExecuteDiagnosticianIsStudent() {
+		return executeDiagnosticianIsStudent;
 	}
 
-	public void setWorker3Id(Integer worker3Id) {
-		this.worker3Id = worker3Id;
-	}
-
-	public String getWorker3Name() {
-		return this.worker3Name;
-	}
-
-	public void setWorker3Name(String worker3Name) {
-		this.worker3Name = worker3Name;
-	}
-
-	public String getDept() {
-		return dept;
-	}
-
-	public void setDept(String dept) {
-		this.dept = dept;
+	public void setExecuteDiagnosticianIsStudent(Integer executeDiagnosticianIsStudent) {
+		this.executeDiagnosticianIsStudent = executeDiagnosticianIsStudent;
 	}
 
 }

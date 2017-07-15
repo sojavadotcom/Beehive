@@ -9,8 +9,8 @@
 function calculateBudget(o) {
 	var frmObj = medicalimagingMeritFrm;
 	var _budget = parseFloat(frmObj.getValues().budget)||0;
-	var _medicalRate = parseInt(frmObj.getValues().medicalRate)||80;
-	var _manageRate = parseInt(frmObj.getValues().manageRate)||20;
+	var _medicalRate = parseFloat(frmObj.getValues().medicalRate)||80;
+	var _manageRate = parseFloat(frmObj.getValues().manageRate)||20;
 	if (o&&o.name == "medicalRate") {
 		_medicalRate = _medicalRate > 100 ? 100 : _medicalRate < 0 ? 0 : _medicalRate;
 		_manageRate = 100-_medicalRate;
@@ -28,18 +28,40 @@ function calculateBudget(o) {
 		manageTotal: _manageTotal
 	});
 }
-require(["dojo/domReady!"], function() {
+require(["dijit/Fieldset", "dojo/domReady!"],
+function(Fieldset) {
 	dojo.ready(function() {
 	});
 });
 </script>
 <form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save.merit.s2" dojoType="dijit.form.Form">
-	<div style="margin: 5px 0;">
+	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
 			<option value="影像科">影像科</option>
 		</select>
 	</div>
+	<div dojoType="dijit.Fieldset" title="科室总额度" toggleable="false">
+		<input name="totalAmount" type="text" dojoType="dijit.form.NumberTextBox" trim="true" value="0" required="required" missingMessage="请填写科室总额度" message="请填写科室总额度" style="width: 90%;" />元
+	</div>
+	<fieldset>
+		<legend>支出项目</legend>
+		<div style="margin: 5px 0;">
+			<div class="dijitInline">
+				<label style="font-weight: bold;">科室加班费：</label>
+				<input name="overtimeCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" value="0" required="required" missingMessage="请填写科室加班费" message="请填写科室加班费" style="width: 100px;" />元
+			</div>
+		</div>
+		<div>
+			<div class="dijitInline">
+				<label style="font-weight: bold;">护理额度占比：</label>
+				<input name="nurseRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" value="80" required="required" missingMessage="请填写护理额度占比" message="请填写护理额度占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onInput="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
+			</div>
+			<div>
+				<input name="nurseCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" value="0" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
+			</div>
+		</div>
+	</fieldset>
 	<div style="margin: 5px 0;">
 		<div class="dijitInline">
 			<label style="font-weight: bold;">科室预算总额：</label>

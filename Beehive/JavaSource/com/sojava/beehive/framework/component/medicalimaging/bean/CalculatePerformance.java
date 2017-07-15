@@ -22,7 +22,12 @@ public class CalculatePerformance implements Serializable {
 
 	private Double amount;
 
+	@Column(name="point_total")
+	private Double pointTotal;
+
 	private Double price;
+
+	private Double point;
 
 	private Integer quantity;
 
@@ -47,6 +52,18 @@ public class CalculatePerformance implements Serializable {
 	@Column(name="worker1_total")
 	private Double worker1Total;
 
+	@Column(name="worker1_point")
+	private Double worker1Point;
+
+	@Column(name="worker1_point_total")
+	private Double worker1PointTotal;
+
+	@Column(name="worker1_quantity")
+	private Double worker1Quantity;
+
+	@Column(name="worker1_statis_quantity")
+	private Double worker1StatisQuantity;
+
 	@Column(name="worker2_coef")
 	private Double worker2Coef;
 
@@ -55,6 +72,18 @@ public class CalculatePerformance implements Serializable {
 
 	@Column(name="worker2_total")
 	private Double worker2Total;
+
+	@Column(name="worker2_point")
+	private Double worker2Point;
+
+	@Column(name="worker2_point_total")
+	private Double worker2PointTotal;
+
+	@Column(name="worker2_quantity")
+	private Double worker2Quantity;
+
+	@Column(name="worker2_statis_quantity")
+	private Double worker2StatisQuantity;
 
 	@Column(name="worker3_coef")
 	private Double worker3Coef;
@@ -249,6 +278,86 @@ public class CalculatePerformance implements Serializable {
 
 	public void setDept(String dept) {
 		this.dept = dept;
+	}
+
+	public Double getWorker1PointTotal() {
+		return worker1PointTotal;
+	}
+
+	public void setWorker1PointTotal(Double worker1PointTotal) {
+		this.worker1PointTotal = worker1PointTotal;
+	}
+
+	public Double getWorker2PointTotal() {
+		return worker2PointTotal;
+	}
+
+	public void setWorker2PointTotal(Double worker2PointTotal) {
+		this.worker2PointTotal = worker2PointTotal;
+	}
+
+	public Double getPointTotal() {
+		return pointTotal;
+	}
+
+	public void setPointTotal(Double pointTotal) {
+		this.pointTotal = pointTotal;
+	}
+
+	public Double getPoint() {
+		return point;
+	}
+
+	public void setPoint(Double point) {
+		this.point = point;
+	}
+
+	public Double getWorker1Point() {
+		return worker1Point;
+	}
+
+	public void setWorker1Point(Double worker1Point) {
+		this.worker1Point = worker1Point;
+	}
+
+	public Double getWorker2Point() {
+		return worker2Point;
+	}
+
+	public void setWorker2Point(Double worker2Point) {
+		this.worker2Point = worker2Point;
+	}
+
+	public Double getWorker1Quantity() {
+		return worker1Quantity;
+	}
+
+	public void setWorker1Quantity(Double worker1Quantity) {
+		this.worker1Quantity = worker1Quantity;
+	}
+
+	public Double getWorker2Quantity() {
+		return worker2Quantity;
+	}
+
+	public void setWorker2Quantity(Double worker2Quantity) {
+		this.worker2Quantity = worker2Quantity;
+	}
+
+	public Double getWorker1StatisQuantity() {
+		return worker1StatisQuantity;
+	}
+
+	public void setWorker1StatisQuantity(Double worker1StatisQuantity) {
+		this.worker1StatisQuantity = worker1StatisQuantity;
+	}
+
+	public Double getWorker2StatisQuantity() {
+		return worker2StatisQuantity;
+	}
+
+	public void setWorker2StatisQuantity(Double worker2StatisQuantity) {
+		this.worker2StatisQuantity = worker2StatisQuantity;
 	}
 
 }

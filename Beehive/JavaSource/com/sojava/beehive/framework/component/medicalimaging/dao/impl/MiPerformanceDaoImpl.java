@@ -3,6 +3,8 @@ package com.sojava.beehive.framework.component.medicalimaging.dao.impl;
 import com.sojava.beehive.framework.component.medicalimaging.bean.CalculatePerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.RbrvsPrice;
+import com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonus;
+import com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonusPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiPerformanceDao;
 import com.sojava.beehive.framework.exception.CommonException;
@@ -37,11 +39,11 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 			/*
 			 * Sharing Mode
 			 */
-//			calMode = new SharingMode(getSession(), session, workStatistic);
+			calMode = new SharingMode(getSession(), session, workStatistic);
 			/*
 			 * Single Mode
 			 */
-			calMode = new SingleMode(getSession(), session, workStatistic);
+//			calMode = new SingleMode(getSession(), session, workStatistic);
 
 			//Calculate the Main data of Work statistic.
 			calMode.calMainInfo();
@@ -96,6 +98,7 @@ class SharingMode implements Mode {
 		 */
 		workStatistic.setPointTotal(0d);
 		//Technician Group
+/*
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "sum(b.technician) as amount"
@@ -107,11 +110,22 @@ class SharingMode implements Mode {
 				+ "	and (a.executeTechnician<>'' or a.executeTechnicianAssociate<>'')"
 				+ " and a.reportTime between :begin and :end"
 			);
+*/
+		stmt = this.querySession.createQuery(
+				"select "
+				+ "sum(technicianValue) as amount"
+				+ " from "
+				+ "VMiExecuted"
+				+ " where "
+				+ "(executeTechnicianStaffId is not null or executeTechnicianAssociateStaffId is not null)"
+				+ " and reportDate between :begin and :end"
+			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
-//		workStatistic.setPointTotal(workStatistic.getPointTotal() + (double) stmt.uniqueResult());
+		workStatistic.setPointTotal(workStatistic.getPointTotal() + (double) stmt.uniqueResult());
 		workStatistic.setTechPointTotal((double) stmt.uniqueResult());
 		//Diagnostician Group
+/*
 		stmt = this.querySession.createQuery(
 				"select "
 				+ " sum(b.diagnostician) as amount"
@@ -123,16 +137,26 @@ class SharingMode implements Mode {
 				+ "	 and a.reportTime between :begin and :end"
 				+ "	 and a.status=:status"
 			);
+*/
+		stmt = this.querySession.createQuery(
+				"select "
+				+ "sum(diagnosticianValue) as amount"
+				+ " from "
+				+ "VMiExecuted"
+				+ " where "
+				+ "reportDate between :begin and :end"
+				+ " and status=:status"
+			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		stmt.setString("status", "已审核");
-//		workStatistic.setPointTotal(workStatistic.getPointTotal() + (double) stmt.uniqueResult());
+		workStatistic.setPointTotal(workStatistic.getPointTotal() + (double) stmt.uniqueResult());
 		workStatistic.setDiagnoPointTotal((double) stmt.uniqueResult());
 
 		/*
 		 * Calculateing the Point value.
 		 */
-//		workStatistic.setPointValue(workStatistic.getMedicalTotal()/workStatistic.getPointTotal());
+		workStatistic.setPointValue(workStatistic.getMedicalTotal()/workStatistic.getPointTotal());
 		workStatistic.setTechPointValue(workStatistic.getTechTotal()/workStatistic.getTechPointTotal());
 		workStatistic.setDiagnoPointValue(workStatistic.getDiagnoTotal()/workStatistic.getDiagnoPointTotal());
 
@@ -154,6 +178,7 @@ class SharingMode implements Mode {
 		 * Sum Workload for Technician,Diagnostician,Verifier.
 		 */
 		//投照组
+/*
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "b.id, b.technician, sum(b.technician) as amount, count(b.technician) as quantity"
@@ -167,38 +192,68 @@ class SharingMode implements Mode {
 				+ " group by b.id, b.technician"
 				+ " order by b.id"
 			);
+*/
+		stmt = this.querySession.createQuery(
+				"select "
+				+ "rbrvsId,"
+				+ "technicianValue,"
+				+ "sum(technicianValue) as amount,"
+				+ "count(technicianValue) as quantity"
+				+ " from "
+				+ "VMiExecuted"
+				+ " where "
+				+ "(executeTechnicianStaffId is not null or executeTechnicianAssociateStaffId is not null)"
+				+ " and reportDate between :begin and :end"
+				+ " group by rbrvsId, technicianValue"
+			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		for(Object[] recs: (List<Object[]>) stmt.list()) {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
-					new DicRbrvs((int) recs[0]),
-					(double) recs[1],
-					(double) recs[2],
+					new DicRbrvs(Integer.parseInt(recs[0].toString())),
+					Double.parseDouble(recs[1].toString()),
+					Double.parseDouble(recs[2].toString()),
 					0,
 					0,
-					Integer.parseInt(Long.toString((long) recs[3])),
+					Integer.parseInt(recs[3].toString()),
 					"投照",
 					"工作量"
 				);
-//			rbrvsPrice.setPrice(workStatistic.getPointValue()*rbrvsPrice.getPoint());
-			rbrvsPrice.setPrice(workStatistic.getTechPointValue()*rbrvsPrice.getPoint());
+			//计算单价
+			rbrvsPrice.setPrice(workStatistic.getPointValue()*rbrvsPrice.getPoint());
+//			rbrvsPrice.setPrice(workStatistic.getTechPointValue()*rbrvsPrice.getPoint());
+			//计算总价
 			rbrvsPrice.setAmount(rbrvsPrice.getPrice()*rbrvsPrice.getQuantity());
+
 			this.updateSession.save(rbrvsPrice);
 		}
 		//诊断组
+//		stmt = this.querySession.createQuery(
+//				"select "
+//				+ "b.id, b.diagnostician, sum(b.diagnostician) as amount, count(b.diagnostician) as quantity"
+//				+ " from "
+//				+ "MiExecuted a,"
+//				+ "DicRbrvs b"
+//				+ " where "
+//				+ "a.rbrvsId=b.id"
+//				+ " and a.reportTime between :begin and :end"
+//				+ " and a.status=:status"
+//				+ " group by b.id, b.diagnostician"
+//				+ " order by b.id"
+//			);
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "b.id, b.diagnostician, sum(b.diagnostician) as amount, count(b.diagnostician) as quantity"
+				+ "rbrvsId,"
+				+ "diagnosticianValue,"
+				+ "sum(diagnosticianValue) as amount,"
+				+ "count(diagnosticianValue) as quantity"
 				+ " from "
-				+ "MiExecuted a,"
-				+ "DicRbrvs b"
+				+ "VMiExecuted"
 				+ " where "
-				+ "a.rbrvsId=b.id"
-				+ " and a.reportTime between :begin and :end"
-				+ " and a.status=:status"
-				+ " group by b.id, b.diagnostician"
-				+ " order by b.id"
+				+ "reportDate between :begin and :end"
+				+ " and status=:status"
+				+ " group by rbrvsId, diagnosticianValue"
 			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
@@ -206,17 +261,21 @@ class SharingMode implements Mode {
 		for(Object[] recs: (List<Object[]>) stmt.list()) {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
-					new DicRbrvs((int) recs[0]),
-					(double) recs[1],
-					(double) recs[2],
+					new DicRbrvs(Integer.parseInt(recs[0].toString())),
+					Double.parseDouble(recs[1].toString()),
+					Double.parseDouble(recs[2].toString()),
 					0,
 					0,
-					Integer.parseInt(Long.toString((long) recs[3])),
+					Integer.parseInt(recs[3].toString()),
 					"诊断",
 					"工作量"
 				);
-			rbrvsPrice.setPrice(workStatistic.getDiagnoPointValue()*rbrvsPrice.getPoint());
+			//计算单价
+			rbrvsPrice.setPrice(workStatistic.getPointValue()*rbrvsPrice.getPoint());
+//			rbrvsPrice.setPrice(workStatistic.getDiagnoPointValue()*rbrvsPrice.getPoint());
+			//计算总价
 			rbrvsPrice.setAmount(rbrvsPrice.getPrice()*rbrvsPrice.getQuantity());
+
 			this.updateSession.save(rbrvsPrice);
 		}
 	}
@@ -225,10 +284,13 @@ class SharingMode implements Mode {
 	public void calPerformance() throws Exception {
 		Query stmt;
 
+		//清除历史数据
 		stmt = this.updateSession.createQuery("delete from CalculatePerformance where workStatistic=:workStatistic");
 		stmt.setEntity("workStatistic", workStatistic);
 		stmt.executeUpdate();
 
+		//核算个人分数
+/*
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "rbrvsPriceId,"
@@ -251,6 +313,7 @@ class SharingMode implements Mode {
 				+ " and reportTime between :begin and :end"
 				+ " group by rbrvsPriceId,rbrvsId,price,worker1Id,worker1Coef,worker2Id,worker2Coef,worker3Id,worker3Coef,type,kind,dept"
 			);
+
 		stmt.setInteger("workStatisticsId", workStatistic.getId());
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
@@ -276,6 +339,81 @@ class SharingMode implements Mode {
 			calculatePerformance.setWorker1Total(calculatePerformance.getWorker1Coef()*calculatePerformance.getWorkerPrice());
 			calculatePerformance.setWorker2Total(calculatePerformance.getWorker2Coef()*calculatePerformance.getWorkerPrice());
 			calculatePerformance.setWorker3Total(calculatePerformance.getWorker3Coef()*calculatePerformance.getWorkerPrice());
+			this.updateSession.save(calculatePerformance);
+		}
+*/
+		stmt = this.querySession.createQuery(
+				"select "
+				+ "rbrvsPriceId,"
+				+ "rbrvsId,"
+				+ "price,"
+				+ "point,"
+				+ "count(rbrvsId) as quantity,"
+				+ "coalesce(worker1Id, 0) as worker1Id,"
+				+ "coalesce(worker1Name, '') as worker1Name,"
+				+ "coalesce(worker1Coef, 0) as worker1Coef,"
+				+ "coalesce(worker2Id, 0) as worker2Id,"
+				+ "coalesce(worker2Name, '') as worker2Name,"
+				+ "coalesce(worker2Coef, 0) as worker2Coef,"
+				+ "type,"
+				+ "kind,"
+				+ "dept,"
+				+ "executeDiagnosticianIsStudent"
+				+ " from "
+				+ "VMiExectuedPerformance"
+				+ " where "
+				+ " reportDate between :begin and :end"
+				+ " and workStatisticsId=:workStatisticsId"
+				+ " group by rbrvsPriceId,rbrvsId,price,point,worker1Id,worker1Name,worker1Coef,worker2Id,worker2Name,worker2Coef,type,kind,dept,execute_diagnostician_is_student"
+			);
+		stmt.setInteger("workStatisticsId", workStatistic.getId());
+		stmt.setDate("begin", workStatistic.getBeginDate());
+		stmt.setDate("end", workStatistic.getEndDate());
+		for(Object[] recs: (List<Object[]>) stmt.list()) {
+			CalculatePerformance calculatePerformance = new CalculatePerformance();
+			calculatePerformance.setWorkStatistic(workStatistic);
+			calculatePerformance.setRbrvsPrice(new RbrvsPrice(Integer.parseInt(recs[0].toString())));
+			calculatePerformance.setDicRbrvs(new DicRbrvs(Integer.parseInt(recs[1].toString())));
+			calculatePerformance.setPrice(Double.parseDouble(recs[2].toString()));
+			calculatePerformance.setPoint(Double.parseDouble(recs[3].toString()));
+			calculatePerformance.setQuantity(Integer.parseInt(recs[4].toString()));
+			calculatePerformance.setWorker1StaffId(Integer.parseInt(recs[5].toString()));
+			calculatePerformance.setWorker1Coef(Double.parseDouble(recs[7].toString()));
+			calculatePerformance.setWorker2StaffId(Integer.parseInt(recs[8].toString()));
+			calculatePerformance.setWorker2Coef(Double.parseDouble(recs[10].toString()));
+			calculatePerformance.setType(recs[11].toString());
+			calculatePerformance.setKind(recs[12].toString());
+			calculatePerformance.setDept(recs[13].toString());
+			boolean isStudent = Integer.parseInt(recs[14].toString()) == 1;
+			boolean isDiagno = calculatePerformance.getType().equalsIgnoreCase("诊断");
+			if (isDiagno && !isStudent) {
+				calculatePerformance.setWorker2Coef(0d);
+			}
+			calculatePerformance.setWorkerCoefTotal(calculatePerformance.getWorker1Coef()+calculatePerformance.getWorker2Coef());
+
+			calculatePerformance.setPointTotal(calculatePerformance.getPoint()*calculatePerformance.getQuantity());
+			double work1Percent = calculatePerformance.getWorker1Coef()/calculatePerformance.getWorkerCoefTotal();
+//			double work2Percent = calculatePerformance.getWorker2Coef()/calculatePerformance.getWorkerCoefTotal();
+			calculatePerformance.setWorker1Point(work1Percent*calculatePerformance.getPoint());
+			calculatePerformance.setWorker1PointTotal(calculatePerformance.getWorker1Point()*calculatePerformance.getQuantity());
+			calculatePerformance.setWorker2Point(calculatePerformance.getPoint()-calculatePerformance.getWorker1Point());
+			calculatePerformance.setWorker2PointTotal(calculatePerformance.getWorker2Point()*calculatePerformance.getQuantity());
+			calculatePerformance.setAmount(calculatePerformance.getPrice()*calculatePerformance.getQuantity());
+			calculatePerformance.setWorkerPrice(calculatePerformance.getAmount()/calculatePerformance.getWorkerCoefTotal());
+			calculatePerformance.setWorker1Total(work1Percent*calculatePerformance.getWorkerPrice());
+			calculatePerformance.setWorker2Total(calculatePerformance.getAmount()-calculatePerformance.getWorker1Total());
+
+			calculatePerformance.setWorker1Quantity(work1Percent*calculatePerformance.getQuantity());
+			calculatePerformance.setWorker2Quantity(calculatePerformance.getQuantity()-calculatePerformance.getWorker1Quantity());
+
+			if (work1Percent == 1) {
+				calculatePerformance.setWorker1StatisQuantity(1d*calculatePerformance.getQuantity());
+				calculatePerformance.setWorker2StatisQuantity(0d*calculatePerformance.getQuantity());
+			} else {
+				calculatePerformance.setWorker1StatisQuantity(0.5d*calculatePerformance.getQuantity());
+				calculatePerformance.setWorker2StatisQuantity(0.5d*calculatePerformance.getQuantity());
+			}
+
 			this.updateSession.save(calculatePerformance);
 		}
 	}
@@ -305,7 +443,7 @@ class SingleMode implements Mode {
 		//Technician
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "sum(technicianValue) as amount"
+				+ "sum(technicianValue*executeTechnicianCoef) as amount"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
@@ -319,7 +457,7 @@ class SingleMode implements Mode {
 		//Technician Associate
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "sum(technicianValue) as amount"
+				+ "sum(technicianValue*executeTechnicianAssociateCoef) as amount"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
@@ -333,7 +471,7 @@ class SingleMode implements Mode {
 		//Diagnostician
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "sum(diagnosticianValue) as amount"
+				+ "sum(diagnosticianValue*executeDiagnosticianCoef) as amount"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
@@ -349,7 +487,7 @@ class SingleMode implements Mode {
 		//Verifier
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "sum(diagnosticianValue) as amount"
+				+ "sum(diagnosticianValue*executeVerifierCoef) as amount"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
@@ -390,27 +528,55 @@ class SingleMode implements Mode {
 		//Technician
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "rbrvsId, technicianValue, sum(technicianValue) as amount, count(id) as quantity"
+				+ "rbrvsId,"
+				+ "executeTechnicianStaffId as staffId,"
+				+ "technicianValue*executeTechnicianCoef as technicianValue,"
+				+ "sum(technicianValue*executeTechnicianCoef) as amount,"
+				+ "count(id) as quantity"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
 				+ " executeTechnicianStaffId is not null"
 				+ " and executeTechnicianCoef > 0"
 				+ " and reportDate between :begin and :end"
-				+ " group by rbrvsId, technicianValue"
+				+ " group by rbrvsId, technicianValue, executeTechnicianStaffId, executeTechnicianCoef"
 				+ " order by rbrvsId"
 			);
+//		stmt = this.querySession.createSQLQuery(
+//				"select "
+//				+ "rbrvs_id,"
+//				+ "technician_value,"
+//				+ "sum(amount) as amount,"
+//				+ "sum(quantity) as quantity"
+//				+ " from ("
+//				+ "	select "
+//				+ "	rbrvs_id,"
+//				+ "	technician_value,"
+//				+ "	sum(technician_value)*execute_technician_coef as amount,"
+//				+ "	count(id) as quantity"
+//				+ "	from "
+//				+ "	medicalimaging.v_mi_executed"
+//				+ "	where "
+//				+ "	execute_technician_staff_id is not null"
+//				+ "	and execute_technician_coef > 0"
+//				+ "	and report_date between :begin and :end"
+//				+ "	group by rbrvs_id,technician_value,execute_technician_coef,execute_technician_staff_id"
+//				+ ") a"
+//				+ " group by rbrvs_id,technician_value"
+//				+ " order by rbrvs_id"
+//			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		for(Object[] recs: (List<Object[]>) stmt.list()) {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
-					new DicRbrvs((int) recs[0]),
-					(double) recs[1],
-					(double) recs[2],
+					new DicRbrvs(Integer.parseInt(recs[0].toString())),
+					Integer.parseInt(recs[1].toString()),
+					Double.parseDouble(recs[2].toString()),
+					Double.parseDouble(recs[3].toString()),
 					0,
 					0,
-					Integer.parseInt(Long.toString((long) recs[3])),
+					Integer.parseInt(recs[4].toString()),
 					"操作",
 					"工作量"
 				);
@@ -422,27 +588,55 @@ class SingleMode implements Mode {
 		//Associate
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "rbrvsId, technicianValue, sum(technicianValue) as amount, count(id) as quantity"
+				+ "rbrvsId,"
+				+ "executeTechnicianAssociateStaffId as staffId,"
+				+ "technicianValue*executeTechnicianAssociateCoef as assistValue,"
+				+ "sum(technicianValue*executeTechnicianAssociateCoef) as amount,"
+				+ "count(id) as quantity"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
 				+ "executeTechnicianAssociateStaffId is not null"
 				+ " and executeTechnicianAssociateCoef > 0"
 				+ " and reportDate between :begin and :end"
-				+ " group by rbrvsId, technicianValue"
+				+ " group by rbrvsId, technicianValue, executeTechnicianAssociateStaffId, executeTechnicianAssociateCoef"
 				+ " order by rbrvsId"
 			);
+//		stmt = this.querySession.createSQLQuery(
+//				"select "
+//				+ "rbrvs_id,"
+//				+ "assist_value,"
+//				+ "sum(amount) as amount,"
+//				+ "sum(quantity) as quantity"
+//				+ " from ("
+//				+ "	select "
+//				+ "	rbrvs_id,"
+//				+ "	technician_value as assist_value,"
+//				+ "	sum(technician_value)*execute_technician_associate_coef as amount,"
+//				+ "	count(id) as quantity"
+//				+ "	from "
+//				+ "	medicalimaging.v_mi_executed"
+//				+ "	where "
+//				+ "	execute_technician_associate_staff_id is not null"
+//				+ "	and execute_technician_associate_coef > 0"
+//				+ "	and report_date between :begin and :end"
+//				+ "	group by rbrvs_id,technician_value,execute_technician_associate_coef,execute_technician_associate_staff_id"
+//				+ ") a"
+//				+ " group by rbrvs_id,assist_value"
+//				+ " order by rbrvs_id"
+//			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		for(Object[] recs: (List<Object[]>) stmt.list()) {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
-					new DicRbrvs((int) recs[0]),
-					(double) recs[1],
-					(double) recs[2],
+					new DicRbrvs(Integer.parseInt(recs[0].toString())),
+					Integer.parseInt(recs[1].toString()),
+					Double.parseDouble(recs[2].toString()),
+					Double.parseDouble(recs[3].toString()),
 					0,
 					0,
-					Integer.parseInt(Long.toString((long) recs[3])),
+					Integer.parseInt(recs[4].toString()),
 					"辅助",
 					"工作量"
 				);
@@ -454,7 +648,11 @@ class SingleMode implements Mode {
 		//Diagnostician
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "rbrvsId, diagnosticianValue, sum(diagnosticianValue) as amount, count(id) as quantity"
+				+ "rbrvsId,"
+				+ "executeDiagnosticianStaffId,"
+				+ "diagnosticianValue*executeDiagnosticianCoef as diagnosticianValue,"
+				+ "sum(diagnosticianValue*executeDiagnosticianCoef) as amount,"
+				+ "count(id) as quantity"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
@@ -462,21 +660,46 @@ class SingleMode implements Mode {
 				+ " and executeDiagnosticianCoef > 0"
 				+ " and reportDate between :begin and :end"
 				+ " and status=:status"
-				+ " group by rbrvsId, diagnosticianValue"
+				+ " group by rbrvsId, diagnosticianValue, executeDiagnosticianStaffId, executeDiagnosticianCoef"
 				+ " order by rbrvsId"
 			);
+//		stmt = this.querySession.createSQLQuery(
+//				"select "
+//				+ "rbrvs_id,"
+//				+ "diagnostician_value,"
+//				+ "sum(amount) as amount,"
+//				+ "sum(quantity) as quantity"
+//				+ " from ("
+//				+ "	select "
+//				+ "	rbrvs_id,"
+//				+ "	diagnostician_value,"
+//				+ "	sum(diagnostician_value)*execute_diagnostician_coef as amount,"
+//				+ "	count(id) as quantity"
+//				+ "	from "
+//				+ "	medicalimaging.v_mi_executed"
+//				+ "	where "
+//				+ "	execute_diagnostician_staff_id is not null"
+//				+ "	and execute_diagnostician_coef > 0"
+//				+ "	and report_date between :begin and :end"
+//				+ " and status=:status"
+//				+ "	group by rbrvs_id,diagnostician_value,execute_diagnostician_coef,execute_diagnostician_staff_id"
+//				+ ") a"
+//				+ " group by rbrvs_id,diagnostician_value"
+//				+ " order by rbrvs_id"
+//			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		stmt.setString("status", "已审核");
 		for(Object[] recs: (List<Object[]>) stmt.list()) {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
-					new DicRbrvs((int) recs[0]),
-					(double) recs[1],
-					(double) recs[2],
+					new DicRbrvs(Integer.parseInt(recs[0].toString())),
+					Integer.parseInt(recs[1].toString()),
+					Double.parseDouble(recs[2].toString()),
+					Double.parseDouble(recs[3].toString()),
 					0,
 					0,
-					Integer.parseInt(Long.toString((long) recs[3])),
+					Integer.parseInt(recs[4].toString()),
 					"阅片",
 					"工作量"
 				);
@@ -488,7 +711,11 @@ class SingleMode implements Mode {
 		//Verifier
 		stmt = this.querySession.createQuery(
 				"select "
-				+ "rbrvsId, diagnosticianValue, sum(diagnosticianValue) as amount, count(id) as quantity"
+				+ "rbrvsId,"
+				+ "executeVerifierStaffId as staffId,"
+				+ "diagnosticianValue*executeVerifierCoef as verifierValue,"
+				+ "sum(diagnosticianValue*executeVerifierCoef) as amount,"
+				+ "count(id) as quantity"
 				+ " from "
 				+ "VMiExecuted"
 				+ " where "
@@ -497,21 +724,47 @@ class SingleMode implements Mode {
 				+ " and executeDiagnosticianIsStudent = 1"
 				+ " and reportDate between :begin and :end"
 				+ " and status=:status"
-				+ " group by rbrvsId, diagnosticianValue"
+				+ " group by rbrvsId, diagnosticianValue, executeVerifierStaffId, executeVerifierCoef"
 				+ " order by rbrvsId"
 			);
+//		stmt = this.querySession.createSQLQuery(
+//				"select "
+//				+ "rbrvs_id,"
+//				+ "verifier_value,"
+//				+ "sum(amount) as amount,"
+//				+ "sum(quantity) as quantity"
+//				+ " from ("
+//				+ "	select "
+//				+ "	rbrvs_id,"
+//				+ "	diagnostician_value as verifier_value,"
+//				+ "	sum(diagnostician_value)*execute_verifier_coef as amount,"
+//				+ "	count(id) as quantity"
+//				+ "	from "
+//				+ "	medicalimaging.v_mi_executed"
+//				+ "	where "
+//				+ "	execute_verifier_staff_id is not null"
+//				+ "	and execute_verifier_coef > 0"
+//				+ " and execute_diagnostician_is_student = 1"
+//				+ "	and report_date between :begin and :end"
+//				+ " and status=:status"
+//				+ "	group by rbrvs_id,diagnostician_value,execute_verifier_coef,execute_verifier_staff_id"
+//				+ ") a"
+//				+ " group by rbrvs_id,verifier_value"
+//				+ " order by rbrvs_id"
+//			);
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		stmt.setString("status", "已审核");
 		for(Object[] recs: (List<Object[]>) stmt.list()) {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
-					new DicRbrvs((int) recs[0]),
-					(double) recs[1],
-					(double) recs[2],
+					new DicRbrvs(Integer.parseInt(recs[0].toString())),
+					Integer.parseInt(recs[1].toString()),
+					Double.parseDouble(recs[2].toString()),
+					Double.parseDouble(recs[3].toString()),
 					0,
 					0,
-					Integer.parseInt(Long.toString((long) recs[3])),
+					Integer.parseInt(recs[4].toString()),
 					"审片",
 					"工作量"
 				);
@@ -522,9 +775,161 @@ class SingleMode implements Mode {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public void calPerformance() throws Exception {
-/*
 		Query stmt;
+
+		double techCoef = 0, assistCoef = 0, diagnoCoef = 0, verifierCoef = 0;
+//		stmt = this.querySession.createQuery(
+//				"select "
+//				+ "sum(staffCoef) as amount,"
+//				+ "type"
+//				+ " from "
+//				+ "VMiExectuedPerformanceSingleMode"
+//				+ " where "
+//				+ "reportDate between :begin and :end"
+//				+ " and workStatisticsId=:workStatisticsId"
+//				+ " group by type, kind, dept"
+//			);
+		stmt = this.querySession.createSQLQuery(
+				"select sum(staff_coef) as amount, type"
+				+ " from ("
+				+ "	select "
+				+ "	staff_id,"
+				+ "	staff_coef,"
+				+ "	type"
+				+ "	from "
+				+ "	medicalimaging.v_mi_exectued_performance_single_mode"
+				+ "	where "
+				+ "	work_statistics_id=:workStatisticsId"
+				+ "	 and report_date between :begin and :end"
+				+ "	 and kind='工作量'"
+				+ "	 and dept='影像科'"
+				+ "	group by staff_id, staff_coef, type"
+				+ ") a"
+				+ " group by type"
+			);
+		stmt.setDate("begin", workStatistic.getBeginDate());
+		stmt.setDate("end", workStatistic.getEndDate());
+		stmt.setInteger("workStatisticsId", workStatistic.getId());
+		for(Object[] rec: (List<Object[]>) stmt.list()) {
+			double _coef = Double.parseDouble(rec[0].toString());
+			String _type = rec[1].toString();
+
+			if (_type.equalsIgnoreCase("操作")) techCoef = _coef;
+			else if (_type.equalsIgnoreCase("辅助")) assistCoef = _coef;
+			else if (_type.equalsIgnoreCase("阅片")) diagnoCoef = _coef;
+			else if (_type.equalsIgnoreCase("审片")) verifierCoef = _coef;
+		}
+
+		double techTotal = 0d, assistTotal = 0d, diagnoTotal = 0d, verifierTotal = 0d;
+		stmt = this.querySession.createSQLQuery(
+				"select "
+				+ "sum(amount) as amount,"
+				+ "sum(quantity) as quantity,"
+				+ "type"
+				+ " from ("
+				+ "	select "
+				+ "	price*count(id) as amount,"
+				+ "	count(id) as quantity,"
+				+ "	type"
+				+ "	from "
+				+ "	medicalimaging.v_mi_exectued_performance_single_mode"
+				+ "	where "
+				+ "	report_date between :begin and :end"
+				+ "	and work_statistics_id=:workStatisticsId"
+				+ "	and kind=:kind"
+				+ "	and dept=:dept"
+				+ "	group by staff_id, rbrvs_id, price, type"
+				+ ") a"
+				+ " group by type"
+			);
+		stmt.setDate("begin", workStatistic.getBeginDate());
+		stmt.setDate("end", workStatistic.getEndDate());
+		stmt.setInteger("workStatisticsId", workStatistic.getId());
+		stmt.setString("kind", "工作量");
+		stmt.setString("dept", "影像科");
+		for(Object[] rec: (List<Object[]>) stmt.list()) {
+			double _amount = Double.parseDouble(rec[0].toString());
+			String _type = (String) rec[2];
+
+			if (_type.equalsIgnoreCase("操作")) techTotal = _amount;
+			else if (_type.equalsIgnoreCase("辅助")) assistTotal = _amount;
+			else if (_type.equalsIgnoreCase("阅片")) diagnoTotal = _amount;
+			else if (_type.equalsIgnoreCase("审片")) verifierTotal = _amount;
+		}
+
+		double  techPrice = techTotal/techCoef,
+				assistPrice = assistTotal/assistCoef,
+				diagnoPrice = diagnoTotal/diagnoCoef,
+				verifierPrice = verifierTotal/verifierCoef;
+
+		stmt = this.updateSession.createQuery(
+				"delete from StaffBonus"
+				+ " where "
+				+ "id.workStatisticsId=:workStatisticsId"
+				+ " and id.kind=:kind"
+				+ " and id.dept=:dept");
+		stmt.setInteger("workStatisticsId", workStatistic.getId());
+		stmt.setString("kind", "奖金核算");
+		stmt.setString("dept", "影像科");
+		stmt.executeUpdate();
+
+		stmt = this.querySession.createSQLQuery(
+				"select "
+				+ "staff_id,"
+				+ "staff_coef,"
+				+ "sum(amount) as amount,"
+				+ "sum(quantity) as quantity,"
+				+ "type"
+				+ " from ("
+				+ "	select "
+				+ " staff_id,"
+				+ "	staff_coef,"
+				+ "	price*count(id) as amount,"
+				+ "	count(id) as quantity,"
+				+ "	type"
+				+ "	from "
+				+ "	medicalimaging.v_mi_exectued_performance_single_mode"
+				+ "	where "
+				+ "	report_date between :begin and :end"
+				+ "	and work_statistics_id=:workStatisticsId"
+				+ "	and kind=:kind"
+				+ "	and dept=:dept"
+				+ "	group by staff_id, staff_coef,rbrvs_id, price, type"
+				+ ") a"
+				+ " group by staff_id, staff_coef, type"
+			);
+		stmt.setDate("begin", workStatistic.getBeginDate());
+		stmt.setDate("end", workStatistic.getEndDate());
+		stmt.setInteger("workStatisticsId", workStatistic.getId());
+		stmt.setString("kind", "工作量");
+		stmt.setString("dept", "影像科");
+
+		for(Object[] rec: (List<Object[]>) stmt.list()) {
+			int _staffId = Integer.parseInt(rec[0].toString());
+			double _staffCoef = Double.parseDouble(rec[1].toString());
+			int _quantity = Integer.parseInt(rec[3].toString());
+			String _type = (String) rec[4];
+
+			StaffBonus bonus = new StaffBonus();
+			bonus.setId(new StaffBonusPK(workStatistic.getId(), _staffId, _type, "奖金核算", "影像科"));
+			if (_type.equalsIgnoreCase("操作")) {
+				bonus.setPrice(techPrice);
+			} else if (_type.equalsIgnoreCase("辅助")) {
+				bonus.setPrice(assistPrice);
+			} else if (_type.equalsIgnoreCase("阅片")) {
+				bonus.setPrice(diagnoPrice);
+			} else if (_type.equalsIgnoreCase("审片")) {
+				bonus.setPrice(verifierPrice);
+			}
+			bonus.setQuantity(_quantity);
+			bonus.setStaffCoef(_staffCoef);
+			bonus.setAmount(bonus.getPrice()*bonus.getStaffCoef());
+
+			this.updateSession.save(bonus);
+		}
+/*
 
 		stmt = this.querySession.createQuery(
 				"select "
