@@ -10,6 +10,7 @@ import com.sojava.beehive.framework.component.medicalimaging.dao.MiPerformanceDa
 import com.sojava.beehive.framework.exception.CommonException;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.exception.WarnException;
+import com.sojava.beehive.framework.math.Arith;
 import com.sojava.beehive.hibernate.dao.impl.BeehiveDaoImpl;
 
 import java.util.List;
@@ -93,24 +94,11 @@ class SharingMode implements Mode {
 		Query stmt;
 
 		/*
-		 * Sum the Point total.
-		 * include Technician,Diagnostician,Verifier
+		 * Calculateing the Point total.
 		 */
 		workStatistic.setPointTotal(0d);
+
 		//Technician Group
-/*
-		stmt = this.querySession.createQuery(
-				"select "
-				+ "sum(b.technician) as amount"
-				+ " from "
-				+ "	MiExecuted a,"
-				+ "	DicRbrvs b"
-				+ " where "
-				+ "	a.rbrvsId=b.id"
-				+ "	and (a.executeTechnician<>'' or a.executeTechnicianAssociate<>'')"
-				+ " and a.reportTime between :begin and :end"
-			);
-*/
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "sum(technicianValue) as amount"
@@ -123,21 +111,8 @@ class SharingMode implements Mode {
 		stmt.setDate("begin", workStatistic.getBeginDate());
 		stmt.setDate("end", workStatistic.getEndDate());
 		workStatistic.setPointTotal(workStatistic.getPointTotal() + (double) stmt.uniqueResult());
-		workStatistic.setTechPointTotal((double) stmt.uniqueResult());
+
 		//Diagnostician Group
-/*
-		stmt = this.querySession.createQuery(
-				"select "
-				+ " sum(b.diagnostician) as amount"
-				+ " from "
-				+ "	MiExecuted a,"
-				+ "	DicRbrvs b"
-				+ " where "
-				+ "	a.rbrvsId=b.id"
-				+ "	 and a.reportTime between :begin and :end"
-				+ "	 and a.status=:status"
-			);
-*/
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "sum(diagnosticianValue) as amount"
@@ -151,14 +126,11 @@ class SharingMode implements Mode {
 		stmt.setDate("end", workStatistic.getEndDate());
 		stmt.setString("status", "已审核");
 		workStatistic.setPointTotal(workStatistic.getPointTotal() + (double) stmt.uniqueResult());
-		workStatistic.setDiagnoPointTotal((double) stmt.uniqueResult());
 
 		/*
 		 * Calculateing the Point value.
 		 */
-		workStatistic.setPointValue(workStatistic.getMedicalTotal()/workStatistic.getPointTotal());
-		workStatistic.setTechPointValue(workStatistic.getTechTotal()/workStatistic.getTechPointTotal());
-		workStatistic.setDiagnoPointValue(workStatistic.getDiagnoTotal()/workStatistic.getDiagnoPointTotal());
+		workStatistic.setPointValue(Arith.div(workStatistic.getMedicalTotal(), workStatistic.getPointTotal(), 20));
 
 		this.updateSession.saveOrUpdate(workStatistic);
 	}
@@ -178,21 +150,6 @@ class SharingMode implements Mode {
 		 * Sum Workload for Technician,Diagnostician,Verifier.
 		 */
 		//投照组
-/*
-		stmt = this.querySession.createQuery(
-				"select "
-				+ "b.id, b.technician, sum(b.technician) as amount, count(b.technician) as quantity"
-				+ " from "
-				+ "MiExecuted a,"
-				+ "DicRbrvs b"
-				+ " where "
-				+ "a.rbrvsId=b.id"
-				+ " and (a.executeTechnician<>'' or a.executeTechnicianAssociate<>'')"
-				+ " and a.reportTime between :begin and :end"
-				+ " group by b.id, b.technician"
-				+ " order by b.id"
-			);
-*/
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "rbrvsId,"
@@ -221,27 +178,13 @@ class SharingMode implements Mode {
 					"工作量"
 				);
 			//计算单价
-			rbrvsPrice.setPrice(workStatistic.getPointValue()*rbrvsPrice.getPoint());
-//			rbrvsPrice.setPrice(workStatistic.getTechPointValue()*rbrvsPrice.getPoint());
+			rbrvsPrice.setPrice(Arith.mul(workStatistic.getPointValue(), rbrvsPrice.getPoint()));
 			//计算总价
-			rbrvsPrice.setAmount(rbrvsPrice.getPrice()*rbrvsPrice.getQuantity());
+			rbrvsPrice.setAmount(Arith.mul(rbrvsPrice.getPrice(), rbrvsPrice.getQuantity()));
 
 			this.updateSession.save(rbrvsPrice);
 		}
 		//诊断组
-//		stmt = this.querySession.createQuery(
-//				"select "
-//				+ "b.id, b.diagnostician, sum(b.diagnostician) as amount, count(b.diagnostician) as quantity"
-//				+ " from "
-//				+ "MiExecuted a,"
-//				+ "DicRbrvs b"
-//				+ " where "
-//				+ "a.rbrvsId=b.id"
-//				+ " and a.reportTime between :begin and :end"
-//				+ " and a.status=:status"
-//				+ " group by b.id, b.diagnostician"
-//				+ " order by b.id"
-//			);
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "rbrvsId,"
@@ -271,10 +214,9 @@ class SharingMode implements Mode {
 					"工作量"
 				);
 			//计算单价
-			rbrvsPrice.setPrice(workStatistic.getPointValue()*rbrvsPrice.getPoint());
-//			rbrvsPrice.setPrice(workStatistic.getDiagnoPointValue()*rbrvsPrice.getPoint());
+			rbrvsPrice.setPrice(Arith.mul(workStatistic.getPointValue(), rbrvsPrice.getPoint()));
 			//计算总价
-			rbrvsPrice.setAmount(rbrvsPrice.getPrice()*rbrvsPrice.getQuantity());
+			rbrvsPrice.setAmount(Arith.mul(rbrvsPrice.getPrice(), rbrvsPrice.getQuantity()));
 
 			this.updateSession.save(rbrvsPrice);
 		}
@@ -290,58 +232,6 @@ class SharingMode implements Mode {
 		stmt.executeUpdate();
 
 		//核算个人分数
-/*
-		stmt = this.querySession.createQuery(
-				"select "
-				+ "rbrvsPriceId,"
-				+ "rbrvsId,"
-				+ "price,"
-				+ "count(rbrvsId) as quantity,"
-				+ "coalesce(worker1Id, 0) as worker1Id,"
-				+ "coalesce(worker1Coef, 0) as worker1Coef,"
-				+ "coalesce(worker2Id, 0) as worker2Id,"
-				+ "coalesce(worker2Coef, 0) as worker2Coef,"
-				+ "coalesce(worker3Id, 0) as worker3Id,"
-				+ "coalesce(worker3Coef, 0) as worker3Coef,"
-				+ "type,"
-				+ "kind,"
-				+ "dept"
-				+ " from "
-				+ "VMiExectuedPerformance"
-				+ " where "
-				+ "workStatisticsId=:workStatisticsId"
-				+ " and reportTime between :begin and :end"
-				+ " group by rbrvsPriceId,rbrvsId,price,worker1Id,worker1Coef,worker2Id,worker2Coef,worker3Id,worker3Coef,type,kind,dept"
-			);
-
-		stmt.setInteger("workStatisticsId", workStatistic.getId());
-		stmt.setDate("begin", workStatistic.getBeginDate());
-		stmt.setDate("end", workStatistic.getEndDate());
-		for(Object[] recs: (List<Object[]>) stmt.list()) {
-			CalculatePerformance calculatePerformance = new CalculatePerformance();
-			calculatePerformance.setWorkStatistic(workStatistic);
-			calculatePerformance.setRbrvsPrice(new RbrvsPrice((int) recs[0]));
-			calculatePerformance.setDicRbrvs(new DicRbrvs((int) recs[1]));
-			calculatePerformance.setPrice((double) recs[2]);
-			calculatePerformance.setQuantity(Integer.parseInt(Long.toString((long) recs[3])));
-			calculatePerformance.setWorker1StaffId((Integer) recs[4]);
-			calculatePerformance.setWorker1Coef((Double) recs[5]);
-			calculatePerformance.setWorker2StaffId((Integer) recs[6]);
-			calculatePerformance.setWorker2Coef((Double) recs[7]);
-			calculatePerformance.setWorker3StaffId((Integer) recs[8]);
-			calculatePerformance.setWorker3Coef((Double) recs[9]);
-			calculatePerformance.setType((String) recs[10]);
-			calculatePerformance.setKind((String) recs[11]);
-			calculatePerformance.setDept((String) recs[12]);
-			calculatePerformance.setWorkerCoefTotal(calculatePerformance.getWorker1Coef()+calculatePerformance.getWorker2Coef()+calculatePerformance.getWorker3Coef());
-			calculatePerformance.setAmount(calculatePerformance.getPrice()*calculatePerformance.getQuantity());
-			calculatePerformance.setWorkerPrice(calculatePerformance.getAmount()/calculatePerformance.getWorkerCoefTotal());
-			calculatePerformance.setWorker1Total(calculatePerformance.getWorker1Coef()*calculatePerformance.getWorkerPrice());
-			calculatePerformance.setWorker2Total(calculatePerformance.getWorker2Coef()*calculatePerformance.getWorkerPrice());
-			calculatePerformance.setWorker3Total(calculatePerformance.getWorker3Coef()*calculatePerformance.getWorkerPrice());
-			this.updateSession.save(calculatePerformance);
-		}
-*/
 		stmt = this.querySession.createQuery(
 				"select "
 				+ "rbrvsPriceId,"
@@ -391,24 +281,23 @@ class SharingMode implements Mode {
 			}
 			calculatePerformance.setWorkerCoefTotal(calculatePerformance.getWorker1Coef()+calculatePerformance.getWorker2Coef());
 
-			calculatePerformance.setPointTotal(calculatePerformance.getPoint()*calculatePerformance.getQuantity());
-			double work1Percent = calculatePerformance.getWorker1Coef()/calculatePerformance.getWorkerCoefTotal();
-//			double work2Percent = calculatePerformance.getWorker2Coef()/calculatePerformance.getWorkerCoefTotal();
-			calculatePerformance.setWorker1Point(work1Percent*calculatePerformance.getPoint());
-			calculatePerformance.setWorker1PointTotal(calculatePerformance.getWorker1Point()*calculatePerformance.getQuantity());
+			calculatePerformance.setPointTotal(Arith.mul(calculatePerformance.getPoint(), calculatePerformance.getQuantity()));
+			double work1Percent = Arith.div(calculatePerformance.getWorker1Coef(), calculatePerformance.getWorkerCoefTotal(), 1);
+			calculatePerformance.setWorker1Point(Arith.mul(work1Percent, calculatePerformance.getPoint()));
+			calculatePerformance.setWorker1PointTotal(Arith.mul(calculatePerformance.getWorker1Point(), calculatePerformance.getQuantity()));
 			calculatePerformance.setWorker2Point(calculatePerformance.getPoint()-calculatePerformance.getWorker1Point());
-			calculatePerformance.setWorker2PointTotal(calculatePerformance.getWorker2Point()*calculatePerformance.getQuantity());
-			calculatePerformance.setAmount(calculatePerformance.getPrice()*calculatePerformance.getQuantity());
-			calculatePerformance.setWorkerPrice(calculatePerformance.getAmount()/calculatePerformance.getWorkerCoefTotal());
-			calculatePerformance.setWorker1Total(work1Percent*calculatePerformance.getWorkerPrice());
+			calculatePerformance.setWorker2PointTotal(Arith.mul(calculatePerformance.getWorker2Point(), calculatePerformance.getQuantity()));
+			calculatePerformance.setAmount(Arith.mul(calculatePerformance.getPrice(), calculatePerformance.getQuantity()));
+			calculatePerformance.setWorkerPrice(Arith.div(calculatePerformance.getAmount(), calculatePerformance.getWorkerCoefTotal()));
+			calculatePerformance.setWorker1Total(Arith.mul(work1Percent, calculatePerformance.getWorkerPrice()));
 			calculatePerformance.setWorker2Total(calculatePerformance.getAmount()-calculatePerformance.getWorker1Total());
 
-			calculatePerformance.setWorker1Quantity(work1Percent*calculatePerformance.getQuantity());
+			calculatePerformance.setWorker1Quantity(Arith.mul(work1Percent, calculatePerformance.getQuantity()));
 			calculatePerformance.setWorker2Quantity(calculatePerformance.getQuantity()-calculatePerformance.getWorker1Quantity());
 
 			if (work1Percent == 1) {
 				calculatePerformance.setWorker1StatisQuantity(1d*calculatePerformance.getQuantity());
-				calculatePerformance.setWorker2StatisQuantity(0d*calculatePerformance.getQuantity());
+				calculatePerformance.setWorker2StatisQuantity(0d);
 			} else {
 				calculatePerformance.setWorker1StatisQuantity(0.5d*calculatePerformance.getQuantity());
 				calculatePerformance.setWorker2StatisQuantity(0.5d*calculatePerformance.getQuantity());

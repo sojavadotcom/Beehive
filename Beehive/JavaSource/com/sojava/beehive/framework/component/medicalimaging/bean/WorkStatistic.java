@@ -29,6 +29,18 @@ public class WorkStatistic implements Serializable {
 
 	private Double budget;
 
+	@Column(name="overtime_cost")
+	private Double overtimeCost;
+
+	@Column(name="nurse_rate")
+	private Double nurseRate;
+
+	@Column(name="nurse_cost")
+	private Double nurseCost;
+
+	@Column(name="performance_total")
+	private Double performanceTotal;
+
 	@Column(name="medical_rate")
 	private Double medicalRate;
 
@@ -291,6 +303,38 @@ public class WorkStatistic implements Serializable {
 
 	public void setTechPointTotal(Double techPointTotal) {
 		this.techPointTotal = techPointTotal;
+	}
+
+	public Double getOvertimeCost() {
+		return overtimeCost;
+	}
+
+	public void setOvertimeCost(Double overtimeCost) {
+		this.overtimeCost = overtimeCost;
+	}
+
+	public Double getNurseRate() {
+		return nurseRate;
+	}
+
+	public void setNurseRate(Double nurseRate) {
+		this.nurseRate = nurseRate;
+	}
+
+	public Double getNurseCost() {
+		return nurseCost;
+	}
+
+	public void setNurseCost(Double nurseCost) {
+		this.nurseCost = nurseCost;
+	}
+
+	public Double getPerformanceTotal() {
+		return performanceTotal;
+	}
+
+	public void setPerformanceTotal(Double performanceTotal) {
+		this.performanceTotal = performanceTotal;
 	}
 
 }

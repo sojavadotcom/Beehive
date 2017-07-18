@@ -29,6 +29,10 @@ public class Save extends ActionSupport {
 
     private File uploadFile;
     private Double budget;
+    private Double overtimeCost;
+    private Double nurseRate;
+    private Double nurseCost;
+    private Double performanceCost;
     private Double medicalRate;
     private Double medicalTotal;
     private Double manageRate;
@@ -54,7 +58,7 @@ public class Save extends ActionSupport {
 			import0();
 			return null;
 		} else if (contextName.equalsIgnoreCase("save.merit")) {
-			merit(budget, medicalRate, manageRate, diagnoRate, techRate, year, month, beginDate, endDate, dept);
+			merit(budget, overtimeCost, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept);
 			return null;
 		} else {
 			return SUCCESS;
@@ -73,10 +77,10 @@ public class Save extends ActionSupport {
 		}
 	}
 
-	public void merit(Double budget, Double medicalRate, Double manageRate, Double diagnoRate, Double techRate, int year, int month, Date begin, Date end, String dept) throws Exception {
+	public void merit(Double budget, Double overtimeCost, Double nurseRate, Double medicalRate, Double manageRate, int year, int month, Date begin, Date end, String dept) throws Exception {
 		String msg = "核算完成";
 		try {
-			miPerformanceService.merit(budget, medicalRate, manageRate, diagnoRate, techRate, year, month, beginDate, endDate, dept);
+			miPerformanceService.merit(budget, overtimeCost, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept);
 		}
 		catch(Exception ex) {
 			msg = ex.getLocalizedMessage();
@@ -228,6 +232,38 @@ public class Save extends ActionSupport {
 
 	public void setTechTotal(Double techTotal) {
 		this.techTotal = techTotal;
+	}
+
+	public Double getOvertimeCost() {
+		return overtimeCost;
+	}
+
+	public void setOvertimeCost(Double overtimeCost) {
+		this.overtimeCost = overtimeCost;
+	}
+
+	public Double getNurseRate() {
+		return nurseRate;
+	}
+
+	public void setNurseRate(Double nurseRate) {
+		this.nurseRate = nurseRate;
+	}
+
+	public Double getNurseCost() {
+		return nurseCost;
+	}
+
+	public void setNurseCost(Double nurseCost) {
+		this.nurseCost = nurseCost;
+	}
+
+	public Double getPerformanceCost() {
+		return performanceCost;
+	}
+
+	public void setPerformanceCost(Double performanceCost) {
+		this.performanceCost = performanceCost;
 	}
 
 }
