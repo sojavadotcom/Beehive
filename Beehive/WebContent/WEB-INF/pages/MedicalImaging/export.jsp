@@ -8,7 +8,7 @@
 <script type="text/javascript">
 require([
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
-	"dijit/form/Form", "dijit/form/Button", "dijit/form/TextBox", "dojox/form/Uploader", "dojo/io/iframe", 
+	"dijit/form/Form", "dijit/form/Button", "dijit/form/TextBox", "dojox/form/Uploader", "dojo/io/iframe",
 	"dojo/domReady!"
 ],
 function(Form, Button, TextBox, Uploader, IFrame) {
@@ -16,7 +16,7 @@ function(Form, Button, TextBox, Uploader, IFrame) {
 	});
 });
 </script>
-<form jsId="miExecutedStaffPerformanceFrm" name="miExecutedExportFrm" method="post" enctype="multipart/form-data" dojoType="dijit.form.Form">
+<form jsId="miExecutedStaffPerformanceFrm" name="miExecutedExportFrm" action="/MedicalImaging/Export.StaffPerformance.s2" method="post" enctype="multipart/form-data" dojoType="dijit.form.Form" target="miExecutedStaffPerformanceBuff">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
@@ -76,24 +76,38 @@ function(Form, Button, TextBox, Uploader, IFrame) {
 		</div>
 	</div>
 	<div style="text-align: right">
-		<button label="导入" dojoType="dijit.form.Button">
-		<script type="dojo/method" event="onClick" args="event">
-			if (miExecutedStaffPerformanceFrm.getValues().fileName == "") {
-				alert("请选择文件！");
-				return false;
-			}
-			dojo.io.iframe.send({
-				url: "/MedicalImaging/Export.StaffPerformance.s2",
-				form: miExecutedStaffPerformanceFrm.id,
-				method: "post",
-				preventCache: true, 
-				handleAs: "json",
-				load: function(response, ioArgs){
-				},
-				error: function(response, ioArgs){
+		<button label="导出" dojoType="dijit.form.Button">
+			<script type="dojo/method" event="onClick" args="event">
+/*
+				if (miExecutedStaffPerformanceFrm.getValues().fileName == "") {
+					alert("请选择文件！");
+					return false;
 				}
-			});
-		</script>
+*/
+/*
+				dojo.io.iframe.send({
+						url: "/MedicalImaging/Export.StaffPerformance.s2",
+						form: miExecutedStaffPerformanceFrm.id,
+						method: "post",
+						preventCache: true,
+						handleAs: "json",
+						load: function(response, ioArgs){
+							console.log(response);
+							console.log(ioArgs);
+						},
+						error: function(response, ioArgs){
+							console.log(response);
+							console.log(ioArgs);
+						}
+					});
+*/
+				miExecutedStaffPerformanceFrm.submit();
+			</script>
+		</button>
+		<button label="关闭" dojoType="dijit.form.Button">
+			<script type="dojo/method" event="onClick" args="event">
+				dialogExporter.hide();
+			</script>
 		</button>
 	</div>
 	<script type="dojo/method" event="onHide" args="event">

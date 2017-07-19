@@ -153,6 +153,7 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 				dialogMerit.show();
 			}
 		}));
+/*
 		var exporterMenu = new Menu({});
 		var exporterExcelMenu = new MenuItem({label: "Excel", onClick: function () {
 				var iframe = dojo.io.iframe.create("exportStaffPerformance");
@@ -161,10 +162,11 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 			}
 		});
 		exporterMenu.addChild(exporterExcelMenu);
+*/
 		mainToolbar.addChild(new ComboButton({
 			iconClass: "dijitIconNewTask",
 			label: "导出...",
-			dropDown: exporterMenu,
+			// dropDown: exporterMenu,
 			onClick: function() {
 				dialogExporter = dialogExporter || new Dialog({
 					title:"核算绩效",
@@ -232,3 +234,4 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 		<div id="miExecutedStaffPerformanceGridNode"></div>
 	</div>
 </div>
+<iframe name="miExecutedStaffPerformanceBuff" style="display: none"></iframe>
