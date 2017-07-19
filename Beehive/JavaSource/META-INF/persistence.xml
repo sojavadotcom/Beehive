@@ -1,28 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
 	<persistence-unit name="Beehive">
-		<class>com.sojava.beehive.framework.component.log.bean.Log</class>
-		<class>com.sojava.beehive.framework.component.user.bean.UserInfo</class>
-		<class>com.sojava.beehive.framework.component.worksheet.repair.bean.Repair</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201612</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201512</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201601</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201602</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201603</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201604</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201605</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201606</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201607</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201608</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201609</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201610</class>
-		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201611</class>
-		<class>cn.jxszyyy.anyihis.test.bean.JyJyd1</class>
-		<class>cn.jxszyyy.anyihis.test.bean.JyJyd1PK</class>
-		<class>cn.jxszyyy.anyihis.test.bean.JySqd</class>
-		<class>cn.jxszyyy.anyihis.dic.bean.ZdSf</class>
 		<class>cn.jxszyyy.anyihis.dic.bean.ZdKs</class>
 		<class>cn.jxszyyy.anyihis.dic.bean.ZdRy</class>
+		<class>cn.jxszyyy.anyihis.dic.bean.ZdSf</class>
+		<class>cn.jxszyyy.anyihis.dic.bean.ZdYz</class>
 		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBh0</class>
 		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBh1</class>
 		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBh10</class>
@@ -36,23 +18,41 @@
 		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBh9</class>
 		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhadd</class>
 		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhbh</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201512</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201601</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201602</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201603</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201604</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201605</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201606</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201607</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201608</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201609</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201610</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201611</class>
+		<class>cn.jxszyyy.anyihis.inhospital.bean.ZyBhjfyz201612</class>
 		<class>cn.jxszyyy.anyihis.test.bean.JyJyd</class>
-		<class>cn.jxszyyy.anyihis.dic.bean.ZdYz</class>
-		<class>com.sojava.beehive.framework.component.user.bean.AnyihisCodePwd</class>
-		<class>com.sojava.beehive.framework.component.worksheet.bean.Refund</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK</class>
+		<class>cn.jxszyyy.anyihis.test.bean.JyJyd1</class>
+		<class>cn.jxszyyy.anyihis.test.bean.JyJyd1PK</class>
+		<class>cn.jxszyyy.anyihis.test.bean.JySqd</class>
+		<class>com.sojava.beehive.framework.component.log.bean.Log</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.CalculatePerformance</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.DicCoefficient</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.Group</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.Member</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.Staff</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.RbrvsPrice</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedDiagno</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedTech</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.CalculatePerformance</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.Staff</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExectuedPerformance</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExectuedPerformance4drug</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedDiagno</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedTech</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic</class>
+		<class>com.sojava.beehive.framework.component.user.bean.AnyihisCodePwd</class>
+		<class>com.sojava.beehive.framework.component.user.bean.UserInfo</class>
+		<class>com.sojava.beehive.framework.component.worksheet.bean.Refund</class>
+		<class>com.sojava.beehive.framework.component.worksheet.repair.bean.Repair</class>
 	</persistence-unit>
 </persistence>
