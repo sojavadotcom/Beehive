@@ -34,7 +34,8 @@ public class Entry extends ActionSupport {
 	@Action(value = "Entry.*", results = {
 			@Result(name = "index", location = "index.jsp"),
 			@Result(name = "import", location = "import.jsp"),
-			@Result(name = "merit", location = "merit.jsp")
+			@Result(name = "merit", location = "merit.jsp"),
+			@Result(name = "export", location = "export.jsp")
 		})
 	@Override
 	public String input() throws Exception {

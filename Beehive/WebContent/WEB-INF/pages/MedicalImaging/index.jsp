@@ -6,7 +6,7 @@
 	request.setCharacterEncoding("UTF-8");
 %>
 <script type="text/javascript">
-var dialogImport = null, dialogMerit = null;
+var dialogImport = null, dialogMerit = null, dialogExporter = null;
 function refreshGrid() {
 	var rec = miExecutedGridForm.getValues();
 	var year = rec.year;
@@ -33,7 +33,6 @@ function refreshGrid() {
 require(
 [
 	"dojo",
-	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
 	"dojo/store/JsonRest", "dojo/data/ObjectStore",
 	"dojox/grid/EnhancedGrid", "dojox/grid/enhanced/plugins/Pagination", "dojox/grid/enhanced/plugins/Filter", "dojox/grid/enhanced/plugins/Menu", "dojox/grid/enhanced/plugins/IndirectSelection", "dojox/grid/enhanced/plugins/NestedSorting", "dojox/grid/enhanced/plugins/DnD", "dojox/grid/enhanced/plugins/CellMerge",
 	"dojox/widget/DialogSimple",
@@ -45,7 +44,7 @@ require(
 	"dojox/form/Uploader", "dojo/io/iframe",
 	"dojo/domReady!"
 ],
-function(dojo, BorderContainer, ContentPane, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, EnhancedGridFilter, EnhancedGridMenu, EnhancedGridIndirectSelection, EnhancedGridNestedSorting, EnhancedGridDnD, EnhancedGridCellMerge, Dialog, BorderContainer, ContentPane, SplitContainer, LayoutContainer, AccordionContainer, AccordionPane, Form, DateTextBox, TimeTextBox, TextBox, ValidationTextBox, Textarea, RadioButton, ComboBox, NumberSpinner, Fieldset, FilteringSelect, Button, ComboButton, DropDownMenu, Menu, MenuItem, Uploader, IFrame) {
+function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, EnhancedGridFilter, EnhancedGridMenu, EnhancedGridIndirectSelection, EnhancedGridNestedSorting, EnhancedGridDnD, EnhancedGridCellMerge, Dialog, BorderContainer, ContentPane, SplitContainer, LayoutContainer, AccordionContainer, AccordionPane, Form, DateTextBox, TimeTextBox, TextBox, ValidationTextBox, Textarea, RadioButton, ComboBox, NumberSpinner, Fieldset, FilteringSelect, Button, ComboButton, DropDownMenu, Menu, MenuItem, Uploader, IFrame) {
 	dojo.ready(function() {
 		var formatValue = function(val, rowIndex, cell) {
 			var staffName = staffPerformance.getItem(rowIndex).staffName;
@@ -157,7 +156,8 @@ function(dojo, BorderContainer, ContentPane, JsonRest, ObjectStore, EnhancedGrid
 		var exporterMenu = new Menu({});
 		var exporterExcelMenu = new MenuItem({label: "Excel", onClick: function () {
 				var iframe = dojo.io.iframe.create("exportStaffPerformance");
-				dojo.io.iframe.setSrc(iframe, "/MedicalImaging/Export.StaffPerformance.shtml?year=2017&month=5");
+				var rec = miExecutedGridForm.getValues();
+				iframe.setSrc(iframe, "/MedicalImaging/Export.StaffPerformance.shtml?year=" + rec.year + "&month=" + rec.month);
 			}
 		});
 		exporterMenu.addChild(exporterExcelMenu);
@@ -166,7 +166,18 @@ function(dojo, BorderContainer, ContentPane, JsonRest, ObjectStore, EnhancedGrid
 			label: "导出...",
 			dropDown: exporterMenu,
 			onClick: function() {
-				exporterExcelMenu.onClick();
+				dialogExporter = dialogExporter || new Dialog({
+					title:"核算绩效",
+					href:"/MedicalImaging/Entry.export.shtml",
+					style: {width:"800px", height: "90%"},
+					closable: true,
+					executeScripts: true,
+					onHide: function() {
+						return true;
+					}
+				});
+				dialogExporter.startup();
+				dialogExporter.show();
 			}
 		}));
 	});

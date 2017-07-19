@@ -282,7 +282,7 @@ class SharingMode implements Mode {
 			calculatePerformance.setWorkerCoefTotal(calculatePerformance.getWorker1Coef()+calculatePerformance.getWorker2Coef());
 
 			calculatePerformance.setPointTotal(Arith.mul(calculatePerformance.getPoint(), calculatePerformance.getQuantity()));
-			double work1Percent = Arith.div(calculatePerformance.getWorker1Coef(), calculatePerformance.getWorkerCoefTotal(), 1);
+			double work1Percent = Arith.div(calculatePerformance.getWorker1Coef(), calculatePerformance.getWorkerCoefTotal());
 			calculatePerformance.setWorker1Point(Arith.mul(work1Percent, calculatePerformance.getPoint()));
 			calculatePerformance.setWorker1PointTotal(Arith.mul(calculatePerformance.getWorker1Point(), calculatePerformance.getQuantity()));
 			calculatePerformance.setWorker2Point(calculatePerformance.getPoint()-calculatePerformance.getWorker1Point());

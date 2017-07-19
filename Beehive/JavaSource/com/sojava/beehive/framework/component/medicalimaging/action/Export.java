@@ -19,6 +19,7 @@ import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedSta
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,9 @@ public class Export extends ActionSupport {
 	private static final long serialVersionUID = 7651222030838591999L;
 
 	@Resource private MiExecutedService miExecutedService;
-	private String action;
+	private File file;
+	private String fileName;
+	private String fileType;
 
 	private Integer year;
 	private Integer month;
@@ -298,12 +301,28 @@ public class Export extends ActionSupport {
 		this.miExecutedService = miExecutedService;
 	}
 
-	public String getAction() {
-		return action;
+	public File getFile() {
+		return file;
 	}
 
-	public void setAction(String action) {
-		this.action = action;
+	public void setFile(File file) {
+		this.file = file;
+	}
+
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public String getFileType() {
+		return fileType;
+	}
+
+	public void setFileType(String fileType) {
+		this.fileType = fileType;
 	}
 
 	public Integer getYear() {
