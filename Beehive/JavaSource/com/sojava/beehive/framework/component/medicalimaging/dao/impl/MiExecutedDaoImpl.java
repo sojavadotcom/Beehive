@@ -15,6 +15,7 @@ import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
+import com.sojava.beehive.framework.component.medicalimaging.bean.VGroup;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
 import com.sojava.beehive.framework.define.DataFlag;
 import com.sojava.beehive.framework.exception.CommonException;
@@ -76,6 +77,14 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 		List<Staff> list = (List<Staff>) this.query(Staff.class, new Criterion[]{Restrictions.eq("name", staffName)}, null, null, true);
 		if (list.size() == 1) return list.get(0).getId();
 		else return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public double getStaffNurseCoef(String staffName) throws Exception {
+		List<VGroup> list = (List<VGroup>) this.query(VGroup.class, new Criterion[]{Restrictions.eq("staffName", staffName)}, null, null, true);
+		if (list.size() == 1) return list.get(0).getStaffNurseCoef();
+		else return 0d;
 	}
 
 }

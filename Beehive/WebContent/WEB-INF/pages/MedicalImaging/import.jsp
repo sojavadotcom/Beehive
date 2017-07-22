@@ -14,7 +14,7 @@
 	<div>
 		<input id="uploader" name="uploadFile" flashFieldName="uploadFile" multiple="true" type="file" dojoType0="dojox.form.Uploader" label="选择文件..." />
 	</div>
-	<div>
+	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<input type="submit" label="导入" dojoType="dijit.form.Button" />
 	</div>
 </form>

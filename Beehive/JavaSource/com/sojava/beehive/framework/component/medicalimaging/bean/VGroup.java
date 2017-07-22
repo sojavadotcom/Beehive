@@ -30,6 +30,7 @@ import org.hibernate.annotations.Subselect;
 		+ "dc.points as staff_diagno_coef,"
 		+ "vc.points as staff_verifier_coef,"
 		+ "jc.points as staff_job_coef,"
+		+ "nc.points as staff_nurse_coef,"
 		+ "s.kind as staff_kind,"
 		+ "statis.id as work_statistics_id,"
 		+ "statis.year as year,"
@@ -48,6 +49,7 @@ import org.hibernate.annotations.Subselect;
 		+ " left join dic_coefficient dc on s.diagno_coef_id=dc.id"
 		+ " left join dic_coefficient vc on s.verifier_coef_id=vc.id"
 		+ " left join dic_coefficient jc on s.job_coef_id=jc.id"
+		+ " left join dic_coefficient nc on s.nurse_coef_id=nc.id"
 		+ " where "
 		+ " g.id=m.group_id"
 		+ " and m.staff_id=s.id"
@@ -109,6 +111,9 @@ public class VGroup implements Serializable {
 
 	@Column(name="staff_job_coef")
 	private Double staffJobCoef;
+
+	@Column(name="staff_nurse_coef")
+	private Double staffNurseCoef;
 
 	@Column(name="staff_kind")
 	private String staffKind;
@@ -267,6 +272,22 @@ public class VGroup implements Serializable {
 		this.staffVerifierCoef = staffVerifierCoef;
 	}
 
+	public Double getStaffJobCoef() {
+		return staffJobCoef;
+	}
+
+	public void setStaffJobCoef(Double staffJobCoef) {
+		this.staffJobCoef = staffJobCoef;
+	}
+
+	public Double getStaffNurseCoef() {
+		return staffNurseCoef;
+	}
+
+	public void setStaffNurseCoef(Double staffNurseCoef) {
+		this.staffNurseCoef = staffNurseCoef;
+	}
+
 	public String getStaffKind() {
 		return staffKind;
 	}
@@ -275,20 +296,12 @@ public class VGroup implements Serializable {
 		this.staffKind = staffKind;
 	}
 
-	public Double getStaffJobCoef() {
-		return staffJobCoef;
-	}
-
 	public Integer getWorkStatisticsId() {
 		return workStatisticsId;
 	}
 
 	public void setWorkStatisticsId(Integer workStatisticsId) {
 		this.workStatisticsId = workStatisticsId;
-	}
-
-	public void setStaffJobCoef(Double staffJobCoef) {
-		this.staffJobCoef = staffJobCoef;
 	}
 
 	public Integer getYear() {

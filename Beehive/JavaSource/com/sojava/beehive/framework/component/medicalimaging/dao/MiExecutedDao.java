@@ -9,4 +9,5 @@ public interface MiExecutedDao extends BeehiveDao {
 
 	List<MiExecuted> executedList(String keyword) throws Exception;
 	Integer getStaffId(String staffName) throws Exception;
+	double getStaffNurseCoef(String staffName) throws Exception;
 }

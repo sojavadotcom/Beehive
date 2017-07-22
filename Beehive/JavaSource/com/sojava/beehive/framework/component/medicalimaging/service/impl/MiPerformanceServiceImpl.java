@@ -1,7 +1,9 @@
 package com.sojava.beehive.framework.component.medicalimaging.service.impl;
 
+import com.sojava.beehive.framework.component.medicalimaging.bean.DicCoefficient;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
+import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiPerformanceDao;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
 import com.sojava.beehive.framework.math.Arith;
@@ -10,7 +12,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -31,6 +35,7 @@ import org.springframework.stereotype.Service;
 public class MiPerformanceServiceImpl implements MiPerformanceService {
 
 	@Resource private MiPerformanceDao miPerformanceDao;
+	@Resource private MiExecutedDao miExecutedDao;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -65,15 +70,49 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		miPerformanceDao.calRbrvsPrice(workStatistic);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public HSSFWorkbook writeExcelOfStaffPerformance(File masterFile, WorkStatistic workStatistic, VMiExecutedStaffPerformance[] list) throws Exception {
+	public HSSFWorkbook writeExcelOfStaffPerformance(File overtimeFile, File nurseFile, WorkStatistic workStatistic, VMiExecutedStaffPerformance[] list) throws Exception {
 		HSSFWorkbook book = generateExcelOfStaffPerformance(workStatistic, list);
+		HSSFWorkbook overtimeBook = null, nurseBook = null;
+		double nurseMasterCoef = 0d, nurseSubCoef = 0d, nurseRecepCoef = 0d;
+		List<DicCoefficient> nurseCoefs = (List<DicCoefficient>) miPerformanceDao.query(DicCoefficient.class, new Criterion[]{Restrictions.in("name", new String[]{"主班", "副班", "登记"})}, null, null, true);
+		for(DicCoefficient nurseCoef: nurseCoefs) {
+			if (nurseCoef.getName().equals("主班")) {
+				nurseMasterCoef = nurseCoef.getPoints();
+			} else if (nurseCoef.getName().equals("副班")) {
+				nurseSubCoef = nurseCoef.getPoints();
+			} else if (nurseCoef.getName().equals("登记班")) {
+				nurseRecepCoef = nurseCoef.getPoints();
+			}
+		}
 		FileInputStream in = null;
+		if (overtimeFile != null) {
+			try {
+				in = new FileInputStream(overtimeFile);
+				overtimeBook = new HSSFWorkbook(in);
+			}
+			finally {
+				in.close();
+			}
+		}
+		if (nurseFile != null) {
+			try {
+				in = new FileInputStream(nurseFile);
+				nurseBook = new HSSFWorkbook(in);
+			}
+			finally {
+				if (in != null) in.close();
+			}
+		}
+		HSSFSheet nurseSheet = nurseBook == null ? null : nurseBook.getSheetAt(0);
+		Map<String, Double> nurseWorkload = calNurseJob(nurseSheet, nurseMasterCoef, nurseSubCoef, nurseRecepCoef);
+		double nurseHoursTotal = nurseWorkload.get("总时数");
+		double nursePrice = Arith.div(workStatistic.getNurseCost(), nurseHoursTotal);
 		try {
-			in = new FileInputStream(masterFile);
-			HSSFWorkbook masterBook = new HSSFWorkbook(in);
 			HSSFSheet sheet = book.getSheetAt(0);
-			HSSFSheet masterSheet = masterBook.getSheetAt(0);
+			HSSFSheet overtimeSheet = overtimeBook == null ? null : overtimeBook.getSheetAt(0);
+
 			for (int r = 4; r <= sheet.getLastRowNum(); r ++) {
 				HSSFRow row = sheet.getRow(r);
 				HSSFCell cell = row.getCell(0);
@@ -83,19 +122,18 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 						|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("总计")
 						|| isMerged(cell, sheet)
 					) continue;
-				HSSFCell nurseCell = row.getCell(3);
 				HSSFCell overtimeCell = row.getCell(4);
-				Object[] ret = getMasterValue(masterSheet, text, 3, 4);
-				if (ret[0] instanceof Double) {
-					nurseCell.setCellValue(Double.parseDouble(ret[0].toString()));
-				} else {
-					nurseCell.setCellValue(ret[0].toString());
+				HSSFCell nurseCell = row.getCell(3);
+
+				Object[] ret = getCellsValue(overtimeSheet, text, 3);
+				if (ret.length > 0) {
+					if (ret[0] instanceof Double) {
+						overtimeCell.setCellValue(Double.parseDouble(ret[0].toString()));
+					} else {
+						overtimeCell.setCellValue(ret[0].toString());
+					}
 				}
-				if (ret[1] instanceof Double) {
-					overtimeCell.setCellValue(Double.parseDouble(ret[1].toString()));
-				} else {
-					overtimeCell.setCellValue(ret[1].toString());
-				}
+				nurseCell.setCellValue(Arith.mul(nursePrice, nurseWorkload.get(text).doubleValue()));
 			}
 			autoSizeColumn(sheet);
 		}
@@ -106,45 +144,84 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		return book;
 	}
 
-	public Object[] getMasterValue(HSSFSheet sheet, String key, int... columnIndexs) {
-		List<Object> result = new ArrayList<Object>();
-		for (int r = 0; r <= sheet.getLastRowNum(); r ++) {
-			HSSFRow row = sheet.getRow(r);
-			HSSFCell firstCell = row.getCell(0);
-			String text = firstCell.getStringCellValue();
-			if (text.equalsIgnoreCase("")
-					|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("合计")
-					|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("总计")
-					|| isMerged(firstCell, sheet)
-					|| !key.equalsIgnoreCase(text)
-				) continue;
+	public Map<String, Double> calNurseJob(HSSFSheet sheet, double masterCoef, double subCoef, double recepCoef) throws Exception {
+		Map<String, Double> nurse = new HashMap<String, Double>();
+		double amountTotal = 0d;
+		for (int i = 3; i <= sheet.getLastRowNum(); i ++) {
+			HSSFRow row = sheet.getRow(i);
+			//姓名
+			String staffName = row.getCell(0).getStringCellValue();
+			//主班时数
+			HSSFCell masterCell = row.getCell(2);
+			double masterHours = 0d;
+			if (!masterCell.getStringCellValue().trim().equals("")) {
+				masterHours = masterCell.getNumericCellValue();
+			}
+			//副班时数
+			HSSFCell subCell = row.getCell(3);
+			double subHours = 0d;
+			if (!subCell.getStringCellValue().trim().equals("")) {
+				subHours = subCell.getNumericCellValue();
+			}
+			//登记班时数
+			HSSFCell recepCell = row.getCell(4);
+			double recepHours = 0d;
+			if (!recepCell.getStringCellValue().trim().equals("")) {
+				recepHours = masterCell.getNumericCellValue();
+			}
+			//职称系数
+			double titleCoef = miExecutedDao.getStaffNurseCoef(staffName);
+			double hourAmout = Arith.mul(masterHours, masterCoef) + Arith.mul(subHours, subCoef) + Arith.mul(recepHours, recepCoef);
+			double hourTotal = Arith.mul(hourAmout, titleCoef);
+			nurse.put(staffName, hourTotal);
+			amountTotal += hourTotal;
+		}
+		nurse.put("总时数", amountTotal);
 
-			HSSFCell cell = null;
-			for (int columnIndex : columnIndexs) {
-				cell = row.getCell(columnIndex);
-				Object ret = null;
-				switch(cell.getCellType()) {
-					case HSSFCell.CELL_TYPE_BLANK:
-						ret = 0d;
-						break;
-					case HSSFCell.CELL_TYPE_FORMULA:
-						ret = cell.getCellFormula();
-						break;
-					case HSSFCell.CELL_TYPE_NUMERIC:
-						ret = cell.getNumericCellValue();
-						break;
-					default:
-						ret = cell.getStringCellValue();
-						break;
+		return nurse;
+	}
+
+	public Object[] getCellsValue(HSSFSheet sheet, String key, int... columnIndexs) throws Exception {
+		List<Object> result = new ArrayList<Object>();
+		if (sheet != null) {
+			for (int r = 0; r <= sheet.getLastRowNum(); r ++) {
+				HSSFRow row = sheet.getRow(r);
+				HSSFCell firstCell = row.getCell(0);
+				String text = firstCell.getStringCellValue();
+				if (text.equalsIgnoreCase("")
+						|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("合计")
+						|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("总计")
+						|| isMerged(firstCell, sheet)
+						|| !key.equalsIgnoreCase(text)
+					) continue;
+	
+				HSSFCell cell = null;
+				for (int columnIndex : columnIndexs) {
+					cell = row.getCell(columnIndex);
+					Object ret = null;
+					switch(cell.getCellType()) {
+						case HSSFCell.CELL_TYPE_BLANK:
+							ret = 0d;
+							break;
+						case HSSFCell.CELL_TYPE_FORMULA:
+							ret = cell.getCellFormula();
+							break;
+						case HSSFCell.CELL_TYPE_NUMERIC:
+							ret = cell.getNumericCellValue();
+							break;
+						default:
+							ret = cell.getStringCellValue();
+							break;
+					}
+					result.add(ret);
 				}
-				result.add(ret);
 			}
 		}
 
 		return result.toArray(new Object[0]);
 	}
 
-	public boolean isMerged(HSSFCell cell, HSSFSheet sheet) {
+	public boolean isMerged(HSSFCell cell, HSSFSheet sheet) throws Exception {
 		boolean ret = false;
 		for (int i = 0; i < sheet.getNumMergedRegions(); i ++) {
 			CellRangeAddress range = sheet.getMergedRegion(i);
@@ -154,7 +231,7 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		return ret;
 	}
 
-	public void autoSizeColumn(HSSFSheet sheet) {
+	public void autoSizeColumn(HSSFSheet sheet) throws Exception {
 		HSSFRow row = sheet.getRow(0);
 		for (int i = 0; i <= row.getLastCellNum(); i ++) {
 			sheet.autoSizeColumn(i);
@@ -217,7 +294,7 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		sheet.addMergedRegion(CellRangeAddress.valueOf("C2:C3"));
 		HSSFCellUtil.createCell(titleRow, 3, "护理绩效", titleStyle);
 		sheet.addMergedRegion(CellRangeAddress.valueOf("D2:D3"));
-		HSSFCellUtil.createCell(titleRow, 4, "加班费", titleStyle);
+		HSSFCellUtil.createCell(titleRow, 4, "误餐费", titleStyle);
 		sheet.addMergedRegion(CellRangeAddress.valueOf("E2:E3"));
 		HSSFCellUtil.createCell(titleRow, 5, "奖金合计", titleStyle);
 		sheet.addMergedRegion(CellRangeAddress.valueOf("F2:F3"));
@@ -389,5 +466,13 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 
 	public void setMiPerformanceDao(MiPerformanceDao miPerformanceDao) {
 		this.miPerformanceDao = miPerformanceDao;
+	}
+
+	public MiExecutedDao getMiExecutedDao() {
+		return miExecutedDao;
+	}
+
+	public void setMiExecutedDao(MiExecutedDao miExecutedDao) {
+		this.miExecutedDao = miExecutedDao;
 	}
 }

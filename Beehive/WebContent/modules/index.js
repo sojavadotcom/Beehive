@@ -1,16 +1,21 @@
 var bee = {
 	alert: function(e) {
-		if (e.success) return;
+		var msg = "";
+		if (typeof e == "string") msg = e;
+		else msg = e.message||"";
+
+		if (msg == "") return fasle;
+
 		if (typeof e.loginTimeout != "undefined" && e.loginTimeout) {
 			systemConfig.isOnline = false;
 			bee.login.show();
-		} else {
-			require(["dojox/dialog/AlertDialog"], function (AlertDialog) {
-				var dialog = new AlertDialog({message: e.message});
-				dialog.startup();
-				dialog.show();
-			});
 		}
+
+		require(["dojox/dialog/AlertDialog"], function (AlertDialog) {
+			var dialog = new AlertDialog({message: msg});
+			dialog.startup();
+			dialog.show();
+		});
 	},
 	confirm: function(title, msg, fn) {
 		require(["dojox/dialog/ConfirmDialog"], function (ConfirmDialog) {
@@ -32,7 +37,7 @@ var bee = {
 				bee.login.obj = new Dialog({
 					closeable: false,
 					title: '系统登录',
-					href: '/AnyihisUser/Entry.shtml?action=login',
+					href: '/User/Entry.shtml?action=login',
 					onHide: function () {
 						if (!systemConfig.isOnline) bee.login.show();
 					}
@@ -65,7 +70,7 @@ var bee = {
 		}
 	},
 	logout: function() {
-		dojo.xhrPost({url: '/AnyihisUser/Logout.s2',handleAs: 'json'}).then(function(result) {
+		dojo.xhrPost({url: '/User/Logout.s2',handleAs: 'json'}).then(function(result) {
 			if (result.success) {
 				systemConfig.isOnline = false;
 				systemConfig.user.userName = systemConfig.user.name = systemConfig.user.deptName = "";
@@ -88,7 +93,7 @@ var bee = {
 				bee.password.obj = new Dialog({
 					closeable: true,
 					title: '修改密码',
-					href: '/AnyihisUser/Entry.shtml?action=password',
+					href: '/User/Entry.shtml?action=password',
 					onHide: function() {
 						if (systemConfig.isPInit) bee.password.obj.show();
 						else {
@@ -129,7 +134,7 @@ var bee = {
 	},
 	open: function(uri) {
 //		bee.clear(mainToolbar);
-		systemConfig.uri = uri || systemConfig.uri || (systemConfig.isOnline ? "/welcome.shtml" : "/welcome.html");
+		systemConfig.uri = uri || systemConfig.uri || (systemConfig.isOnline ? "/welcome.html" : "/welcome.html");
 		dijit.byId("box").set("href", (systemConfig.uri.indexOf(".") == -1 ? systemConfig.uri + ".shtml" : systemConfig.uri));
 	},
 	clear: function(tb) {
@@ -156,8 +161,8 @@ function(dojo) {
 			var match = ieReg.exec(userAgent);
 			dojo.isIE = match ? match[2] - 0 : undefined;
 		}
-//		if (!systemConfig.isOnline) bee.login.show();
-//		else if (systemConfig.isPInit) bee.password.show();
+		if (!systemConfig.isOnline) bee.login.show();
+		else if (systemConfig.isPInit) bee.password.show();
 		bee.open();
 	});
 });

@@ -116,17 +116,17 @@ function(Fieldset, ItemFileReadStore) {
 		</div>
 	</div>
 	<div dojoType="dijit.Fieldset" title="科室总额度" toggleable="false">
-		<input name="budget" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" missingMessage="请填写科室总额度" message="请填写科室总额度" style="width: 300px;" onChange="calculateBudget(this)" onInput="calculateBudget(this)" />元
+		<input name="budget" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" selectOnClick="true" missingMessage="请填写科室总额度" message="请填写科室总额度" style="width: 300px;" onChange="calculateBudget(this)" />元
 	</div>
 	<div dojoType="dijit.Fieldset" title="支出项目" toggleable="false">
 		<div style="margin: 5px 0;">
 			<label style="font-weight: bold;">科室加班费：</label>
-			<input name="overtimeCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" missingMessage="请填写科室加班费" message="请填写科室加班费" onChange="calculateBudget(this)" onInput="calculateBudget(this)" style="width: 100px;" />元
+			<input name="overtimeCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" selectOnClick="true" missingMessage="请填写科室加班费" message="请填写科室加班费" onChange="calculateBudget(this)" style="width: 100px;" />元
 		</div>
 		<div>
 			<div class="dijitInline">
 				<label style="font-weight: bold;">护理绩效占比：</label>
-				<input name="nurseRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" missingMessage="请填写护理额度占比" message="请填写护理额度占比" constraints="{max:100, min:0}" onChange="calculateBudget(this)" onInput="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
+				<input name="nurseRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" selectOnClick="true" missingMessage="请填写护理额度占比" message="请填写护理额度占比" constraints="{max:100, min:0}" onChange="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
 			</div>
 			<div class="dijitInline">
 				<input name="nurseCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
@@ -141,7 +141,7 @@ function(Fieldset, ItemFileReadStore) {
 		<div style="margin: 5px 0;">
 			<div class="dijitInline">
 				<label style="font-weight: bold;">医疗绩效占比：</label>
-				<input name="medicalRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" missingMessage="请填写医疗绩效占比" message="请填写医疗绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onInput="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
+				<input name="medicalRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" selectOnClick="true" missingMessage="请填写医疗绩效占比" message="请填写医疗绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
 			</div>
 			<div class="dijitInline">
 				<input name="medicalTotal" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
@@ -150,14 +150,14 @@ function(Fieldset, ItemFileReadStore) {
 		<div style="margin: 5px 0;">
 			<div class="dijitInline">
 				<label style="font-weight: bold;">管理绩效占比：</label>
-				<input name="manageRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" missingMessage="请填写管理绩效占比" message="请填写管理绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onInput="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
+				<input name="manageRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" selectOnClick="true" missingMessage="请填写管理绩效占比" message="请填写管理绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
 			</div>
 			<div class="dijitInline">
 				<input name="manageTotal" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
 			</div>
 		</div>
 	</div>
-	<div style="text-align: right;">
+	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="核算" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
 				medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=true;
@@ -183,7 +183,7 @@ function(Fieldset, ItemFileReadStore) {
 						dept: rec.dept
 					},
 					load: function(msg, ioargs) {
-						alert(msg);
+						bee.alert(msg);
 						medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=false;
 					},
 					error: function(err, ioargs) {
@@ -202,7 +202,7 @@ function(Fieldset, ItemFileReadStore) {
 							msg = "Unknown error.";
 							break;
 						}
-						alert(err);
+						bee.alert(err);
 						medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=false;
 					}
 				}

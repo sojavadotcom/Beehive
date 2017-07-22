@@ -17,10 +17,6 @@ function(dojo) {
 	});
 });
 </script>
-<div data-dojo-type="dijit/form/Form"></div>
-<div data-dojo-type="dijit/form/Button"></div>
-<div data-dojo-type="dijit/form/TextBox"></div>
-<div data-dojo-type="dijit/form/ValidationTextBox"></div>
 <form jsId="loginForm" action="/User/Login.s2" dojoType="dijit.form.Form" method="post" class="login">
 	<script type="dojo/method" event="onSubmit">
 		if(this.validate()) {
@@ -82,7 +78,7 @@ function(dojo) {
 		<input name="password" type="password" dojoType="dijit.form.ValidationTextBox"/>
 	</div>
 </form>
-<div class="dijitDialogPaneActionBar" style="text-align: center;">
+<div class="dijitDialogPaneActionBar" style="text-align: right;">
 	<button dojoType="dijit.form.Button">登录
 		<script type="dojo/method" event="onClick">
 			bee.login.form.submit();

@@ -8,15 +8,15 @@
 <script type="text/javascript">
 require([
 	"dijit/layout/BorderContainer", "dijit/layout/ContentPane",
-	"dijit/form/Form", "dijit/form/Button", "dijit/form/TextBox", "dojox/form/Uploader", "dojo/io/iframe",
+	"dijit/form/Form", "dijit/form/Button", "dijit/form/TextBox", "dojox/form/Uploader", "dojox/form/uploader/FileList", "dojo/io/iframe",
 	"dojo/domReady!"
 ],
-function(Form, Button, TextBox, Uploader, IFrame) {
+function(Form, Button, TextBox, Uploader, FileList, IFrame) {
 	dojo.ready(function() {
 	});
 });
 </script>
-<form jsId="miExecutedStaffPerformanceFrm" name="miExecutedExportFrm" action="/MedicalImaging/Export.StaffPerformance.s2" method="post" enctype="multipart/form-data" dojoType="dijit.form.Form" target="miExecutedStaffPerformanceBuff">
+<form jsId="miExecutedStaffPerformanceFrm" id="miExecutedExportFrm" name="miExecutedExportFrm" action="/MedicalImaging/Export.StaffPerformance.s2" method="post" enctype="multipart/form-data" dojoType="dijit.form.Form" target="miExecutedStaffPerformanceBuff">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
@@ -59,28 +59,34 @@ function(Form, Button, TextBox, Uploader, IFrame) {
 	</div>
 	<div style="margin: 5px 0;">
 		<div>
-			<div name="file" flashFieldName="file" multiple="false" type="file" dojoType="dojox.form.Uploader" label="选择文件..." errMsg="请选择文件！" required="required">
+			<input name="fileNames" type="hidden" dojoType="dijit.form.TextBox" />
+			<input name="fileTypes" type="hidden" dojoType="dijit.form.TextBox" />
+			<div id="uploader" name="files" showInput="true" flashFieldName="files" fileInputField="files" multiple="true" type="file" dojoType="dojox.form.Uploader" label="选择文件..." errMsg="请选择文件！" required="required" dropTarget="dropTarget">
 				<script type="dojo/method" event="onChange" args="dataArray">
+/*
+					var _fileNames = new Array();
+					var _fileTypes = new Array();
 					for (var i = 0; i < dataArray.length; i ++) {
 						var _file = dataArray[i];
-						miExecutedStaffPerformanceFrm.setValues({
-							fileName: _file.name,
-							fileType: _file.type
-						});
+						_fileNames[i] = _file.name;
+						_fileTypes[i] = _file.type;
 					}
+					miExecutedStaffPerformanceFrm.setValues({
+						fileNames: _fileNames,
+						fileTypes: _fileTypes
+					});
+*/
 				</script>
 			</div>
-		</div>
-		<div>
-			<div name="fileName" dojoType="dijit.form.TextBox" readonly="readonly" style="width: 300px; border: none"></div>
+			<div dojoType="dojox.form.uploader.FileList" uploaderId="uploader" headerType="类型" headerFilename="文件名" headerFilesize="大小"></div>
 		</div>
 	</div>
-	<div style="text-align: right">
+	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="导出" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
 /*
 				if (miExecutedStaffPerformanceFrm.getValues().fileName == "") {
-					alert("请选择文件！");
+					bee.alert("请选择文件！");
 					return false;
 				}
 */
