@@ -2,7 +2,9 @@ package com.sojava.beehive.framework.component.medicalimaging.dao.impl;
 
 import com.sojava.beehive.framework.component.medicalimaging.bean.CalculatePerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
+import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
 import com.sojava.beehive.framework.component.medicalimaging.bean.RbrvsPrice;
+import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
 import com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonus;
 import com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonusPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
@@ -29,7 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanceDao {
 	private static final long serialVersionUID = 64685891293059799L;
 
-	public void calRbrvsPrice(WorkStatistic workStatistic) throws Exception {
+	@Override
+	public void calRbrvsPrice(WorkStatistic workStatistic, MiWorkload[] overtimeList, MiWorkload[] nurseWorkloadList) throws Exception {
 		Session session = null;
 		Transaction t = null;
 		try {
@@ -40,7 +43,7 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 			/*
 			 * Sharing Mode
 			 */
-			calMode = new SharingMode(getSession(), session, workStatistic);
+			calMode = new SharingMode(this.getSession(), session, workStatistic);
 			/*
 			 * Single Mode
 			 */
@@ -50,6 +53,23 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 			calMode.calMainInfo();
 			//Calculate items of Workload for Price of RBRVS.
 			calMode.calRbrvsPrice();
+
+			Query stmt = session.createQuery("delete from MiWorkload where workStatistic=:workStatistic");
+			stmt.setEntity("workStatistic", workStatistic);
+			stmt.executeUpdate();
+
+			if (overtimeList != null) {
+				for (MiWorkload overtime: overtimeList) {
+					overtime.setWorkStatistic(workStatistic);
+					session.save(overtime);
+				}
+			}
+			if (nurseWorkloadList != null) {
+				for (MiWorkload nurseWorkload: nurseWorkloadList) {
+					nurseWorkload.setWorkStatistic(workStatistic);
+					session.save(nurseWorkload);
+				}
+			}
 
 			t.commit();
 
@@ -71,6 +91,7 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 			session.clear();
 		}
 	}
+
 }
 
 interface Mode {
@@ -84,12 +105,15 @@ class SharingMode implements Mode {
 	private Session updateSession;
 	private WorkStatistic workStatistic;
 
+	protected SharingMode() {}
+
 	public SharingMode(Session querySession, Session updateSession, WorkStatistic workStatistic) {
 		this.querySession = querySession;
 		this.updateSession = updateSession;
 		this.workStatistic = workStatistic;
 	}
 
+	@Override
 	public void calMainInfo() throws Exception {
 		Query stmt;
 
@@ -136,6 +160,7 @@ class SharingMode implements Mode {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public void calRbrvsPrice() throws Exception {
 		Query stmt;
 
@@ -223,6 +248,7 @@ class SharingMode implements Mode {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public void calPerformance() throws Exception {
 		Query stmt;
 
@@ -313,12 +339,15 @@ class SingleMode implements Mode {
 	private Session updateSession;
 	private WorkStatistic workStatistic;
 
+	protected SingleMode() {}
+
 	public SingleMode(Session querySession, Session updateSession, WorkStatistic workStatistic) {
 		this.querySession = querySession;
 		this.updateSession = updateSession;
 		this.workStatistic = workStatistic;
 	}
 
+	@Override
 	public void calMainInfo() throws Exception {
 		Query stmt;
 
@@ -401,6 +430,7 @@ class SingleMode implements Mode {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public void calRbrvsPrice() throws Exception {
 		Query stmt;
 
@@ -460,7 +490,7 @@ class SingleMode implements Mode {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
 					new DicRbrvs(Integer.parseInt(recs[0].toString())),
-					Integer.parseInt(recs[1].toString()),
+					new Staff(Integer.parseInt(recs[1].toString())),
 					Double.parseDouble(recs[2].toString()),
 					Double.parseDouble(recs[3].toString()),
 					0,
@@ -520,7 +550,7 @@ class SingleMode implements Mode {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
 					new DicRbrvs(Integer.parseInt(recs[0].toString())),
-					Integer.parseInt(recs[1].toString()),
+					new Staff(Integer.parseInt(recs[1].toString())),
 					Double.parseDouble(recs[2].toString()),
 					Double.parseDouble(recs[3].toString()),
 					0,
@@ -583,7 +613,7 @@ class SingleMode implements Mode {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
 					new DicRbrvs(Integer.parseInt(recs[0].toString())),
-					Integer.parseInt(recs[1].toString()),
+					new Staff(Integer.parseInt(recs[1].toString())),
 					Double.parseDouble(recs[2].toString()),
 					Double.parseDouble(recs[3].toString()),
 					0,
@@ -648,7 +678,7 @@ class SingleMode implements Mode {
 			RbrvsPrice rbrvsPrice = new RbrvsPrice(
 					workStatistic,
 					new DicRbrvs(Integer.parseInt(recs[0].toString())),
-					Integer.parseInt(recs[1].toString()),
+					new Staff(Integer.parseInt(recs[1].toString())),
 					Double.parseDouble(recs[2].toString()),
 					Double.parseDouble(recs[3].toString()),
 					0,
@@ -665,6 +695,7 @@ class SingleMode implements Mode {
 	}
 
 	@SuppressWarnings("unchecked")
+	@Override
 	public void calPerformance() throws Exception {
 		Query stmt;
 
@@ -933,5 +964,6 @@ class SingleMode implements Mode {
 		stmt.setDate("end", workStatistic.getEndDate());
 		verifierCoef = Double.parseDouble(Long.toString((long) stmt.uniqueResult()));
 */
-	}	
+	}
+
 }

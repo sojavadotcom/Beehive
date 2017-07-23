@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
+import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
@@ -310,6 +311,17 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		}
 
 		return list.toArray(new VMiExecutedStaffPerformance[0]);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public MiWorkload[] findWorkload(WorkStatistic workStatistic, String type, String kind, Page page) throws Exception {
+		List<MiWorkload> list = (List<MiWorkload>) miExecutedDao.query(MiWorkload.class, new Criterion[]{
+				Restrictions.eq("workStatistic", workStatistic),
+				Restrictions.eq("type", type),
+				Restrictions.eq("kind", kind)
+			}, null, page, false);
+		return list.toArray(new MiWorkload[0]);
 	}
 
 	public MiExecutedDao getMiExecutedDao() {

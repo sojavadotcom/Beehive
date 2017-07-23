@@ -36,8 +36,9 @@ public class RbrvsPrice implements Serializable {
 
 	private Double amount;
 
-	@Column(name="staff_id")
-	private Integer staffId;
+	@ManyToOne
+	@JoinColumn(name="staff_id")
+	private Staff staff;
 
 	//bi-directional many-to-one association to CalculatePerformance
 	@OneToMany(mappedBy="rbrvsPrice")
@@ -84,10 +85,10 @@ public class RbrvsPrice implements Serializable {
 		this.kind = kind;
 	}
 
-	public RbrvsPrice(WorkStatistic workStatistic, DicRbrvs dicRbrvs, int staffId, double point, double pointTotal, double price, double amount, int quantity, String type, String kind) {
+	public RbrvsPrice(WorkStatistic workStatistic, DicRbrvs dicRbrvs, Staff staff, double point, double pointTotal, double price, double amount, int quantity, String type, String kind) {
 		this.workStatistic = workStatistic;
 		this.dicRbrvs = dicRbrvs;
-		this.staffId = staffId;
+		this.staff = staff;
 		this.point = point;
 		this.pointTotal = pointTotal;
 		this.price = price;
@@ -185,12 +186,12 @@ public class RbrvsPrice implements Serializable {
 		this.dicRbrvs = dicRbrvs;
 	}
 
-	public Integer getStaffId() {
-		return staffId;
+	public Staff getStaff() {
+		return staff;
 	}
 
-	public void setStaffId(Integer staffId) {
-		this.staffId = staffId;
+	public void setStaff(Staff staff) {
+		this.staff = staff;
 	}
 
 }

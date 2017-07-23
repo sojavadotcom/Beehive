@@ -38,6 +38,9 @@ public class WorkStatistic implements Serializable {
 	@Column(name="nurse_cost")
 	private Double nurseCost;
 
+	@Column(name="nurse_hours")
+	private Double nurseHours;
+
 	@Column(name="performance_total")
 	private Double performanceTotal;
 
@@ -327,6 +330,14 @@ public class WorkStatistic implements Serializable {
 
 	public void setNurseCost(Double nurseCost) {
 		this.nurseCost = nurseCost;
+	}
+
+	public Double getNurseHours() {
+		return nurseHours;
+	}
+
+	public void setNurseHours(Double nurseHours) {
+		this.nurseHours = nurseHours;
 	}
 
 	public Double getPerformanceTotal() {

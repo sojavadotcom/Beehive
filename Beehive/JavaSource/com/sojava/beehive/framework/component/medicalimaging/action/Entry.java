@@ -10,6 +10,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.sojava.beehive.framework.ActionSupport;
+import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
@@ -56,9 +57,11 @@ public class Entry extends ActionSupport {
 				year = year == null ? 0 : year;
 				month = month == null ? 0 : month;
 				WorkStatistic workStatistic = miExecutedService.findWorkStatistic(year, month);
-				VMiExecutedStaffPerformance[] list = miExecutedService.findStaffPerformance(workStatistic, null, true);
+				VMiExecutedStaffPerformance[] staffPerformances = miExecutedService.findStaffPerformance(workStatistic, null, true);
+				MiWorkload[] overtimes = miExecutedService.findWorkload(workStatistic, "误餐费", "补助", null);
+				MiWorkload[] nurseWorkloads = miExecutedService.findWorkload(workStatistic, "时数", "护理组", null);
 				RecordUtil recordUtil = new RecordUtil();
-				JSONObject result = recordUtil.generateJsonByMapping(list);
+				JSONObject result = recordUtil.generateJsonByMapping(staffPerformances);
 				JSONArray items = result.getJSONArray("items");
 				String groupName = "";
 				for (int i = 0; i < items.size(); i ++) {

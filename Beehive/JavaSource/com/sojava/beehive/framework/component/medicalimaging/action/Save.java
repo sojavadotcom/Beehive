@@ -1,5 +1,6 @@
 package com.sojava.beehive.framework.component.medicalimaging.action;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.Namespace;
 import org.springframework.context.annotation.Scope;
@@ -9,6 +10,7 @@ import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
+import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.io.Writer;
 
 import java.io.File;
@@ -27,9 +29,10 @@ public class Save extends ActionSupport {
 	@Resource private MiExecutedService miExecutedService;
 	@Resource private MiPerformanceService miPerformanceService;
 
-    private File uploadFile;
+    private File workloadFile;
+    private File overtimeFile;
+    private File nurseFile;
     private Double budget;
-    private Double overtimeCost;
     private Double nurseRate;
     private Double nurseCost;
     private Double performanceCost;
@@ -58,7 +61,7 @@ public class Save extends ActionSupport {
 			import0();
 			return null;
 		} else if (contextName.equalsIgnoreCase("save.merit")) {
-			merit(budget, overtimeCost, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept);
+			merit();
 			return null;
 		} else {
 			return SUCCESS;
@@ -68,7 +71,7 @@ public class Save extends ActionSupport {
 	public void import0() throws Exception {
 		InputStream in = null;
 		try {
-			in = new FileInputStream(uploadFile);
+			in = new FileInputStream(workloadFile);
 			miExecutedService.importRecords(in, dept);
 		}
 		finally {
@@ -77,13 +80,41 @@ public class Save extends ActionSupport {
 		}
 	}
 
-	public void merit(Double budget, Double overtimeCost, Double nurseRate, Double medicalRate, Double manageRate, int year, int month, Date begin, Date end, String dept) throws Exception {
+	public void merit() throws Exception {
 		String msg = "核算完成";
+		HSSFWorkbook overtimeBook = null;
+		HSSFWorkbook nurseBook = null;
+		FileInputStream in = null;
 		try {
-			miPerformanceService.merit(budget, overtimeCost, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept);
+			if (overtimeFile != null) {
+				try {
+					in = new FileInputStream(overtimeFile);
+					overtimeBook = new HSSFWorkbook(in);
+				}
+				catch(Exception ex) {
+					throw new Exception("核算数据准备中，读取误餐费Excel数据文件时发生：" + ex.getMessage());
+				}
+				finally {
+					in.close();
+				}
+			}
+			if (nurseFile != null) {
+				try {
+					in = new FileInputStream(nurseFile);
+					nurseBook = new HSSFWorkbook(in);
+				}
+				catch(Exception ex) {
+					throw new Exception("核算数据准备中，读取护理组工作量Excel数据文件时发生：" + ex.getMessage());
+				}
+				finally {
+					in.close();
+				}
+			}
+			miPerformanceService.merit(budget, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept, overtimeBook, nurseBook);
 		}
 		catch(Exception ex) {
-			msg = ex.getLocalizedMessage();
+			msg = ex.getMessage();
+			throw new ErrorException(this.getClass(), msg);
 		}
 		finally {
 			new Writer(getRequest(), getResponse()).output(msg);
@@ -98,12 +129,28 @@ public class Save extends ActionSupport {
 		this.miExecutedService = miExecutedService;
 	}
 
-	public File getUploadFile() {
-		return uploadFile;
+	public File getWorkloadFile() {
+		return workloadFile;
 	}
 
-	public void setUploadFile(File uploadFile) {
-		this.uploadFile = uploadFile;
+	public void setWorkloadFile(File workloadFile) {
+		this.workloadFile = workloadFile;
+	}
+
+	public File getOvertimeFile() {
+		return overtimeFile;
+	}
+
+	public void setOvertimeFile(File overtimeFile) {
+		this.overtimeFile = overtimeFile;
+	}
+
+	public File getNurseFile() {
+		return nurseFile;
+	}
+
+	public void setNurseFile(File nurseFile) {
+		this.nurseFile = nurseFile;
 	}
 
 	public MiPerformanceService getMiPerformanceService() {
@@ -232,14 +279,6 @@ public class Save extends ActionSupport {
 
 	public void setTechTotal(Double techTotal) {
 		this.techTotal = techTotal;
-	}
-
-	public Double getOvertimeCost() {
-		return overtimeCost;
-	}
-
-	public void setOvertimeCost(Double overtimeCost) {
-		this.overtimeCost = overtimeCost;
 	}
 
 	public Double getNurseRate() {

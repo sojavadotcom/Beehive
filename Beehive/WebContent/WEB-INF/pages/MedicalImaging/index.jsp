@@ -141,7 +141,6 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 				dialogMerit = dialogMerit || new Dialog({
 					title:"核算绩效",
 					href:"/MedicalImaging/Entry.merit.shtml",
-					style: {width:"800px", height: "90%"},
 					closable: true,
 					executeScripts: true,
 					onHide: function() {

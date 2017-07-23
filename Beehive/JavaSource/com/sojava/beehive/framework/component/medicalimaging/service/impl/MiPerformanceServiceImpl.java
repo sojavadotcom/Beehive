@@ -1,6 +1,9 @@
 package com.sojava.beehive.framework.component.medicalimaging.service.impl;
 
+import com.sojava.beehive.framework.component.medicalimaging.StaffCoefType;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicCoefficient;
+import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
+import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
@@ -15,6 +18,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.annotation.Resource;
 
@@ -39,8 +43,23 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void merit(Double budget, Double overtimeCost, Double nurseRate, Double medicalRate, Double manageRate, int year, int month, Date begin, Date end, String dept) throws Exception {
+	public void merit(Double budget, Double nurseRate, Double medicalRate, Double manageRate, int year, int month, Date begin, Date end, String dept, HSSFWorkbook overtimeBook, HSSFWorkbook nurseWorkloadBook) throws Exception {
 		WorkStatistic workStatistic;
+		double overtimeCost = 0d, nurseHours = 0d;
+		MiWorkload[] overtimeList = null;
+		MiWorkload[] nurseWorkloadList = null;
+		if (overtimeBook != null) {
+			HSSFSheet sheet = overtimeBook.getSheetAt(0);
+			Properties ret = calOvertime(sheet);
+			overtimeCost = (double) ret.get("cost");
+			overtimeList = ((List<MiWorkload>) ret.get("list")).toArray(new MiWorkload[0]);
+		}
+		if (nurseWorkloadBook != null) {
+			HSSFSheet sheet = nurseWorkloadBook.getSheetAt(0);
+			Properties ret = calNurseWorkload(sheet);
+			nurseHours = (double) ret.get("hours");
+			nurseWorkloadList = ((List<MiWorkload>) ret.get("list")).toArray(new MiWorkload[0]);
+		}
 		List<WorkStatistic> list = (List<WorkStatistic>) miPerformanceDao.query(WorkStatistic.class, new Criterion[]{Restrictions.eq("year", (Integer) year), Restrictions.eq("month", (Integer) month), Restrictions.eq("dept", dept)}, null, null, false);
 		if (list.size() > 0) workStatistic = list.get(0);
 		else workStatistic = new WorkStatistic();
@@ -51,6 +70,7 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 										Arith.div(workStatistic.getNurseRate(), 100),
 										(workStatistic.getBudget()-workStatistic.getOvertimeCost())
 									));
+		workStatistic.setNurseHours(nurseHours);
 		workStatistic.setPerformanceTotal(workStatistic.getBudget() - workStatistic.getOvertimeCost() - workStatistic.getNurseCost());
 		workStatistic.setMedicalRate(medicalRate);
 		workStatistic.setMedicalTotal(Arith.mul(
@@ -67,12 +87,120 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		workStatistic.setBeginDate(begin);
 		workStatistic.setEndDate(end);
 		workStatistic.setDept(dept);
-		miPerformanceDao.calRbrvsPrice(workStatistic);
+		miPerformanceDao.calRbrvsPrice(workStatistic, overtimeList, nurseWorkloadList);
+	}
+
+	@Override
+	public Properties calOvertime(HSSFSheet sheet) throws Exception {
+		Properties result = new Properties();
+		List<MiWorkload> miWorkloads = new ArrayList<MiWorkload>();
+		double overtimeCost = 0d;
+		for (int i = 0; i <= sheet.getLastRowNum(); i ++) {
+			HSSFCell cell;
+			HSSFRow row = sheet.getRow(i);
+			String staffName = row.getCell(0).getStringCellValue();
+			Integer staffId = miExecutedDao.getStaffId(staffName);
+			if (staffId == null) continue;
+			double moring = 0d;
+			cell = row.getCell(1);
+			if (cell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+				moring = cell.getNumericCellValue();
+			}
+			double night = 0d;
+			cell = row.getCell(2);
+			if (cell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+				night = cell.getNumericCellValue();
+			}
+
+			MiWorkload miWorkload = new MiWorkload();
+			miWorkload.setStaff(new Staff(staffId));
+			miWorkload.setItem1(moring);
+			miWorkload.setItem2(night);
+			miWorkload.setAmount(moring + night);
+			miWorkload.setType("误餐费");
+			miWorkload.setKind("补助");
+			miWorkloads.add(miWorkload);
+
+			overtimeCost += miWorkload.getAmount();
+		}
+		result.put("list", miWorkloads);
+		result.put("cost", overtimeCost);
+
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
+	public Properties calNurseWorkload(HSSFSheet sheet) throws Exception {
+		Properties result = new Properties();
+		List<MiWorkload> miWorkloads = new ArrayList<MiWorkload>();
+		//班次系数
+		double masterCoef = 0d, subCoef = 0d, recepCoef = 0d;
+		List<DicCoefficient> nurseCoefs = (List<DicCoefficient>) miExecutedDao.query(DicCoefficient.class, new Criterion[]{Restrictions.in("name", new String[]{"主班", "副班", "登记"})}, null, null, true);
+		for(DicCoefficient nurseCoef: nurseCoefs) {
+			if (nurseCoef.getName().equals("主班")) {
+				masterCoef = nurseCoef.getPoints();
+			} else if (nurseCoef.getName().equals("副班")) {
+				subCoef = nurseCoef.getPoints();
+			} else if (nurseCoef.getName().equals("登记")) {
+				recepCoef = nurseCoef.getPoints();
+			}
+		}
+		//
+		double hourAmount = 0d;
+		for (int i = 3; i <= sheet.getLastRowNum(); i ++) {
+			HSSFRow row = sheet.getRow(i);
+			//姓名
+			String staffName = row.getCell(0).getStringCellValue();
+			Integer staffId = miExecutedDao.getStaffId(staffName);
+
+			if (staffId == null) continue;
+
+			//主班时数
+			HSSFCell masterCell = row.getCell(2);
+			double masterHours = 0d;
+			if (masterCell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+				masterHours = masterCell.getNumericCellValue();
+			}
+			//副班时数
+			HSSFCell subCell = row.getCell(3);
+			double subHours = 0d;
+			if (subCell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+				subHours = subCell.getNumericCellValue();
+			}
+			//登记班时数
+			HSSFCell recepCell = row.getCell(4);
+			double recepHours = 0d;
+			if (recepCell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
+				recepHours = masterCell.getNumericCellValue();
+			}
+			//职称系数
+			double titleCoef = miExecutedDao.getStaffCoef(staffId, StaffCoefType.Nurse);
+			double hourAmout = Arith.mul(masterHours, masterCoef) + Arith.mul(subHours, subCoef) + Arith.mul(recepHours, recepCoef);
+			double hourTotal = Arith.mul(hourAmout, titleCoef);
+
+			MiWorkload miWorkload = new MiWorkload();
+			miWorkload.setStaff(new Staff(staffId));
+			miWorkload.setItem1(masterCoef);
+			miWorkload.setItem2(subCoef);
+			miWorkload.setItem3(recepCoef);
+			miWorkload.setAmount(masterCoef + subCoef + recepCoef);
+			miWorkload.setAmountByCoef(hourTotal);
+			miWorkload.setType("时数");
+			miWorkload.setKind("护理组");
+			miWorkloads.add(miWorkload);
+
+			hourAmount += miWorkload.getAmountByCoef();
+		}
+		result.put("list", miWorkloads);
+		result.put("hours", hourAmount);
+
+		return result;
+	}
+
+	@Override
 	public HSSFWorkbook writeExcelOfStaffPerformance(File overtimeFile, File nurseFile, WorkStatistic workStatistic, VMiExecutedStaffPerformance[] list) throws Exception {
+/*
 		HSSFWorkbook book = generateExcelOfStaffPerformance(workStatistic, list);
 		HSSFWorkbook overtimeBook = null, nurseBook = null;
 		double nurseMasterCoef = 0d, nurseSubCoef = 0d, nurseRecepCoef = 0d;
@@ -142,15 +270,19 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		}
 
 		return book;
+*/
+		return null;
 	}
 
 	public Map<String, Double> calNurseJob(HSSFSheet sheet, double masterCoef, double subCoef, double recepCoef) throws Exception {
 		Map<String, Double> nurse = new HashMap<String, Double>();
 		double amountTotal = 0d;
-		for (int i = 3; i <= sheet.getLastRowNum(); i ++) {
+		for (int i = 0; i <= sheet.getLastRowNum(); i ++) {
 			HSSFRow row = sheet.getRow(i);
 			//姓名
 			String staffName = row.getCell(0).getStringCellValue();
+			Integer staffId = miExecutedDao.getStaffId(staffName);
+			if (staffId == null) continue;
 			//主班时数
 			HSSFCell masterCell = row.getCell(2);
 			double masterHours = 0d;
@@ -170,7 +302,7 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 				recepHours = masterCell.getNumericCellValue();
 			}
 			//职称系数
-			double titleCoef = miExecutedDao.getStaffNurseCoef(staffName);
+			double titleCoef = miExecutedDao.getStaffCoef(staffId, StaffCoefType.Nurse);
 			double hourAmout = Arith.mul(masterHours, masterCoef) + Arith.mul(subHours, subCoef) + Arith.mul(recepHours, recepCoef);
 			double hourTotal = Arith.mul(hourAmout, titleCoef);
 			nurse.put(staffName, hourTotal);
@@ -239,7 +371,7 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 	}
 
 	@Override
-	public HSSFWorkbook generateExcelOfStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] list) throws Exception {
+	public HSSFWorkbook generateExcelOfStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads) throws Exception {
 		int rowIndex = 0;
 		int dataRowIndex = 0;
 		List<Integer> amountRowIndex = new ArrayList<Integer>();
@@ -362,20 +494,26 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		contentStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat(typeFormat));
 
 		String groupName = "";
-		for (VMiExecutedStaffPerformance rec: list) {
-			String _groupName = rec.getGroupName();
-			String staffName = rec.getStaffName();
+		for (VMiExecutedStaffPerformance staffPerformance: staffPerformances) {
+			String _groupName = staffPerformance.getGroupName();
+			String staffName = staffPerformance.getStaffName();
 
 			if (staffName.equalsIgnoreCase("合计") || staffName.equalsIgnoreCase("总计")) {
-				createAmountRow(sheet, rowIndex ++, dataRowIndex, amountRowIndex.toArray(new Integer[0]), rec, amountStyle);
+				createAmountRow(sheet, rowIndex ++, dataRowIndex, amountRowIndex.toArray(new Integer[0]), staffPerformance, amountStyle);
 				if (staffName.equals("合计")) amountRowIndex.add(rowIndex);
 			} else {
 				if (!groupName.equals(_groupName)) {
-					createGroupRow(sheet, rowIndex ++, rec, groupStyle);
+					createGroupRow(sheet, rowIndex ++, staffPerformance, groupStyle);
 					groupName = _groupName;
 					dataRowIndex = rowIndex+1;
 				}
-				createContentRow(sheet, rowIndex ++, rec, contentStyle);
+				createContentRow(
+						sheet,
+						rowIndex ++,
+						staffPerformance,
+						getWorkload(overtimes, staffPerformance.getStaffId()),
+						getWorkload(nurseWorkloads, staffPerformance.getStaffId()),
+						contentStyle);
 			}
 		}
 		cell.setAsActiveCell();
@@ -441,23 +579,34 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		row.setHeightInPoints(15);
 	}
 
-	public void createContentRow(HSSFSheet sheet, int rowIndex, VMiExecutedStaffPerformance rec, HSSFCellStyle style) {
+	public void createContentRow(HSSFSheet sheet, int rowIndex, VMiExecutedStaffPerformance staffPerformance, MiWorkload overtime, MiWorkload nurseWorkload, HSSFCellStyle style) {
 		int cellIndex = 0;
 		HSSFRow row = sheet.createRow(rowIndex);
-		HSSFCellUtil.createCell(row, cellIndex ++, rec.getStaffName(), style);
-		createCell(row, cellIndex ++, rec.getMedicalTotal(), style);
-		createCell(row, cellIndex ++, rec.getManageTotal(), style);
-		createCell(row, cellIndex ++, 0, style);
-		createCell(row, cellIndex ++, 0, style);
-		HSSFCell cell = createCell(row, cellIndex ++, rec.getTotalAmount(), style);
+		HSSFCellUtil.createCell(row, cellIndex ++, staffPerformance.getStaffName(), style);
+		createCell(row, cellIndex ++, staffPerformance.getMedicalTotal(), style);
+		createCell(row, cellIndex ++, staffPerformance.getManageTotal(), style);
+		createCell(row, cellIndex ++, (nurseWorkload == null ? 0d : nurseWorkload.getAmount()), style);
+		createCell(row, cellIndex ++, (overtime == null ? 0d : overtime.getAmount()), style);
+		HSSFCell cell = createCell(row, cellIndex ++, staffPerformance.getTotalAmount(), style);
 		cell.setCellFormula("sum(B" + (rowIndex+1) + ":E" + (rowIndex+1) + ")");
-		createCell(row, cellIndex ++, rec.getTechPointTotal(), style);
-		createCell(row, cellIndex ++, rec.getDiagnoPointTotal(), style);
-		createCell(row, cellIndex ++, rec.getAssistPointTotal(), style);
-		cell = createCell(row, cellIndex ++, rec.getPointTotal(), style);
+		createCell(row, cellIndex ++, staffPerformance.getTechPointTotal(), style);
+		createCell(row, cellIndex ++, staffPerformance.getDiagnoPointTotal(), style);
+		createCell(row, cellIndex ++, staffPerformance.getAssistPointTotal(), style);
+		cell = createCell(row, cellIndex ++, staffPerformance.getPointTotal(), style);
 		cell.setCellFormula("sum(G" + (rowIndex+1) + ":I" + (rowIndex+1) + ")");
 
 		row.setHeightInPoints(15);
+	}
+
+	public MiWorkload getWorkload(MiWorkload[] workloads, int staffId) throws Exception {
+		MiWorkload ret = null;
+		for (MiWorkload workload: workloads) {
+			if (workload.getStaff().getId() == staffId) {
+				ret = workload;
+				break;
+			}
+		}
+		return ret;
 	}
 
 	public MiPerformanceDao getMiPerformanceDao() {

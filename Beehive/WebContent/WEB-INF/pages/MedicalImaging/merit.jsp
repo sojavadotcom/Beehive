@@ -64,13 +64,19 @@ function calculateBudget(o) {
 		manageTotal: _manageTotal
 	});
 }
-require(["dijit/Fieldset", "dojo/data/ItemFileReadStore", "dojo/domReady!"],
-function(Fieldset, ItemFileReadStore) {
+require([
+	"dijit/Fieldset", "dojo/data/ItemFileReadStore",
+	"dijit/form/Form", "dijit/form/TextBox", "dijit/form/ValidationTextBox", "dijit/form/NumberSpinner",
+	"dijit/form/Button",
+	"dojox/form/Uploader", "dojox/form/uploader/FileList",
+	"dojo/io/iframe",
+	"dojo/domReady!"],
+function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSpinner, Button, Uploader, FileList, ioIFrame) {
 	dojo.ready(function() {
 	});
 });
 </script>
-<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save.merit.s2" dojoType="dijit.form.Form">
+<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save.merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data" target="miExecutedStaffPerformanceBuff">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
@@ -118,11 +124,22 @@ function(Fieldset, ItemFileReadStore) {
 	<div dojoType="dijit.Fieldset" title="科室总额度" toggleable="false">
 		<input name="budget" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" selectOnClick="true" missingMessage="请填写科室总额度" message="请填写科室总额度" style="width: 300px;" onChange="calculateBudget(this)" />元
 	</div>
-	<div dojoType="dijit.Fieldset" title="支出项目" toggleable="false">
+	<div dojoType="dijit.Fieldset" title="误餐费" toggleable="false">
 		<div style="margin: 5px 0;">
-			<label style="font-weight: bold;">科室加班费：</label>
-			<input name="overtimeCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" selectOnClick="true" missingMessage="请填写科室加班费" message="请填写科室加班费" onChange="calculateBudget(this)" style="width: 100px;" />元
+			<span name="overtimeFile" type="file" dojoType="dojox.form.Uploader" required="required">
+				<script type="dojo/method" event="onChange" args="dataArray"">
+					var _fileName = "";
+					for (var i = 0; i < dataArray.length; i ++) {
+						var _file = dataArray[i];
+						_fileName += _file.name + " ";
+					}
+					medicalimagingMeritFrm.setValues({'overtimeFileName': _fileName.trim()});
+				</script>
+			</span>
+			<input name="overtimeFileName" type="text" dojoType="dijit.form.TextBox" readonly="readOnly" />
 		</div>
+	</div>
+	<div dojoType="dijit.Fieldset" title="护理绩效" toggleable="false">
 		<div>
 			<div class="dijitInline">
 				<label style="font-weight: bold;">护理绩效占比：</label>
@@ -131,6 +148,19 @@ function(Fieldset, ItemFileReadStore) {
 			<div class="dijitInline">
 				<input name="nurseCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
 			</div>
+		</div>
+		<div>
+			<span name="nurseFile" type="file" dojoType="dojox.form.Uploader" required="required">
+				<script type="dojo/method" event="onChange" args="dataArray"">
+					var _fileName = "";
+					for (var i = 0; i < dataArray.length; i ++) {
+						var _file = dataArray[i];
+						_fileName += _file.name + " ";
+					}
+					medicalimagingMeritFrm.setValues({'nurseFileName': _fileName.trim()});
+				</script>
+			</span>
+			<input name="nurseFileName" type="text" dojoType="dijit.form.TextBox" readonly="readOnly" />
 		</div>
 	</div>
 	<div dojoType="dijit.Fieldset" title="绩效核算" toggleable="false">
@@ -160,6 +190,8 @@ function(Fieldset, ItemFileReadStore) {
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="核算" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
+				medicalimagingMeritFrm.submit();
+				return;
 				medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=true;
 				var rec = medicalimagingMeritFrm.getValues();
 				var xhrArgs = {
@@ -207,6 +239,11 @@ function(Fieldset, ItemFileReadStore) {
 					}
 				}
 				dojo.xhrGet(xhrArgs);
+			</script>
+		</button>
+		<button label="关闭" dojoType="dijit.form.Button">
+			<script type="dojo/method" event="onClick" args="event">
+				dialogMerit.hide();
 			</script>
 		</button>
 	</div>

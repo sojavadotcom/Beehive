@@ -2,6 +2,7 @@ package com.sojava.beehive.framework.component.medicalimaging.bean;
 
 import java.io.Serializable;
 import javax.persistence.*;
+
 import java.util.Date;
 import java.util.List;
 
@@ -23,17 +24,31 @@ public class Staff implements Serializable {
 
 	private String code;
 
-	@Column(name="diagno_coef_id")
-	private Integer diagnoCoefId;
+//	@Column(name="tech_coef_id")
+//	private Integer techCoefId;
+	@ManyToOne
+	@JoinColumn(name="tech_coef_id")
+	private DicCoefficient techCoef;
 
-	@Column(name="verifier_coef_id")
-	private Integer verifierCoefId;
+//	@Column(name="diagno_coef_id")
+//	private Integer diagnoCoefId;
 
-	@Column(name="tech_coef_id")
-	private Integer techCoefId;
+	@ManyToOne
+	@JoinColumn(name="diagno_coef_id")
+	private DicCoefficient diagnosCoef;
 
-	@Column(name="nurse_coef_id")
-	private Integer nurseCoefId;
+//	@Column(name="verifier_coef_id")
+//	private Integer verifierCoefId;
+
+	@ManyToOne
+	@JoinColumn(name="verifier_coef_id")
+	private DicCoefficient verifyCoef;
+
+//	@Column(name="nurse_coef_id")
+//	private Integer nurseCoefId;
+	@ManyToOne
+	@JoinColumn(name="nurse_coef_id")
+	private DicCoefficient nurseCoef;
 
 	@Column(name="create_dept_id")
 	private String createDeptId;
@@ -93,14 +108,22 @@ public class Staff implements Serializable {
 	@OneToMany(mappedBy="staff")
 	private List<Member> members;
 
+	@OneToMany(mappedBy="staff")
+	private List<MiWorkload> miWorkloads;
+
 	public Staff() {}
+
+	public Staff(int id) {
+		this.id = id;
+	}
 
 	public Staff(Staff staff) {
 		this.setId(staff.getId());
 		this.setCode(staff.getCode());
-		this.setDiagnoCoefId(staff.getDiagnoCoefId());
-		this.setTechCoefId(staff.getTechCoefId());
-		this.setNurseCoefId(staff.getNurseCoefId());
+		this.setTechCoef(staff.getTechCoef());
+		this.setDiagnosCoef(staff.getDiagnosCoef());
+		this.setVerifyCoef(staff.getVerifyCoef());
+		this.setNurseCoef(staff.getNurseCoef());
 		this.setCreateDeptId(staff.getCreateDeptId());
 		this.setCreateDeptName(staff.getCreateDeptName());
 		this.setCreateTime(staff.getCreateTime());
@@ -136,14 +159,6 @@ public class Staff implements Serializable {
 
 	public void setCode(String code) {
 		this.code = code;
-	}
-
-	public Integer getDiagnoCoefId() {
-		return this.diagnoCoefId;
-	}
-
-	public void setDiagnoCoefId(Integer diagnoCoefId) {
-		this.diagnoCoefId = diagnoCoefId;
 	}
 
 	public String getCreateDeptId() {
@@ -342,28 +357,44 @@ public class Staff implements Serializable {
 		return member;
 	}
 
-	public Integer getTechCoefId() {
-		return techCoefId;
+	public List<MiWorkload> getMiWorkloads() {
+		return miWorkloads;
 	}
 
-	public void setTechCoefId(Integer techCoefId) {
-		this.techCoefId = techCoefId;
+	public void setMiWorkloads(List<MiWorkload> miWorkloads) {
+		this.miWorkloads = miWorkloads;
 	}
 
-	public Integer getNurseCoefId() {
-		return nurseCoefId;
+	public DicCoefficient getTechCoef() {
+		return techCoef;
 	}
 
-	public void setNurseCoefId(Integer nurseCoefId) {
-		this.nurseCoefId = nurseCoefId;
+	public void setTechCoef(DicCoefficient techCoef) {
+		this.techCoef = techCoef;
 	}
 
-	public Integer getVerifierCoefId() {
-		return verifierCoefId;
+	public DicCoefficient getDiagnosCoef() {
+		return diagnosCoef;
 	}
 
-	public void setVerifierCoefId(Integer verifierCoefId) {
-		this.verifierCoefId = verifierCoefId;
+	public void setDiagnosCoef(DicCoefficient diagnosCoef) {
+		this.diagnosCoef = diagnosCoef;
+	}
+
+	public DicCoefficient getVerifyCoef() {
+		return verifyCoef;
+	}
+
+	public void setVerifyCoef(DicCoefficient verifyCoef) {
+		this.verifyCoef = verifyCoef;
+	}
+
+	public DicCoefficient getNurseCoef() {
+		return nurseCoef;
+	}
+
+	public void setNurseCoef(DicCoefficient nurseCoef) {
+		this.nurseCoef = nurseCoef;
 	}
 
 }

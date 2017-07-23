@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sojava.beehive.common.identifier.UUID;
+import com.sojava.beehive.framework.component.medicalimaging.StaffCoefType;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
-import com.sojava.beehive.framework.component.medicalimaging.bean.VGroup;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
 import com.sojava.beehive.framework.define.DataFlag;
 import com.sojava.beehive.framework.exception.CommonException;
@@ -79,12 +79,24 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 		else return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public double getStaffNurseCoef(String staffName) throws Exception {
-		List<VGroup> list = (List<VGroup>) this.query(VGroup.class, new Criterion[]{Restrictions.eq("staffName", staffName)}, null, null, true);
-		if (list.size() == 1) return list.get(0).getStaffNurseCoef();
-		else return 0d;
+	public double getStaffCoef(int staffId, StaffCoefType type) throws Exception {
+		Staff staff = (Staff) this.get(Staff.class, staffId);
+		if (staff == null) {
+			return 0d;
+		}
+		switch (type) {
+			case Tech:
+				return staff.getTechCoef().getPoints();
+			case Diagnos:
+				return staff.getDiagnosCoef().getPoints();
+			case Verify:
+				return staff.getVerifyCoef().getPoints();
+			case Nurse:
+				return staff.getNurseCoef().getPoints();
+			default:
+				return 0d;
+		}
 	}
 
 }

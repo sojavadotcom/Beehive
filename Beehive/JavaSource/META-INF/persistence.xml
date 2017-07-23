@@ -54,5 +54,6 @@
 		<class>com.sojava.beehive.framework.component.user.bean.UserInfo</class>
 		<class>com.sojava.beehive.framework.component.worksheet.bean.Refund</class>
 		<class>com.sojava.beehive.framework.component.worksheet.repair.bean.Repair</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload</class>
 	</persistence-unit>
 </persistence>
