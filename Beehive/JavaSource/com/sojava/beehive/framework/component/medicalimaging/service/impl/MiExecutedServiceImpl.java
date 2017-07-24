@@ -180,7 +180,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		for (VMiExecutedStaffPerformance staffPerformance: list) {
 			jobCoefTotal += staffPerformance.getStaffJobCoef() != null ? staffPerformance.getStaffJobCoef() : 0d;
 		}
-
+/*
 		String groupName = "";
 		double medicalTotal_ = 0d,
 				totalAmount_ = 0d,
@@ -194,6 +194,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 				diagnoPointTotal__ = 0d,
 				assistPointTotal__ = 0d,
 				pointTotal__ = 0d;
+*/
 		for (int i = 0; i < list.size(); i ++) {
 			VMiExecutedStaffPerformance staffPerformance = list.get(i);
 
@@ -237,7 +238,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			staffPerformance.setMedicalTotal(scale ? FormatUtil.formatDecimal(medicalTotal, 2) : medicalTotal);
 			staffPerformance.setManageTotal(scale ? FormatUtil.formatDecimal(manageTotal, 2) : manageTotal);
 			staffPerformance.setTotalAmount(scale ? FormatUtil.formatDecimal(totalAmount, 2) : totalAmount);
-
+/*
 			String _groupName = staffPerformance.getGroupName();
 			if (!groupName.equals(_groupName) || i == list.size()-1) {
 				VMiExecutedStaffPerformance amountItem = null;
@@ -308,6 +309,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 				assistPointTotal__ += assistPointTotal;
 				pointTotal__ += pointTotal;
 			}
+*/
 		}
 
 		return list.toArray(new VMiExecutedStaffPerformance[0]);

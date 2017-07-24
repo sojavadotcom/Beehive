@@ -11,9 +11,11 @@ import net.sf.json.JSONObject;
 
 import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
+import com.sojava.beehive.framework.component.medicalimaging.bean.StaffPerformanceReport;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
+import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
 import com.sojava.beehive.framework.io.Writer;
 import com.sojava.beehive.framework.util.FormatUtil;
 import com.sojava.beehive.framework.util.RecordUtil;
@@ -27,6 +29,7 @@ public class Entry extends ActionSupport {
 	private static final long serialVersionUID = 8469604168969899250L;
 
 	@Resource private MiExecutedService miExecutedService;
+	@Resource private MiPerformanceService miPerformanceService;
 	private String action;
 
 	private Integer year;
@@ -60,8 +63,9 @@ public class Entry extends ActionSupport {
 				VMiExecutedStaffPerformance[] staffPerformances = miExecutedService.findStaffPerformance(workStatistic, null, true);
 				MiWorkload[] overtimes = miExecutedService.findWorkload(workStatistic, "误餐费", "补助", null);
 				MiWorkload[] nurseWorkloads = miExecutedService.findWorkload(workStatistic, "时数", "护理组", null);
+				StaffPerformanceReport[] reports = miPerformanceService.generateStaffPerformance(workStatistic, staffPerformances, overtimes, nurseWorkloads);
 				RecordUtil recordUtil = new RecordUtil();
-				JSONObject result = recordUtil.generateJsonByMapping(staffPerformances);
+				JSONObject result = recordUtil.generateJsonByMapping(reports);
 				JSONArray items = result.getJSONArray("items");
 				String groupName = "";
 				for (int i = 0; i < items.size(); i ++) {
@@ -114,6 +118,14 @@ public class Entry extends ActionSupport {
 
 	public void setMonth(Integer month) {
 		this.month = month;
+	}
+
+	public MiPerformanceService getMiPerformanceService() {
+		return miPerformanceService;
+	}
+
+	public void setMiPerformanceService(MiPerformanceService miPerformanceService) {
+		this.miPerformanceService = miPerformanceService;
 	}
 
 }

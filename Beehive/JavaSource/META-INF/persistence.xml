@@ -43,17 +43,26 @@
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.Member</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.RbrvsPrice</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.Staff</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonus</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonusPK</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VGroup</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExectuedPerformance</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExectuedPerformance4drug</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExectuedPerformanceSingleMode</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExectuedWorkload</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecuted</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedDiagno</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedDiagnoPK</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedTech</class>
+		<class>com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedTechPK</class>
 		<class>com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic</class>
 		<class>com.sojava.beehive.framework.component.user.bean.AnyihisCodePwd</class>
 		<class>com.sojava.beehive.framework.component.user.bean.UserInfo</class>
 		<class>com.sojava.beehive.framework.component.worksheet.bean.Refund</class>
 		<class>com.sojava.beehive.framework.component.worksheet.repair.bean.Repair</class>
-		<class>com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload</class>
 	</persistence-unit>
 </persistence>

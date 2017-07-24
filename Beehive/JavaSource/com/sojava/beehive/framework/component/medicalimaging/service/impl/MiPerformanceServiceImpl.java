@@ -4,6 +4,7 @@ import com.sojava.beehive.framework.component.medicalimaging.StaffCoefType;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicCoefficient;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
+import com.sojava.beehive.framework.component.medicalimaging.bean.StaffPerformanceReport;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
@@ -607,6 +608,60 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 			}
 		}
 		return ret;
+	}
+
+	@Override
+	public StaffPerformanceReport[] generateStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads) throws Exception {
+		List<StaffPerformanceReport> list = new ArrayList<StaffPerformanceReport>();
+		String groupName = "";
+
+		for (VMiExecutedStaffPerformance staffPerformance: staffPerformances) {
+			StaffPerformanceReport report;
+			if (!groupName.equals(staffPerformance.getGroupName())) {
+				if (list.size() > 0) {
+					report = new StaffPerformanceReport();
+					report.setGroupName("合计");
+				}
+
+				groupName = staffPerformance.getGroupName();
+				report = new StaffPerformanceReport();
+				report.setGroupId(staffPerformance.getGroupId());
+				report.setGroupName(staffPerformance.getGroupName());
+				list.add(report);
+			}
+			report = new StaffPerformanceReport();
+			report.setGroupId(staffPerformance.getGroupId());
+			report.setGroupName(staffPerformance.getGroupName());
+			report.setStaffId(staffPerformance.getStaffId());
+			report.setStaffName(staffPerformance.getStaffName());
+			report.setDianoseCoef(staffPerformance.getStaffJobCoef());
+			report.setMedicalAmount(staffPerformance.getMedicalTotal());
+			report.setManageAmount(staffPerformance.getManageTotal());
+			for (MiWorkload nurseWorkload: nurseWorkloads) {
+				if (staffPerformance.getStaffId() == nurseWorkload.getStaff().getId()) {
+					report.setNurseAmount(
+						Arith.mul(
+							Arith.div(workStatistic.getNurseCost(), workStatistic.getNurseHours()),
+							nurseWorkload.getAmountByCoef()
+						));
+					break;
+				}
+			}
+			for (MiWorkload overtime: overtimes) {
+				if (staffPerformance.getStaffId() == overtime.getStaff().getId()) {
+					report.setOvertimeAmount(overtime.getAmount());
+					break;
+				}
+			}
+			report.setTechPoints(staffPerformance.getTechPointTotal());
+			report.setDiagnosePoints(staffPerformance.getDiagnoPointTotal());
+			report.setStudentPoints(staffPerformance.getAssistPointTotal());
+			report.setPointAmount(report.getTechPoints() + report.getDiagnosePoints() + report.getStudentPoints());
+
+			list.add(report);
+		}
+
+		return list.toArray(new StaffPerformanceReport[0]);
 	}
 
 	public MiPerformanceDao getMiPerformanceDao() {
