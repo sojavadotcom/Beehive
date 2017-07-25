@@ -319,7 +319,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 	@Override
 	public MiWorkload[] findWorkload(WorkStatistic workStatistic, String type, String kind, Page page) throws Exception {
 		List<MiWorkload> list = (List<MiWorkload>) miExecutedDao.query(MiWorkload.class, new Criterion[]{
-				Restrictions.eq("workStatistic", workStatistic),
+				Restrictions.eq("workStatistic.id", workStatistic.getId()),
 				Restrictions.eq("type", type),
 				Restrictions.eq("kind", kind)
 			}, null, page, false);

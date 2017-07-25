@@ -16,7 +16,7 @@ function(Form, Button, TextBox, Uploader, FileList, IFrame) {
 	});
 });
 </script>
-<form jsId="miExecutedStaffPerformanceFrm" id="miExecutedExportFrm" name="miExecutedExportFrm" action="/MedicalImaging/Export.StaffPerformance.s2" method="post" enctype="multipart/form-data" dojoType="dijit.form.Form" target="miExecutedStaffPerformanceBuff">
+<form jsId="miExecutedStaffPerformanceFrm" name="miExecutedExportFrm" method="post" dojoType="dijit.form.Form">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
@@ -57,57 +57,20 @@ function(Form, Button, TextBox, Uploader, FileList, IFrame) {
 			</div>
 		</div>
 	</div>
-	<div style="margin: 5px 0;">
-		<div>
-			<input name="fileNames" type="hidden" dojoType="dijit.form.TextBox" />
-			<input name="fileTypes" type="hidden" dojoType="dijit.form.TextBox" />
-			<div id="uploader" name="files" showInput="true" flashFieldName="files" fileInputField="files" multiple="true" type="file" dojoType="dojox.form.Uploader" label="选择文件..." errMsg="请选择文件！" required="required" dropTarget="dropTarget">
-				<script type="dojo/method" event="onChange" args="dataArray">
-/*
-					var _fileNames = new Array();
-					var _fileTypes = new Array();
-					for (var i = 0; i < dataArray.length; i ++) {
-						var _file = dataArray[i];
-						_fileNames[i] = _file.name;
-						_fileTypes[i] = _file.type;
-					}
-					miExecutedStaffPerformanceFrm.setValues({
-						fileNames: _fileNames,
-						fileTypes: _fileTypes
-					});
-*/
-				</script>
-			</div>
-			<div dojoType="dojox.form.uploader.FileList" uploaderId="uploader" headerType="类型" headerFilename="文件名" headerFilesize="大小"></div>
-		</div>
-	</div>
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="导出" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
-/*
-				if (miExecutedStaffPerformanceFrm.getValues().fileName == "") {
-					bee.alert("请选择文件！");
-					return false;
-				}
-*/
-/*
-				dojo.io.iframe.send({
-						url: "/MedicalImaging/Export.StaffPerformance.s2",
+				require(["dojo/request/iframe"], function(iframe) {
+					iframe._currentDfd = null;
+					iframe("/MedicalImaging/Export.StaffPerformance.shtml", {
 						form: miExecutedStaffPerformanceFrm.id,
-						method: "post",
-						preventCache: true,
-						handleAs: "json",
-						load: function(response, ioArgs){
-							console.log(response);
-							console.log(ioArgs);
-						},
-						error: function(response, ioArgs){
-							console.log(response);
-							console.log(ioArgs);
-						}
+						handleAs: "text"
+					}).then(function(msg) {
+						bee.alert(msg);
+					}, function(err) {
+						bee.alert(err);
 					});
-*/
-				miExecutedStaffPerformanceFrm.submit();
+				});
 			</script>
 		</button>
 		<button label="关闭" dojoType="dijit.form.Button">

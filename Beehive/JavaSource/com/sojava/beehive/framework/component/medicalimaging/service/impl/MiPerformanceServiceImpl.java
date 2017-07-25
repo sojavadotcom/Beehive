@@ -1,6 +1,7 @@
 package com.sojava.beehive.framework.component.medicalimaging.service.impl;
 
 import com.sojava.beehive.framework.component.medicalimaging.StaffCoefType;
+import com.sojava.beehive.framework.component.medicalimaging.StaffPerformanceReportType;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicCoefficient;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
@@ -11,9 +12,9 @@ import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiPerformanceDao;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
 import com.sojava.beehive.framework.math.Arith;
+import com.sojava.beehive.framework.util.FormatUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFCellUtil;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
@@ -610,56 +612,411 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		return ret;
 	}
 
-	@Override
-	public StaffPerformanceReport[] generateStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads) throws Exception {
-		List<StaffPerformanceReport> list = new ArrayList<StaffPerformanceReport>();
-		String groupName = "";
 
-		for (VMiExecutedStaffPerformance staffPerformance: staffPerformances) {
+	@Override
+	public HSSFWorkbook generateExcelOfStaffPerformanceReport(WorkStatistic workStatistic) throws Exception {
+		int rowIndex = 0;
+		HSSFWorkbook book = new HSSFWorkbook();
+		String title = workStatistic.getDept() + workStatistic.getYear() + "年" + workStatistic.getMonth() + "月";
+		String typeFormat = "_(* #,##0.00_);_(* (#,##0.00);_(* \"-\"??_);_(@_)";
+		HSSFSheet sheet = book.createSheet(title);
+		/*
+		 * Header of Row
+		 */
+		HSSFRow headerRow = sheet.createRow(rowIndex ++);
+		headerRow.setHeightInPoints((short) 25);
+		HSSFCell cell = HSSFCellUtil.createCell(headerRow, 0, title + "绩效核算表");
+
+		HSSFFont headerFont = book.createFont();
+		headerFont.setFontName("黑体");
+		headerFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+		headerFont.setFontHeightInPoints((short) 14);
+
+		HSSFCellStyle headerStyle = book.createCellStyle();
+		headerStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		headerStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		headerStyle.setFont(headerFont);
+		cell.setCellStyle(headerStyle);
+
+		sheet.addMergedRegion(CellRangeAddress.valueOf("A1:K1"));
+
+		HSSFFont titleFont = book.createFont();
+		titleFont.setFontName("宋体");
+		titleFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+		titleFont.setFontHeightInPoints((short) 12);
+
+		HSSFCellStyle titleStyle = book.createCellStyle();
+		titleStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		titleStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		titleStyle.setFont(titleFont);
+		titleStyle.setBorderTop((short) 1);
+		titleStyle.setBorderRight((short) 1);
+		titleStyle.setBorderBottom((short) 1);
+		titleStyle.setBorderLeft((short) 1);
+
+		/*
+		 * Title of Row
+		 */
+		HSSFRow titleRow = sheet.createRow(rowIndex ++);
+		titleRow.setHeightInPoints((short) 15);
+		HSSFCellUtil.createCell(titleRow, 0, "姓名", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("A2:A3"));
+		HSSFCellUtil.createCell(titleRow, 1, "系数", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("B2:B3"));
+		HSSFCellUtil.createCell(titleRow, 2, "医疗绩效", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("C2:C3"));
+		HSSFCellUtil.createCell(titleRow, 3, "经营管理绩效", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("D2:D3"));
+		HSSFCellUtil.createCell(titleRow, 4, "护理绩效", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("E2:E3"));
+		HSSFCellUtil.createCell(titleRow, 5, "误餐费", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("F2:F3"));
+		HSSFCellUtil.createCell(titleRow, 6, "奖金合计", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("G2:G3"));
+		HSSFCellUtil.createCell(titleRow, 7, "工作量(点值：" + workStatistic.getPointValue() + ")", titleStyle);
+		HSSFCellUtil.createCell(titleRow, 8, "", titleStyle);
+		HSSFCellUtil.createCell(titleRow, 9, "", titleStyle);
+		HSSFCellUtil.createCell(titleRow, 10, "", titleStyle);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("H2:K2"));
+
+		HSSFRow subTitleRow = sheet.createRow(rowIndex ++);
+		subTitleRow.setHeightInPoints((short) 15);
+		HSSFCellUtil.createCell(subTitleRow, 0, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 1, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 2, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 3, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 4, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 5, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 6, "", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 7, "投照点数", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 8, "诊断点数", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 9, "辅助点数", titleStyle);
+		HSSFCellUtil.createCell(subTitleRow, 10, "点数合计", titleStyle);
+
+		/*
+		 * Content
+		 */
+		HSSFFont groupFont = book.createFont();
+		groupFont.setFontName("宋体");
+		groupFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+		groupFont.setFontHeightInPoints((short) 12);
+
+		HSSFCellStyle groupStyle = book.createCellStyle();
+		groupStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		groupStyle.setFont(groupFont);
+		groupStyle.setBorderTop((short) 1);
+		groupStyle.setBorderRight((short) 1);
+		groupStyle.setBorderBottom((short) 1);
+		groupStyle.setBorderLeft((short) 1);
+
+		HSSFFont amountFont = book.createFont();
+		amountFont.setFontName("宋体");
+		amountFont.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+		amountFont.setFontHeightInPoints((short) 12);
+
+		HSSFCellStyle amountStyle = book.createCellStyle();
+		amountStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		amountStyle.setFont(amountFont);
+		amountStyle.setBorderTop((short) 1);
+		amountStyle.setBorderRight((short) 1);
+		amountStyle.setBorderBottom((short) 1);
+		amountStyle.setBorderLeft((short) 1);
+		amountStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat(typeFormat));
+
+		HSSFFont contentFont = book.createFont();
+		contentFont.setFontName("宋体");
+		contentFont.setBoldweight(HSSFFont.BOLDWEIGHT_NORMAL);
+		contentFont.setFontHeightInPoints((short) 12);
+
+		HSSFCellStyle contentStyle = book.createCellStyle();
+		contentStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+		contentStyle.setFont(contentFont);
+		contentStyle.setBorderTop((short) 1);
+		contentStyle.setBorderRight((short) 1);
+		contentStyle.setBorderBottom((short) 1);
+		contentStyle.setBorderLeft((short) 1);
+		contentStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat(typeFormat));
+
+		StaffPerformanceReport[] staffPerformanceReports = findStaffPerformanceReport(workStatistic);
+		int recRowIndex = 0;
+		List<Integer> amountRows = new ArrayList<Integer>();
+		for (StaffPerformanceReport staffPerformanceReport: staffPerformanceReports) {
+
+			HSSFCellStyle cellStyle = null;
+			switch(staffPerformanceReport.getType()) {
+				case TITLE:
+					recRowIndex = 0;
+					cellStyle = groupStyle;
+					createRow(sheet, rowIndex ++, staffPerformanceReport, cellStyle);
+					break;
+				case RECORD:
+					recRowIndex = recRowIndex == 0 ? rowIndex + 1 : recRowIndex;
+					cellStyle = contentStyle;
+					createRow(sheet, rowIndex ++, staffPerformanceReport, cellStyle);
+					break;
+				case AMOUNT:
+					cellStyle = amountStyle;
+					createAmountRow(sheet, rowIndex ++, new Integer[]{recRowIndex}, staffPerformanceReport, cellStyle);
+					amountRows.add(rowIndex);
+					break;
+				case AMOUNT_TOTAL:
+					cellStyle = amountStyle;
+					createAmountRow(sheet, rowIndex ++, amountRows.toArray(new Integer[0]), staffPerformanceReport, cellStyle);
+					break;
+				default:
+					break;
+			}
+		}
+		cell.setAsActiveCell();
+
+		return book;
+	}
+
+	public HSSFRow createRow(HSSFSheet sheet, int rowIndex, StaffPerformanceReport staffPerformanceReport, HSSFCellStyle style) {
+		int cellIndex = 0;
+		HSSFRow row = sheet.createRow(rowIndex);
+		if (staffPerformanceReport.getType().equals(StaffPerformanceReportType.TITLE)) {
+			HSSFCellUtil.createCell(row, cellIndex ++, staffPerformanceReport.getGroupName(), style);
+			for (int i = 1; i < 11; i ++) HSSFCellUtil.createCell(row, i, "", style);
+			sheet.addMergedRegion(CellRangeAddress.valueOf("A" + (rowIndex+1) + ":K" + (rowIndex+1)));
+		} else {
+			HSSFCellUtil.createCell(row, cellIndex ++, staffPerformanceReport.getStaffName(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getDianoseCoef() == null ? 0 : staffPerformanceReport.getDianoseCoef(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getMedicalAmount(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getManageAmount(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getNurseAmount(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getOvertimeAmount(), style);
+			HSSFCell cell = createCell(row, cellIndex ++, staffPerformanceReport.getAmountTotal(), style);
+			cell.setCellFormula("sum(C" + (rowIndex+1) + ":F" + (rowIndex+1) + ")");
+			createCell(row, cellIndex ++, staffPerformanceReport.getTechPoints(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getDiagnosePoints(), style);
+			createCell(row, cellIndex ++, staffPerformanceReport.getStudentPoints(), style);
+			cell = createCell(row, cellIndex ++, staffPerformanceReport.getPointAmount(), style);
+			cell.setCellFormula("sum(H" + (rowIndex+1) + ":J" + (rowIndex+1) + ")");
+		}
+
+		row.setHeightInPoints(15);
+
+		return row;
+	}
+
+	public HSSFRow createAmountRow(HSSFSheet sheet, int rowIndex, Integer[] amountRows, StaffPerformanceReport staffPerformanceReport, HSSFCellStyle style) {
+		int cellIndex = 0;
+		HSSFCell cell;
+		String str = "";
+		if (staffPerformanceReport.getType().equals(StaffPerformanceReportType.AMOUNT)) {
+			str = "*" + amountRows[0] + ":*" + rowIndex;
+		} else if (staffPerformanceReport.getType().equals(StaffPerformanceReportType.AMOUNT_TOTAL)) {
+			for (int amountRow: amountRows) {
+				str += "*" + amountRow + ",";
+			}
+			str = str.length() > 0 ? str.substring(0, str.length()-1) : str;
+		}
+
+		HSSFRow row = sheet.createRow(rowIndex);
+		HSSFCellUtil.createCell(row, cellIndex ++, staffPerformanceReport.getStaffName(), style);
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.getCellStyle().setAlignment(HSSFCellStyle.ALIGN_CENTER);
+		sheet.addMergedRegion(CellRangeAddress.valueOf("A" + (rowIndex+1) + ":B" + (rowIndex+1)));
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "C") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "D") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "E") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "F") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "G") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "H") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "I") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "J") + ")");
+		cell = createCell(row, cellIndex ++, 0, style);
+		cell.setCellFormula("SUM(" + str.replaceAll("\\Q*\\E", "K") + ")");
+
+		row.setHeightInPoints(15);
+
+		return row;
+	}
+
+	@Override
+	public StaffPerformanceReport[] generateStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads, boolean scale) throws Exception {
+		List<StaffPerformanceReport> list = new ArrayList<StaffPerformanceReport>();
+		int groupId = 0, preGroupId = 0;
+		String groupName = "", preGroupName = "";
+
+		double medicalAmount = 0d,
+				manageAmount = 0d,
+				nurseAmount = 0d,
+				overtimeAmount = 0d,
+				amount = 0d,
+				pointAmount = 0d;
+		double medicalTotal = 0d,
+				manageTotal = 0d,
+				nurseTotal = 0d,
+				overtimeTotal = 0d,
+				amountTotal = 0d,
+				pointTotal = 0d;
+
+		for (int i = 0; i < staffPerformances.length; i ++) {
+			VMiExecutedStaffPerformance staffPerformance = staffPerformances[i];
 			StaffPerformanceReport report;
-			if (!groupName.equals(staffPerformance.getGroupName())) {
+			double _nurseAmount = 0d;
+			double _overtimeAmount = 0d;
+			double _amount = 0d;
+			double _pointAmount = 0d;
+
+			if (i == 0) {
+				preGroupId = staffPerformance.getGroupId();
+				preGroupName = staffPerformance.getGroupName();
+			}
+			if (groupId != staffPerformance.getGroupId()) {
 				if (list.size() > 0) {
 					report = new StaffPerformanceReport();
-					report.setGroupName("合计");
+					report.setWorkStatisticId(workStatistic.getId());
+					report.setGroupId(preGroupId);
+					report.setGroupName(preGroupName);
+					report.setStaffName("合计");
+					report.setMedicalAmount(scale ? FormatUtil.formatDecimal(medicalAmount, 2) : medicalAmount);
+					report.setManageAmount(scale ? FormatUtil.formatDecimal(manageAmount, 2) : manageAmount);
+					report.setNurseAmount(scale ? FormatUtil.formatDecimal(nurseAmount, 2) : nurseAmount);
+					report.setOvertimeAmount(scale ? FormatUtil.formatDecimal(overtimeAmount, 2) : overtimeAmount);
+					report.setAmountTotal(scale ? FormatUtil.formatDecimal(amount, 2) : amount);
+					report.setPointAmount(scale ? FormatUtil.formatDecimal(pointAmount, 4) : pointAmount);
+					report.setType(StaffPerformanceReportType.AMOUNT);
+					list.add(report);
+
+					medicalAmount = 0d;
+					manageAmount = 0d;
+					nurseAmount = 0d;
+					overtimeAmount = 0d;
+					amount = 0d;
+					pointAmount = 0d;
 				}
 
+				groupId = staffPerformance.getGroupId();
 				groupName = staffPerformance.getGroupName();
 				report = new StaffPerformanceReport();
+				report.setWorkStatisticId(workStatistic.getId());
 				report.setGroupId(staffPerformance.getGroupId());
 				report.setGroupName(staffPerformance.getGroupName());
+				report.setType(StaffPerformanceReportType.TITLE);
 				list.add(report);
 			}
-			report = new StaffPerformanceReport();
-			report.setGroupId(staffPerformance.getGroupId());
-			report.setGroupName(staffPerformance.getGroupName());
-			report.setStaffId(staffPerformance.getStaffId());
-			report.setStaffName(staffPerformance.getStaffName());
-			report.setDianoseCoef(staffPerformance.getStaffJobCoef());
-			report.setMedicalAmount(staffPerformance.getMedicalTotal());
-			report.setManageAmount(staffPerformance.getManageTotal());
+
 			for (MiWorkload nurseWorkload: nurseWorkloads) {
 				if (staffPerformance.getStaffId() == nurseWorkload.getStaff().getId()) {
-					report.setNurseAmount(
-						Arith.mul(
-							Arith.div(workStatistic.getNurseCost(), workStatistic.getNurseHours()),
-							nurseWorkload.getAmountByCoef()
-						));
+					_nurseAmount = Arith.mul(
+										Arith.div(workStatistic.getNurseCost(), workStatistic.getNurseHours()),
+										nurseWorkload.getAmountByCoef()
+									);
 					break;
 				}
 			}
 			for (MiWorkload overtime: overtimes) {
 				if (staffPerformance.getStaffId() == overtime.getStaff().getId()) {
-					report.setOvertimeAmount(overtime.getAmount());
+					_overtimeAmount = overtime.getAmount();
 					break;
 				}
 			}
-			report.setTechPoints(staffPerformance.getTechPointTotal());
-			report.setDiagnosePoints(staffPerformance.getDiagnoPointTotal());
-			report.setStudentPoints(staffPerformance.getAssistPointTotal());
-			report.setPointAmount(report.getTechPoints() + report.getDiagnosePoints() + report.getStudentPoints());
+			_amount = staffPerformance.getTotalAmount() + _nurseAmount + _overtimeAmount;
+			_pointAmount = staffPerformance.getTechPointTotal() + staffPerformance.getDiagnoPointTotal() + staffPerformance.getAssistPointTotal();
+
+			medicalAmount += staffPerformance.getMedicalTotal();
+			manageAmount += staffPerformance.getManageTotal();
+			nurseAmount += _nurseAmount;
+			overtimeAmount += _overtimeAmount;
+			amount += _amount;
+			pointAmount += _pointAmount;
+
+			medicalTotal += staffPerformance.getMedicalTotal();
+			manageTotal += staffPerformance.getManageTotal();
+			nurseTotal += _nurseAmount;
+			overtimeTotal += _overtimeAmount;
+			amountTotal += _amount;
+			pointTotal += _pointAmount;
+
+			report = new StaffPerformanceReport();
+			report.setWorkStatisticId(workStatistic.getId());
+			report.setGroupId(staffPerformance.getGroupId());
+			report.setGroupName(staffPerformance.getGroupName());
+			report.setStaffId(staffPerformance.getStaffId());
+			report.setStaffName(staffPerformance.getStaffName());
+			report.setDianoseCoef(staffPerformance.getStaffDiagnoCoef());
+			report.setMedicalAmount(scale ? FormatUtil.formatDecimal(staffPerformance.getMedicalTotal(), 2) : staffPerformance.getMedicalTotal());
+			report.setManageAmount(scale ? FormatUtil.formatDecimal(staffPerformance.getManageTotal(), 2) : staffPerformance.getManageTotal());
+			report.setNurseAmount(scale ? FormatUtil.formatDecimal(_nurseAmount, 2) : _nurseAmount);
+			report.setOvertimeAmount(scale ? FormatUtil.formatDecimal(_overtimeAmount, 2) : _overtimeAmount);
+			report.setAmountTotal(scale ? FormatUtil.formatDecimal(_amount, 2) : _amount);
+			report.setTechPoints(scale ? FormatUtil.formatDecimal(staffPerformance.getTechPointTotal(), 4) : staffPerformance.getTechPointTotal());
+			report.setDiagnosePoints(scale ? FormatUtil.formatDecimal(staffPerformance.getDiagnoPointTotal(), 4) : staffPerformance.getDiagnoPointTotal());
+			report.setStudentPoints(scale ? FormatUtil.formatDecimal(staffPerformance.getAssistPointTotal(), 4) : staffPerformance.getAssistPointTotal());
+			report.setPointAmount(scale ? FormatUtil.formatDecimal(_pointAmount, 4) : _pointAmount);
+			report.setType(StaffPerformanceReportType.RECORD);
 
 			list.add(report);
+
+			if (i+1 == staffPerformances.length) {
+				report = new StaffPerformanceReport();
+				report.setWorkStatisticId(workStatistic.getId());
+				report.setGroupId(groupId);
+				report.setGroupName(groupName);
+				report.setStaffName("合计");
+				report.setMedicalAmount(scale ? FormatUtil.formatDecimal(medicalAmount, 2) : medicalAmount);
+				report.setManageAmount(scale ? FormatUtil.formatDecimal(manageAmount, 2) : manageAmount);
+				report.setNurseAmount(scale ? FormatUtil.formatDecimal(nurseAmount, 2) : nurseAmount);
+				report.setOvertimeAmount(scale ? FormatUtil.formatDecimal(overtimeAmount, 2) : overtimeAmount);
+				report.setAmountTotal(scale ? FormatUtil.formatDecimal(amount, 2) : amount);
+				report.setPointAmount(scale ? FormatUtil.formatDecimal(pointAmount, 4) : pointAmount);
+				report.setType(StaffPerformanceReportType.AMOUNT);
+				list.add(report);
+
+				report = new StaffPerformanceReport();
+				report.setWorkStatisticId(workStatistic.getId());
+				report.setGroupId(999);
+				report.setGroupName("");
+				report.setStaffName("总计");
+				report.setMedicalAmount(scale ? FormatUtil.formatDecimal(medicalTotal, 2) : medicalTotal);
+				report.setManageAmount(scale ? FormatUtil.formatDecimal(manageTotal, 2) : manageTotal);
+				report.setNurseAmount(scale ? FormatUtil.formatDecimal(nurseTotal, 2) : nurseTotal);
+				report.setOvertimeAmount(scale ? FormatUtil.formatDecimal(overtimeTotal, 2) : overtimeTotal);
+				report.setAmountTotal(scale ? FormatUtil.formatDecimal(amountTotal, 2) : amountTotal);
+				report.setPointAmount(scale ? FormatUtil.formatDecimal(pointTotal, 4) : pointTotal);
+				report.setType(StaffPerformanceReportType.AMOUNT_TOTAL);
+				list.add(report);
+			}
+			preGroupId = groupId;
+			preGroupName = groupName;
 		}
+
+		return list.toArray(new StaffPerformanceReport[0]);
+	}
+
+	@Override
+	public void saveStaffPerformanceReport(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads, boolean scale) throws Exception {
+		StaffPerformanceReport[] reports = this.generateStaffPerformance(workStatistic, staffPerformances, overtimes, nurseWorkloads, true);
+		miPerformanceDao.saveStaffPerformanceReport(reports);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public StaffPerformanceReport[] findStaffPerformanceReport(WorkStatistic workStatistic) throws Exception {
+		List<StaffPerformanceReport> list = (List<StaffPerformanceReport>) miPerformanceDao.query(
+				StaffPerformanceReport.class,
+				new Criterion[]{
+						Restrictions.eq("workStatisticId", workStatistic.getId())
+					},
+				new Order[]{
+						Order.asc("workStatisticId"),
+						Order.asc("groupId"),
+						Order.asc("type"),
+						Order.asc("staffId")
+					},
+				null,
+				false);
 
 		return list.toArray(new StaffPerformanceReport[0]);
 	}

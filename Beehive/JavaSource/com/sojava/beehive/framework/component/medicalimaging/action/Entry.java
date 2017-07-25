@@ -10,9 +10,8 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.sojava.beehive.framework.ActionSupport;
-import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
+import com.sojava.beehive.framework.component.medicalimaging.StaffPerformanceReportType;
 import com.sojava.beehive.framework.component.medicalimaging.bean.StaffPerformanceReport;
-import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
@@ -52,31 +51,24 @@ public class Entry extends ActionSupport {
 			String action = this.getActionContext().getName();
 			if (action.split("\\Q.\\E").length > 2) action = action.split("\\Q.\\E")[2];
 			if (action.equalsIgnoreCase("workStatistics")) {
-				year = year == null || year == 0 ? FormatUtil.currentYear() : year;
-				month = month == null || month == 0 ? FormatUtil.currentMonth() : month;
+				year = year == null || year == 2017 ? FormatUtil.currentYear() : year;
+				month = month == null || month == 1 ? FormatUtil.currentMonth() : month;
 				JSONObject json = new RecordUtil().generateJsonByMapping(miExecutedService.findWorkStatistic(year, month));
 				new Writer(getRequest(), getResponse()).output(json);
 			} else if (action.equalsIgnoreCase("staffPerformance")) {
-				year = year == null ? 0 : year;
-				month = month == null ? 0 : month;
+				year = year == null ? 2017 : year;
+				month = month == null ? 1 : month;
 				WorkStatistic workStatistic = miExecutedService.findWorkStatistic(year, month);
-				VMiExecutedStaffPerformance[] staffPerformances = miExecutedService.findStaffPerformance(workStatistic, null, true);
-				MiWorkload[] overtimes = miExecutedService.findWorkload(workStatistic, "误餐费", "补助", null);
-				MiWorkload[] nurseWorkloads = miExecutedService.findWorkload(workStatistic, "时数", "护理组", null);
-				StaffPerformanceReport[] reports = miPerformanceService.generateStaffPerformance(workStatistic, staffPerformances, overtimes, nurseWorkloads);
+				StaffPerformanceReport[] reports = miPerformanceService.findStaffPerformanceReport(workStatistic);
 				RecordUtil recordUtil = new RecordUtil();
 				JSONObject result = recordUtil.generateJsonByMapping(reports);
 				JSONArray items = result.getJSONArray("items");
-				String groupName = "";
 				for (int i = 0; i < items.size(); i ++) {
 					JSONObject item = items.getJSONObject(i);
 					String _groupName = item.getString("groupName");
-					if (!groupName.equalsIgnoreCase(_groupName)) {
-						groupName = _groupName;
-						JSONObject groupItem = new JSONObject();
-						groupItem.put("groupName", groupName);
-						groupItem.put("staffName", groupName);
-						items.add(i == 0 ? i : i+1, groupItem);
+					int _type = item.getInt("type");
+					if (_type == StaffPerformanceReportType.TITLE.ordinal()) {
+						item.put("staffName", _groupName);
 					}
 				}
 				new Writer(getRequest(), getResponse()).output(items);

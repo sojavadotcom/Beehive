@@ -21,6 +21,7 @@ import org.hibernate.annotations.Subselect;
 		+ "g.staff_name,"
 		+ "g.staff_title,"
 		+ "g.group_leader,"
+		+ "g.staff_diagno_coef,"
 		+ "g.staff_job_coef,"
 		+ "tech.amount as tech_worker_amount,"
 		+ "tech.worker_quantity as tech_worker_quantity,"
@@ -68,6 +69,9 @@ public class VMiExecutedStaffPerformance implements Serializable {
 
 	@Column(name="group_leader")
 	private String groupLeader;
+
+	@Column(name="staff_diagno_coef")
+	private Double staffDiagnoCoef;
 
 	@Column(name="staff_job_coef")
 	private Double staffJobCoef;
@@ -182,6 +186,14 @@ public class VMiExecutedStaffPerformance implements Serializable {
 
 	public void setGroupLeader(String groupLeader) {
 		this.groupLeader = groupLeader;
+	}
+
+	public Double getStaffDiagnoCoef() {
+		return staffDiagnoCoef;
+	}
+
+	public void setStaffDiagnoCoef(Double staffDiagnoCoef) {
+		this.staffDiagnoCoef = staffDiagnoCoef;
 	}
 
 	public Double getStaffJobCoef() {

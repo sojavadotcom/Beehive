@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.sojava.beehive.framework.ActionSupport;
+import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
+import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
@@ -81,7 +83,7 @@ public class Save extends ActionSupport {
 	}
 
 	public void merit() throws Exception {
-		String msg = "核算完成";
+		String msg = "";
 		HSSFWorkbook overtimeBook = null;
 		HSSFWorkbook nurseBook = null;
 		FileInputStream in = null;
@@ -110,10 +112,22 @@ public class Save extends ActionSupport {
 					in.close();
 				}
 			}
+			msg = "正在核算";
 			miPerformanceService.merit(budget, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept, overtimeBook, nurseBook);
+			msg = "获取统计主信息";
+			WorkStatistic workStatistic = miExecutedService.findWorkStatistic(year, month);
+			msg = "获取核算数据";
+			VMiExecutedStaffPerformance[] staffPerformances = miExecutedService.findStaffPerformance(workStatistic, null, false);
+			msg = "获取误餐费";
+			MiWorkload[] overtimes = miExecutedService.findWorkload(workStatistic, "误餐费", "补助", null);
+			msg = "获取护理组工作量";
+			MiWorkload[] nurseWorkloads = miExecutedService.findWorkload(workStatistic, "时数", "护理组", null);
+			msg = "生成绩效报表";
+			miPerformanceService.saveStaffPerformanceReport(workStatistic, staffPerformances, overtimes, nurseWorkloads, false);
+			msg = "核算完成";
 		}
 		catch(Exception ex) {
-			msg = ex.getMessage();
+			msg = msg + "时发生：" + ex.getMessage();
 			throw new ErrorException(this.getClass(), msg);
 		}
 		finally {

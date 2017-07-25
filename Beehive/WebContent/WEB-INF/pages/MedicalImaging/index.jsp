@@ -49,8 +49,8 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 		var formatValue = function(val, rowIndex, cell) {
 			var staffName = staffPerformance.getItem(rowIndex).staffName;
 			val = val||0;
-			if (val == 0) val = "<div style='width: 100%; text-align: right;" + (staffName == "合计" || staffName == "总计" ? "font-weight:bold;" : "") + "'>-</div>";
-			else val = "<div style='width: 100%; text-align: right;" + (staffName == "合计" || staffName == "总计" ? "font-weight:bold;" : "") + "'>" + val + "</div>";
+			if (val == 0) val = "<div style='width: 100%; text-align: right;" + (staffName == "总计" ? "font-weight:bold;" : "") + "'>-</div>";
+			else val = "<div style='width: 100%; text-align: right;" + (staffName == "总计" ? "font-weight:bold;" : "") + "'>" + val + "</div>";
 
 			return val;
 		}
@@ -73,17 +73,15 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 		 				}
 		 				return text;
 		 			}},
-					{field: "staffTitle", name: "职称", hidden: true},
-					{field: "groupLeader", name: "职务", hidden: true},
-					{field: "medicalTotal", name: "医疗绩效", formatter: formatValue},
-					{field: "manageTotal", name: "经营管理绩效", formatter: formatValue},
-					{field: "nurseTotal", name: "护理绩效", formatter: formatValue},
-					{field: "overtimeCost", name: "加班费", formatter: formatValue},
-					{field: "totalAmount", name: "奖金合计", formatter: formatValue},
-					{field: "techPointTotal", name: "投照点数", formatter: formatValue},
-					{field: "diagnoPointTotal", name: "诊断点数", formatter: formatValue},
-					{field: "assistPointTotal", name: "辅助点数", formatter: formatValue},
-					{field: "pointTotal", name: "点数合计", formatter: formatValue}
+					{field: "medicalAmount", name: "医疗绩效", formatter: formatValue},
+					{field: "manageAmount", name: "经营管理绩效", formatter: formatValue},
+					{field: "nurseAmount", name: "护理绩效", formatter: formatValue},
+					{field: "overtimeAmount", name: "误餐费", formatter: formatValue},
+					{field: "amountTotal", name: "合计", formatter: formatValue},
+					{field: "techPoints", name: "投照点数", formatter: formatValue},
+					{field: "diagnosePoints", name: "诊断点数", formatter: formatValue},
+					{field: "studentPoints", name: "辅助点数", formatter: formatValue},
+					{field: "pointAmount", name: "点数合计", formatter: formatValue}
 				]
 			],
 			plugins: {
@@ -104,12 +102,11 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 			}
 		}, dojo.byId("miExecutedStaffPerformanceGridNode"));
 		dojo.connect(staffPerformance, '_onFetchComplete', function(items, req) {
-			var groupName = "";
 			for(var i = 0; i < items.length; i ++) {
 				var _groupName = items[i].groupName;
-				if (groupName != _groupName) {
-					groupName = _groupName;
-					staffPerformance.mergeCells((i == 0 ? i : i + 1), 0, 12, 1);
+				var _staffName = items[i].staffName;
+				if (_groupName == _staffName) {
+					staffPerformance.mergeCells(i, 0, 10, 1);
 				}
 			}
 		});
@@ -152,20 +149,30 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 				dialogMerit.show();
 			}
 		}));
-/*
 		var exporterMenu = new Menu({});
 		var exporterExcelMenu = new MenuItem({label: "Excel", onClick: function () {
-				var iframe = dojo.io.iframe.create("exportStaffPerformance");
 				var rec = miExecutedGridForm.getValues();
-				iframe.setSrc(iframe, "/MedicalImaging/Export.StaffPerformance.shtml?year=" + rec.year + "&month=" + rec.month);
+				require(["dojo/request/iframe"], function(iframe) {
+					iframe._currentDfd = null;
+					iframe("/MedicalImaging/Export.StaffPerformance.shtml", {
+						data: {
+							year: rec.year,
+							month: rec.month
+						},
+						handleAs: "text"
+					}).then(function(msg) {
+						bee.alert(msg);
+					}, function(err) {
+						bee.alert(err);
+					});
+				});
 			}
 		});
 		exporterMenu.addChild(exporterExcelMenu);
-*/
 		mainToolbar.addChild(new ComboButton({
 			iconClass: "dijitIconNewTask",
 			label: "导出...",
-			// dropDown: exporterMenu,
+			dropDown: exporterMenu,
 			onClick: function() {
 				dialogExporter = dialogExporter || new Dialog({
 					title:"核算绩效",
@@ -188,8 +195,8 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 	<div id="miExecutedStaffPerformanceMainInfoNode" dojoType="dijit.layout.ContentPane" region="top" style="height: 90px;">
 	<form jsId="miExecutedGridForm" dojoType="dijit.form.Form">
 		<div dojoType="dijit.layout.BorderContainer" gutters="false">
-			<div dojoType="dijit.layout.ContentPane" region="top">
-				<div style="text-align: center;">
+			<div dojoType="dijit.layout.ContentPane" region="top" style="text-align: center;">
+				<div class="dijitInline" style="text-align: center;">
 					<span style="font-size: 16px">医学影像科</span>
 					<select name="year" dojoType="dijit.form.Select" style="width: 80px; font-size: 16px; border: none;" onChange="refreshGrid()">
 						<option value="2017">2017年</option>
@@ -211,14 +218,15 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 					</select>
 					<span style="font-size: 16px">绩效核算</span>
 				</div>
+				<div class="dijitInline" style="width: 16px; height: 16px; background: url('/images/icons/16/refresh.png') no-repeat center; font-size: 0px; cursor: pointer;" onClick="refreshGrid()">&nbsp;</div>
 				<hr style="border: none; border-top: 1px solid #333; margin: 10px auto;" />
 			</div>
-			<div dojoType="dijit.layout.ContentPane" region="left">
+			<div dojoType="dijit.layout.ContentPane" region="left" style="overflow: hidden;">
 				<div class="dijitInline">
 					<div>日期：<input name="beginDate" dojoType="dijit.form.TextBox" style="width: 80px; border: none; text-align: right;" readonly="readonly" />～<input name="endDate" dojoType="dijit.form.TextBox" style="width: 80px; border: none;" readonly="readonly" /></div>
 				</div>
 			</div>
-			<div dojoType="dijit.layout.ContentPane" region="right">
+			<div dojoType="dijit.layout.ContentPane" region="right" style="overflow: hidden;">
 				<div class="dijitInline">
 					<div>总额度：<input name="budget" dojoType="dijit.form.TextBox" style="width: 150px; border: none" readonly="readonly" /></div>
 				</div>

@@ -76,7 +76,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	});
 });
 </script>
-<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save.merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data" target="miExecutedStaffPerformanceBuff">
+<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save.merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
@@ -190,8 +190,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="核算" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
-				medicalimagingMeritFrm.submit();
-				return;
+/*
 				medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=true;
 				var rec = medicalimagingMeritFrm.getValues();
 				var xhrArgs = {
@@ -239,6 +238,18 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 					}
 				}
 				dojo.xhrGet(xhrArgs);
+*/
+				require(["dojo/request/iframe"], function(iframe) {
+					iframe._currentDfd = null;
+					iframe("/MedicalImaging/Save.merit.s2", {
+						form: medicalimagingMeritFrm.id,
+						handleAs: "text"
+					}).then(function(msg) {
+						bee.alert("核算完成");
+					}, function(err) {
+						bee.alert(err);
+					});
+				});
 			</script>
 		</button>
 		<button label="关闭" dojoType="dijit.form.Button">

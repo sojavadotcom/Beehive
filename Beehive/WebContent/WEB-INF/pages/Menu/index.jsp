@@ -24,7 +24,7 @@ function(dojo) {
 		</script>
 	</div>
 	<div dojoType="dijit.MenuBarItem">
-		<span>影像科工作量</span>
+		<span>影像科绩效核算</span>
 		<script type="dojo/event" event="onClick" args="e">
 			bee.open("/MedicalImaging/Entry.shtml");
 		</script>

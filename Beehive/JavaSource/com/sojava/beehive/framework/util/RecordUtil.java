@@ -211,6 +211,8 @@ public class RecordUtil {
 					result.put(fieldName, value == null ? "" : Base64.encodeBase64String((byte[]) value));
 				} else if (returnType.equals(String.class) || returnType.equals(char.class) || returnType.equals(Character.class) || returnType.equals(Object.class)) {
 					result.put(fieldName, value == null ? "" : value.toString());
+				} else if (value instanceof Enum<?>) {
+					result.put(fieldName, ((Enum<?>) value).ordinal());
 				} else if (value instanceof BaseMapping) {
 					if (value != null) result.put(fieldName, generateJsonByMapping(value, withOutFields));
 				}

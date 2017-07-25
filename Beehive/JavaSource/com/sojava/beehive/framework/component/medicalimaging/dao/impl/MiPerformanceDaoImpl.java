@@ -7,6 +7,7 @@ import com.sojava.beehive.framework.component.medicalimaging.bean.RbrvsPrice;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
 import com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonus;
 import com.sojava.beehive.framework.component.medicalimaging.bean.StaffBonusPK;
+import com.sojava.beehive.framework.component.medicalimaging.bean.StaffPerformanceReport;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiPerformanceDao;
 import com.sojava.beehive.framework.exception.CommonException;
@@ -88,6 +89,34 @@ public class MiPerformanceDaoImpl extends BeehiveDaoImpl implements MiPerformanc
 		}
 		finally {
 			session.flush();
+			session.clear();
+		}
+	}
+
+	@Override
+	public void saveStaffPerformanceReport(StaffPerformanceReport[] staffPerformanceReports) throws Exception {
+		Session session = null;
+		Transaction t = null;
+		try {
+			session = getSessionFactory().openSession();
+			t = session.beginTransaction();
+
+			if (staffPerformanceReports.length > 0) {
+				Query stmt = session.createQuery("delete from StaffPerformanceReport where workStatisticId=:workStatisticId");
+				stmt.setInteger("workStatisticId", staffPerformanceReports[0].getWorkStatisticId());
+				stmt.executeUpdate();
+			}
+			for (StaffPerformanceReport staffPerformanceReport: staffPerformanceReports) {
+				session.save(staffPerformanceReport);
+			}
+
+			t.commit();
+		}
+		catch(Exception ex) {
+			t.rollback();
+			throw ex;
+		}
+		finally {
 			session.clear();
 		}
 	}

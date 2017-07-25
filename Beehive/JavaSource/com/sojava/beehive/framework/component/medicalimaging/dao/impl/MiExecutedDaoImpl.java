@@ -88,7 +88,7 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 		switch (type) {
 			case Tech:
 				return staff.getTechCoef().getPoints();
-			case Diagnos:
+			case Diagnose:
 				return staff.getDiagnosCoef().getPoints();
 			case Verify:
 				return staff.getVerifyCoef().getPoints();

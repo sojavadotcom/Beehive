@@ -7,11 +7,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.sojava.beehive.framework.ActionSupport;
-import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
-import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
+import com.sojava.beehive.framework.io.Writer;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -41,38 +40,23 @@ public class Export extends ActionSupport {
 		if (actionName.split("\\Q.\\E").length > 1) actionName = actionName.split("\\Q.\\E")[1];
 
 		if (actionName.equalsIgnoreCase("StaffPerformance")) {
-				year = year == null ? 0 : year;
-				month = month == null ? 0 : month;
-				WorkStatistic workStatistic = miExecutedService.findWorkStatistic(year, month);
-				VMiExecutedStaffPerformance[] staffPerformances = miExecutedService.findStaffPerformance(workStatistic, null, false);
-				MiWorkload[] overtimes = miExecutedService.findWorkload(workStatistic, "误餐费", "补助", null);
-				MiWorkload[] nurseWorkloads = miExecutedService.findWorkload(workStatistic, "时数", "护理组", null);
-				OutputStream out = getResponse().getOutputStream();
-				try {
-					String exportFileName = "Medical_Imaging_" + workStatistic.getYear() + "" + workStatistic.getMonth() + "_Staff_Performance.xls";
-					getResponse().setHeader("Content-Disposition", "attachment; filename=\"" + exportFileName + "\"");
-					HSSFWorkbook book;
-					if (files == null) {
-						book = miPerformanceService.generateExcelOfStaffPerformance(workStatistic, staffPerformances, overtimes, nurseWorkloads);
-					} else {
-						File overtimeFile = null, nurseFile = null;
-//						for (int i = 0; i < files.size(); i ++) {
-//							File file = files.get(i);
-//							String fileName = fileNames.get(i);
-//							if (fileName.indexOf("误餐费") != -1) overtimeFile = file;
-//							else if (fileName.indexOf("护理组工作量") != -1) nurseFile = file;
-//						}
-						book = miPerformanceService.writeExcelOfStaffPerformance(overtimeFile, nurseFile, workStatistic, staffPerformances);
-					}
-					book.write(out);
-					out.flush();
-				}
-				catch(Exception ex) {
-					System.out.println(ex.getLocalizedMessage());
-				}
-				finally {
-					out.close();
-				}
+			year = year == null ? 0 : year;
+			month = month == null ? 0 : month;
+			WorkStatistic workStatistic = miExecutedService.findWorkStatistic(year, month);
+			OutputStream out = getResponse().getOutputStream();
+			try {
+				String exportFileName = "Medical_Imaging_" + workStatistic.getYear() + "" + workStatistic.getMonth() + "_Staff_Performance.xls";
+				getResponse().setHeader("Content-Disposition", "attachment; filename=\"" + exportFileName + "\"");
+				HSSFWorkbook book = miPerformanceService.generateExcelOfStaffPerformanceReport(workStatistic);
+				book.write(out);
+				out.flush();
+			}
+			catch(Exception ex) {
+				new Writer(getRequest(), getResponse()).output(ex.getMessage());
+			}
+			finally {
+				out.close();
+			}
 		}
 
 		return null;
