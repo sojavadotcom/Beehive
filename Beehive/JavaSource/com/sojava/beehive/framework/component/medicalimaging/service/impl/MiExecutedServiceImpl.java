@@ -19,6 +19,7 @@ import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
 import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedService;
 import com.sojava.beehive.framework.define.Page;
+import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.math.Arith;
 import com.sojava.beehive.framework.util.FormatUtil;
 
@@ -35,90 +36,128 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 	@Override
 	public void importRecords(InputStream in, String kind) throws Exception {
 		List<MiExecuted> records = new ArrayList<MiExecuted>();
+		String[] msg = new String[2];
 
-		HSSFWorkbook book = new HSSFWorkbook(in);
-		HSSFSheet sheet = book.getSheetAt(0);
-		for (int r = 3; r <= sheet.getLastRowNum(); r ++) {
-			HSSFRow row = sheet.getRow(r);
-			MiExecutedPK recordPk = new MiExecutedPK();
-			MiExecuted record = new MiExecuted();
-			for (int c = 1; c < row.getLastCellNum(); c ++) {
-				HSSFCell cell = row.getCell(c);
-				switch (c) {
-				case 1:
-					record.setPatientName(cell.getStringCellValue());
-					break;
-				case 2:
-					recordPk.setMedicalNo(cell.getStringCellValue());
-					break;
-				case 3:
-					record.setInhospitalNo(cell.getStringCellValue());
-					break;
-				case 4:
-					record.setRegisterNo(cell.getStringCellValue());
-					break;
-				case 5:
-					record.setExecuteDept(cell.getStringCellValue());
-					break;
-				case 6:
-					record.setPatientType(cell.getStringCellValue());
-					break;
-				case 7:
-					recordPk.setMedicalItem(cell.getStringCellValue());
-					break;
-				case 8:
-					record.setMedicalPart(cell.getStringCellValue());
-					break;
-				case 9:
-					record.setStatus(cell.getStringCellValue());
-					break;
-				case 10:
-					record.setExecuteTechnician(cell.getStringCellValue());
-					record.setExecuteTechnicianStaffId(miExecutedDao.getStaffId(record.getExecuteTechnician()));
-					break;
-				case 11:
-					record.setExecuteTechnicianAssociate(cell.getStringCellValue());
-					record.setExecuteTechnicianAssociateStaffId(miExecutedDao.getStaffId(record.getExecuteTechnicianAssociate()));
-					break;
-				case 12:
-					record.setExecuteDiagnostician(cell.getStringCellValue());
-					record.setExecuteDiagnosticianStaffId(miExecutedDao.getStaffId(record.getExecuteDiagnostician()));
-					break;
-				case 13:
-					record.setExecuteVerifier(cell.getStringCellValue());
-					record.setExecuteVerifierStaffId(miExecutedDao.getStaffId(record.getExecuteVerifier()));
-					break;
-				case 14:
-					record.setExecuteNurse(cell.getStringCellValue());
-					record.setExecuteNurseStaffId(miExecutedDao.getStaffId(record.getExecuteNurse()));
-					break;
-				case 15:
-					record.setApplyDoctor(cell.getStringCellValue());
-					break;
-				case 16:
-					record.setApplyDept(cell.getStringCellValue());
-					break;
-				case 17:
-					record.setRegisterTime(FormatUtil.parseDateTime(cell.getStringCellValue()));
-					break;
-				case 18:
-					record.setReportTime(FormatUtil.parseDateTime(cell.getStringCellValue()));
-					break;
-
-				default:
-					break;
+		try {
+			msg[0] = "准备";
+			msg[1] = "读取数据";
+			HSSFWorkbook book = new HSSFWorkbook(in);
+			HSSFSheet sheet = book.getSheetAt(0);
+			for (int r = 3; r <= sheet.getLastRowNum(); r ++) {
+				msg[0] = "第" + (r+1) + "行 ";
+				HSSFRow row = sheet.getRow(r);
+				MiExecutedPK recordPk = new MiExecutedPK();
+				MiExecuted record = new MiExecuted();
+				for (int c = 1; c < row.getLastCellNum(); c ++) {
+					HSSFCell cell = row.getCell(c);
+					String value = cell.getStringCellValue();
+					switch (c) {
+					case 1:
+						msg[1] = "读取\"患者姓名\"";
+						record.setPatientName(value);
+						break;
+					case 2:
+						msg[1] = "读取\"检查号\"[PK]";
+						recordPk.setMedicalNo(value);
+						break;
+					case 3:
+						msg[1] = "读取\"住院号\"";
+						record.setInhospitalNo(value);
+						break;
+					case 4:
+						msg[1] = "读取\"登记号\"";
+						record.setRegisterNo(value);
+						break;
+					case 5:
+						msg[1] = "读取\"检查科室\"";
+						record.setExecuteDept(value);
+						break;
+					case 6:
+						msg[1] = "读取\"患者类型\"";
+						record.setPatientType(value);
+						break;
+					case 7:
+						msg[1] = "读取\"检查项目\"[PK]";
+						recordPk.setMedicalItem(value);
+						break;
+					case 8:
+						msg[1] = "读取\"检查部位\"";
+						record.setMedicalPart(value);
+						break;
+					case 9:
+						msg[1] = "读取\"状态\"";
+						record.setStatus(value);
+						break;
+					case 10:
+						msg[1] = "读取\"操作技师\"";
+						record.setExecuteTechnician(value);
+						record.setExecuteTechnicianStaffId(miExecutedDao.getStaffId(record.getExecuteTechnician()));
+						break;
+					case 11:
+						msg[1] = "读取\"辅助技师\"";
+						record.setExecuteTechnicianAssociate(value);
+						record.setExecuteTechnicianAssociateStaffId(miExecutedDao.getStaffId(record.getExecuteTechnicianAssociate()));
+						break;
+					case 12:
+						msg[1] = "读取\"报告医生\"";
+						record.setExecuteDiagnostician(value);
+						record.setExecuteDiagnosticianStaffId(miExecutedDao.getStaffId(record.getExecuteDiagnostician()));
+						break;
+					case 13:
+						msg[1] = "读取\"审核医生\"";
+						record.setExecuteVerifier(value);
+						record.setExecuteVerifierStaffId(miExecutedDao.getStaffId(record.getExecuteVerifier()));
+						break;
+					case 14:
+						msg[1] = "读取\"分诊护士\"";
+						record.setExecuteNurse(value);
+						record.setExecuteNurseStaffId(miExecutedDao.getStaffId(record.getExecuteNurse()));
+						break;
+					case 15:
+						msg[1] = "读取\"申请医生\"";
+						record.setApplyDoctor(value);
+						break;
+					case 16:
+						msg[1] = "读取\"申请科室\"";
+						record.setApplyDept(value);
+						break;
+					case 17:
+						msg[1] = "处理\"登记日期\"";
+						value = value.trim().equals("") ? "1901-01-01 00:00:00" : value;
+						record.setRegisterTime(FormatUtil.parseDateTime(value));
+						break;
+					case 18:
+						msg[1] = "处理\"报告日期\"";
+						value = value.trim().equals("") ? "1901-01-01 00:00:00" : value;
+						record.setReportTime(FormatUtil.parseDateTime(value));
+						break;
+	
+					default:
+						break;
+					}
+				}
+				msg[1] = "辨别类型[type]";
+				record.setType(recordPk.getMedicalNo().substring(0, 2).toUpperCase());
+				msg[1] = "设置分类[kind]";
+				record.setKind(kind);
+				msg[1] = "设置主键";
+				record.setId(recordPk);
+				msg[1] = "处理合并项目";
+				if (recordPk.getMedicalItem().indexOf(",") == -1) {
+					msg[1] = "非合并项目";
+					records.add(record);
+				} else {
+					msg[1] = "拆分合并项目";
+					records.addAll(recordSplit(record));
 				}
 			}
-			record.setType(recordPk.getMedicalNo().substring(0, 2).toUpperCase());
-			record.setKind(kind);
-			record.setId(recordPk);
-			if (recordPk.getMedicalItem().indexOf(",") == -1) {
-				records.add(record);
-			} else {
-				records.addAll(recordSplit(record));
-			}
+			msg[0] = "保存数据";
+			msg[1] = "";
+			miExecutedDao.save(records.toArray(new MiExecuted[0]));
 		}
-		miExecutedDao.save(records.toArray(new MiExecuted[0]));
+		catch(Exception ex) {
+			throw new ErrorException(this.getClass(), msg[0] + msg[1] + ":" + ex.getMessage());
+		}
 	}
 
 	public List<MiExecuted> recordSplit(MiExecuted miExecuted) {

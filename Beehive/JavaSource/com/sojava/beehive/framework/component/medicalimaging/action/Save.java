@@ -3,6 +3,9 @@ package com.sojava.beehive.framework.component.medicalimaging.action;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.Namespace;
+import org.dom4j.Document;
+import org.dom4j.DocumentFactory;
+import org.dom4j.Element;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -72,13 +75,24 @@ public class Save extends ActionSupport {
 
 	public void import0() throws Exception {
 		InputStream in = null;
+		Writer out = new Writer(getRequest(), getResponse());
+		DocumentFactory df = DocumentFactory.getInstance();
+		Document doc = df.createDocument(df.createElement("msg"));
+		Element msg = doc.getRootElement();
 		try {
+			if (workloadFile == null) throw new ErrorException(getClass(), "未上传数据文件");
 			in = new FileInputStream(workloadFile);
 			miExecutedService.importRecords(in, dept);
+			msg.addAttribute("success", "true");
+			msg.setText("导入完成");
+		}
+		catch (Exception ex) {
+			msg.addAttribute("success", "false");
+			msg.setText(ex.getMessage());
 		}
 		finally {
-			in.close();
-			new Writer(getRequest(), getResponse()).output("导入完成");
+			if (in != null) in.close();
+			out.output(doc);
 		}
 	}
 

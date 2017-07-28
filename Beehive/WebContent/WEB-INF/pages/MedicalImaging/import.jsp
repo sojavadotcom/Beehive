@@ -13,7 +13,7 @@ require([
 	"dojox/form/Uploader", "dojox/form/uploader/FileList",
 	"dojo/io/iframe",
 	"dojo/domReady!"],
-function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSpinner, Button, Uploader, FileList, ioIFrame) {
+function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSpinner, Button, Uploader, FileList, ioIFrame, Rectangle) {
 	dojo.ready(function() {
 	});
 });
@@ -35,18 +35,22 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 				miExecutedImportFrm.setValues({'workloadFileName': _fileName.trim()});
 			</script>
 		</span>
-		<input name="workloadFileName" type="text" dojoType="dijit.form.TextBox" readonly="readOnly" />
+		<input name="workloadFileName" type="text" dojoType="dijit.form.TextBox" required="required" readonly="readonly" promptMessage="请选择数据文件" invalidMessage="请选择数据文件" missingMessage="请选择数据文件" message="请选择数据文件" />
 	</div>
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="导入" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
+				if (!miExecutedImportFrm.getValues().workloadFileName) {
+					bee.alert("请选择数据文件");
+					return false;
+				}
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Save.import.s2", {
 						form: miExecutedImportFrm.id,
-						handleAs: "text"
-					}).then(function(msg) {
-						bee.alert("导入完成");
+						handleAs: "xml"
+					}).then(function(doc) {
+						bee.alert(doc.documentElement.innerHTML||doc.documentElement.textContent);
 					}, function(err) {
 						bee.alert(err);
 					});
