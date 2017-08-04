@@ -34,8 +34,8 @@ public class MedicalReformNewPrice {
 			File dir = new File(args[0]);
 			if (!dir.exists()) throw new ErrorException(MedicalReformNewPrice.class, "未找到路径");
 			if (!dir.isDirectory()) throw new ErrorException(MedicalReformNewPrice.class, "路径必须是目录");
-			MedicalReformNewPrice mrnp = new MedicalReformNewPrice(dir);
-			mrnp.importData();
+			new MedicalReformNewPrice(dir)
+				.importData();
 		}
 		catch(ErrorException ex) {}
 		catch(Exception ex) {
@@ -52,39 +52,9 @@ public class MedicalReformNewPrice {
 	public void importData() throws Exception {
 		DBConnector dbConnector = new DBConnector(DB_DRIVER_NAME, DB_URL, DB_USER_NAME, DB_PASSWORD);
 		connect = dbConnector.getConnect();
-		PreparedStatement stmt;
-		ResultSet rs;
-		try {
-			for(File file: this.directory.listFiles()) {
-				FileInputStream in = null;
-				Workbook book = null;
-				Sheet sheet = null;
-				try {
-					in = new FileInputStream(file);
-					String fileName = file.getName();
-					String extName = fileName.substring(fileName.lastIndexOf('.')+1);
-					if (extName.equals("xlsx")) book = new XSSFWorkbook(in);
-					else book = new HSSFWorkbook(in);
-					sheet = book.getSheetAt(0);
-					MainInfo mainInfo = getMainInfo(sheet);
-					stmt = connect.prepareStatement("select count(*) from medicalinnovation.calculate_case_main where inhospital_no=?", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-					stmt.setString(0, mainInfo.code);
-					rs = stmt.executeQuery();
 
-					if (rs.getInt(0) != 0) {
-						continue;
-					} else {
-						saveMainInfo(mainInfo);
-						saveSubInfo(getDetail(sheet, mainInfo.code));
-					}
-				}
-				catch(Exception ex) {
-					System.out.println(file.getName() + " : " + ex.getMessage());
-				}
-				finally {
-					in.close();
-				}
-			}
+		try {
+			findFiles(directory);
 
 			connect.commit();
 		}
@@ -94,6 +64,53 @@ public class MedicalReformNewPrice {
 		}
 		finally {
 			connect.close();
+		}
+	}
+
+	public void findFiles(File directory) throws Exception {
+		for (String name : directory.list()) {
+			File file = new File(name);
+			if (file.isDirectory()) {
+				findFiles(file);
+			} else {
+				parseFile(file);
+			}
+		}
+	}
+
+	public void parseFile(File file) throws Exception {
+		PreparedStatement stmt;
+		ResultSet rs;
+
+		FileInputStream in = null;
+		Workbook book = null;
+		Sheet sheet = null;
+		try {
+			in = new FileInputStream(file);
+			String fileName = file.getName();
+			System.out.println("Processing " + file.toString());
+			String extName = fileName.substring(fileName.lastIndexOf('.')+1);
+			if (extName.equals("xlsx")) book = new XSSFWorkbook(in);
+			else book = new HSSFWorkbook(in);
+			sheet = book.getSheetAt(0);
+			MainInfo mainInfo = getMainInfo(sheet);
+			stmt = connect.prepareStatement("select count(*) from medicalinnovation.calculate_case_main where inhospital_no=?", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			stmt.setString(0, mainInfo.code);
+			rs = stmt.executeQuery();
+
+			if (rs.getInt(0) == 0) {
+				saveMainInfo(mainInfo);
+				saveDiagnosis(mainInfo);
+				saveSubInfo(getDetail(sheet, mainInfo.code));
+			} else {
+				saveDiagnosis(mainInfo);
+			}
+		}
+		catch(Exception ex) {
+			System.out.println(file.getName() + " : " + ex.getMessage());
+		}
+		finally {
+			in.close();
 		}
 	}
 
@@ -132,7 +149,34 @@ public class MedicalReformNewPrice {
 
 		result.flag = (short) 20170803;
 
+		//诊断
+		String diagnosis = "";
+		for (int r = 0; r < 30; r ++) {
+			row = sheet.getRow(r);
+			cell = row.getCell(9);
+			String text = cell.getStringCellValue().trim();
+			if (text.equals("")) continue;
+			diagnosis += text + ",";
+		}
+		diagnosis = diagnosis.replaceAll("\\d(\\.|、)", "").replaceAll("\\Q、\\E", ",");
+
 		return result;
+	}
+
+	public void saveDiagnosis(MainInfo master) throws Exception {
+		PreparedStatement stmt;
+		stmt = this.connect.prepareStatement("delete from medicalinnovation.calculate_case_diagnosis where inhospital_no=?");
+		stmt.setString(0, master.code);
+		stmt.executeUpdate();
+		stmt.close();
+
+		for (String diagnosis : master.diagnosis.split("\\Q,\\E")) {
+			stmt = this.connect.prepareStatement("insert into medicalinnovation.calculate_case_diagnosis (inhospital_no, diagnosis) values (?,?)");
+			stmt.setString(0, master.code);
+			stmt.setString(1, diagnosis);
+			stmt.executeUpdate();
+			stmt.close();
+		}
 	}
 
 	public void saveMainInfo(MainInfo mainInfo) throws Exception {
