@@ -241,4 +241,3 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 		<div id="miExecutedStaffPerformanceGridNode"></div>
 	</div>
 </div>
-<iframe name="miExecutedStaffPerformanceBuff" style="display: none"></iframe>
