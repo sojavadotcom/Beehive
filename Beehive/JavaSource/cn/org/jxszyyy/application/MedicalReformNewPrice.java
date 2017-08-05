@@ -69,7 +69,7 @@ public class MedicalReformNewPrice {
 
 	public void findFiles(File directory) throws Exception {
 		for (String name : directory.list()) {
-			File file = new File(name);
+			File file = new File(directory.getPath() + "/" + name);
 			if (file.isDirectory()) {
 				findFiles(file);
 			} else {
@@ -95,10 +95,11 @@ public class MedicalReformNewPrice {
 			sheet = book.getSheetAt(0);
 			MainInfo mainInfo = getMainInfo(sheet);
 			stmt = connect.prepareStatement("select count(*) from medicalinnovation.calculate_case_main where inhospital_no=?", ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-			stmt.setString(0, mainInfo.code);
+			stmt.setString(1, mainInfo.code);
 			rs = stmt.executeQuery();
 
-			if (rs.getInt(0) == 0) {
+			rs.first();
+			if (rs.getInt(1) == 0) {
 				saveMainInfo(mainInfo);
 				saveDiagnosis(mainInfo);
 				saveSubInfo(getDetail(sheet, mainInfo.code));
@@ -107,7 +108,7 @@ public class MedicalReformNewPrice {
 			}
 		}
 		catch(Exception ex) {
-			System.out.println(file.getName() + " : " + ex.getMessage());
+			throw new Exception(file.getName() + " : " + ex.getMessage());
 		}
 		finally {
 			in.close();
@@ -128,7 +129,8 @@ public class MedicalReformNewPrice {
 		result.name = cell.getStringCellValue().trim();
 		//入院时间
 		cell = row.getCell(5);
-		result.beginDate = FormatUtil.parseDate(cell.getStringCellValue().trim());
+		if (!cell.getStringCellValue().trim().equals("")) result.beginDate = FormatUtil.parseDate(cell.getStringCellValue().trim());
+		else result.beginDate = null;
 		//住院天数
 		cell = row.getCell(8);
 		result.days = Integer.parseInt(cell.getStringCellValue().trim());
@@ -142,7 +144,8 @@ public class MedicalReformNewPrice {
 		result.type = cell.getStringCellValue().trim();
 		//出院时间
 		cell = row.getCell(5);
-		result.endDate = FormatUtil.parseDate(cell.getStringCellValue().trim());
+		if (!cell.getStringCellValue().trim().equals("")) result.endDate = FormatUtil.parseDate(cell.getStringCellValue().trim());
+		else result.endDate = null;
 		//住院总额
 		cell = row.getCell(8);
 		result.amount = Double.parseDouble(cell.getStringCellValue().trim());
@@ -150,15 +153,18 @@ public class MedicalReformNewPrice {
 		result.flag = (short) 20170803;
 
 		//诊断
-		String diagnosis = "";
-		for (int r = 0; r < 30; r ++) {
+		String diagnosis = " ";
+		for (int r = 0; r < sheet.getLastRowNum(); r ++) {
 			row = sheet.getRow(r);
 			cell = row.getCell(9);
-			String text = cell.getStringCellValue().trim();
+			if (cell == null) continue;
+			String text = cell.getStringCellValue().replaceAll("\\Q \\E", "");
 			if (text.equals("")) continue;
 			diagnosis += text + ",";
 		}
-		diagnosis = diagnosis.replaceAll("\\d(\\.|、)", "").replaceAll("\\Q、\\E", ",");
+		diagnosis = diagnosis.substring(0, diagnosis.length() - 1);
+		result.diagnosis = diagnosis.replaceAll("\\d(\\.|、)", "").replaceAll("\\Q、\\E", ",").replaceAll("\\Q。\\E", ",").trim();
+		System.out.println("diagnosis: " + result.diagnosis);
 
 		return result;
 	}
@@ -166,14 +172,14 @@ public class MedicalReformNewPrice {
 	public void saveDiagnosis(MainInfo master) throws Exception {
 		PreparedStatement stmt;
 		stmt = this.connect.prepareStatement("delete from medicalinnovation.calculate_case_diagnosis where inhospital_no=?");
-		stmt.setString(0, master.code);
+		stmt.setString(1, master.code);
 		stmt.executeUpdate();
 		stmt.close();
 
 		for (String diagnosis : master.diagnosis.split("\\Q,\\E")) {
 			stmt = this.connect.prepareStatement("insert into medicalinnovation.calculate_case_diagnosis (inhospital_no, diagnosis) values (?,?)");
-			stmt.setString(0, master.code);
-			stmt.setString(1, diagnosis);
+			stmt.setString(1, master.code);
+			stmt.setString(2, diagnosis);
 			stmt.executeUpdate();
 			stmt.close();
 		}
@@ -185,16 +191,16 @@ public class MedicalReformNewPrice {
 											+ "(inhospital_no,name,begin_date,end_date,total_days,dept,type,amount,data_flag,diagnosis)"
 											+ " values "
 											+ "(?,?,?,?,?,?,?,?,?,?)");
-		stmt.setString(0, mainInfo.code);
-		stmt.setString(1, mainInfo.name);
-		stmt.setDate(2, new java.sql.Date(mainInfo.beginDate.getTime()));
-		stmt.setDate(3, new java.sql.Date(mainInfo.endDate.getTime()));
-		stmt.setInt(4, mainInfo.days);
-		stmt.setString(5, mainInfo.dept);
-		stmt.setString(6, mainInfo.type);
-		stmt.setDouble(7, mainInfo.amount);
-		stmt.setShort(8, mainInfo.flag);
-		stmt.setString(9, mainInfo.diagnosis);
+		stmt.setString(1, mainInfo.code);
+		stmt.setString(2, mainInfo.name);
+		stmt.setDate(3, mainInfo.beginDate == null ? null : new java.sql.Date(mainInfo.beginDate.getTime()));
+		stmt.setDate(4, mainInfo.endDate == null ? null : new java.sql.Date(mainInfo.endDate.getTime()));
+		stmt.setInt(5, mainInfo.days);
+		stmt.setString(6, mainInfo.dept);
+		stmt.setString(7, mainInfo.type);
+		stmt.setDouble(8, mainInfo.amount);
+		stmt.setShort(9, mainInfo.flag);
+		stmt.setString(10, mainInfo.diagnosis);
 		stmt.executeUpdate();
 	}
 
@@ -217,7 +223,7 @@ public class MedicalReformNewPrice {
 			cell = row.getCell(6);
 			detail.price = cell.getNumericCellValue();
 			cell = row.getCell(7);
-			detail.quantity = Integer.parseInt(cell.getStringCellValue());
+			detail.quantity = Double.parseDouble(cell.getStringCellValue());
 			cell = row.getCell(8);
 			detail.amount = cell.getNumericCellValue();
 
@@ -233,15 +239,15 @@ public class MedicalReformNewPrice {
 			stmt = this.connect.prepareStatement("insert into medicalinnovation.calculate_case_sub "
 					+ "(inhospital_no,name,kind,class,unit,quantity,price,amount)"
 					+ " values "
-					+ "(?,?,?,?,?,?,?,?,?,?,?)");
-			stmt.setString(0, detail.inhospitalNo);
-			stmt.setString(1, detail.name);
-			stmt.setString(2, detail.kind);
-			stmt.setString(3, detail.class_);
-			stmt.setString(4, detail.unit);
-			stmt.setInt(5, detail.quantity);
-			stmt.setDouble(6, detail.price);
-			stmt.setDouble(7, detail.amount);
+					+ "(?,?,?,?,?,?,?,?)");
+			stmt.setString(1, detail.inhospitalNo);
+			stmt.setString(2, detail.name);
+			stmt.setString(3, detail.kind);
+			stmt.setString(4, detail.class_);
+			stmt.setString(5, detail.unit);
+			stmt.setDouble(6, detail.quantity);
+			stmt.setDouble(7, detail.price);
+			stmt.setDouble(8, detail.amount);
 
 			stmt.executeUpdate();
 		}
@@ -267,7 +273,7 @@ class SubInfo {
 	public String kind;
 	public String class_;
 	public String unit;
-	public int quantity;
+	public double quantity;
 	public double price;
 	public double amount;
 	public double calculatePrice;
