@@ -37,10 +37,7 @@ function calculateBudget(o) {
 	var frmObj = medicalimagingMeritFrm||null;
 	if (!frmObj) return false;
 	var _budget = (parseFloat(frmObj.getValues().budget)||0).toFixed(2);
-	var _overtimeCost = parseFloat(frmObj.getValues().overtimeCost)||0;
 	var _nurseRate = parseFloat(frmObj.getValues().nurseRate)||0;
-	var _nurseCost = (_nurseRate/100*(_budget - _overtimeCost)).toFixed(2);
-	var _performanceTotal = ((_budget - _overtimeCost) - _nurseCost).toFixed(2);
 	var _medicalRate = parseFloat(frmObj.getValues().medicalRate)||80;
 	var _manageRate = parseFloat(frmObj.getValues().manageRate)||20;
 	if (o&&o.name == "medicalRate") {
@@ -50,18 +47,12 @@ function calculateBudget(o) {
 		_manageRate = _manageRate > 100 ? 100 : _manageRate < 0 ? 0 : _manageRate;
 		_medicalRate = 100-_manageRate;
 	}
-	var _medicalTotal = (_medicalRate/100*_performanceTotal).toFixed(2);
-	var _manageTotal = (_manageRate/100*_performanceTotal).toFixed(2);
 	frmObj.setValues({
 		budget: _budget,
-		overtimeCost: _overtimeCost,
 		nurseRate: _nurseRate,
-		nurseCost: _nurseCost,
 		performanceTotal: _performanceTotal,
 		medicalRate: _medicalRate,
-		medicalTotal: _medicalTotal,
 		manageRate: _manageRate,
-		manageTotal: _manageTotal
 	});
 }
 require([
@@ -145,9 +136,6 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 				<label style="font-weight: bold;">护理绩效占比：</label>
 				<input name="nurseRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" selectOnClick="true" missingMessage="请填写护理额度占比" message="请填写护理额度占比" constraints="{max:100, min:0}" onChange="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
 			</div>
-			<div class="dijitInline">
-				<input name="nurseCost" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
-			</div>
 		</div>
 		<div>
 			<span name="nurseFile" type="file" dojoType="dojox.form.Uploader" required="required">
@@ -165,16 +153,9 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	</div>
 	<div dojoType="dijit.Fieldset" title="绩效核算" toggleable="false">
 		<div style="margin: 5px 0;">
-			<label style="font-weight: bold;">绩效分配额度：</label>
-			<input name="performanceTotal" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px;" />元
-		</div>
-		<div style="margin: 5px 0;">
 			<div class="dijitInline">
 				<label style="font-weight: bold;">医疗绩效占比：</label>
 				<input name="medicalRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" selectOnClick="true" missingMessage="请填写医疗绩效占比" message="请填写医疗绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
-			</div>
-			<div class="dijitInline">
-				<input name="medicalTotal" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
 			</div>
 		</div>
 		<div style="margin: 5px 0;">
@@ -182,70 +163,18 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 				<label style="font-weight: bold;">管理绩效占比：</label>
 				<input name="manageRate" type="text" dojoType="dijit.form.NumberSpinner" trim="true" required="required" selectOnClick="true" missingMessage="请填写管理绩效占比" message="请填写管理绩效占比" constraints="{max:100, min:0}" maxLength="3" onChange="calculateBudget(this)" onMouseDown="calculateBudget(this)" onMouseUp="calculateBudget(this)" style="width: 50px;" />%
 			</div>
-			<div class="dijitInline">
-				<input name="manageTotal" type="text" dojoType="dijit.form.NumberTextBox" trim="true" required="required" readOnly="readonly" style="width: 100px; border: none;" />元
-			</div>
 		</div>
 	</div>
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="核算" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
-/*
-				medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=true;
-				var rec = medicalimagingMeritFrm.getValues();
-				var xhrArgs = {
-					url: "/MedicalImaging/Save.merit.shtml",
-					handleAs: "text",
-					preventCache: true,
-					content: {
-						budget: rec.budget,
-						overtimeCost: rec.overtimeCost,
-						nurseRate: rec.nurseRate,
-						nurseCost: rec.nurseCost,
-						performanceCost: rec.performanceCost,
-						medicalRate: rec.medicalRate,
-						medicalTotal: rec.medicalTotal,
-						manageRate: rec.manageRate,
-						manageTotal: rec.manageTotal,
-						year: rec.year,
-						month: rec.month,
-						beginDate: dojo.date.locale.format(rec.beginDate, {selector: 'date', datePattern: 'yyyy-MM-dd'}),
-						endDate: dojo.date.locale.format(rec.endDate, {selector: 'date', datePattern: 'yyyy-MM-dd'}),
-						dept: rec.dept
-					},
-					load: function(msg, ioargs) {
-						bee.alert(msg);
-						medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=false;
-					},
-					error: function(err, ioargs) {
-						var msg = "";
-						switch (ioargs) {
-						case 404:
-							msg = "The requested page was not found.";
-							break;
-						case 500:
-							msg = "The server reported an error.";
-							break;
-						case 407:
-							msg = "You need authenticate with a proxy.";
-							break;
-						default:
-							msg = "Unknown error.";
-							break;
-						}
-						bee.alert(err);
-						medicalimagingMeritFrm.getChildren()[medicalimagingMeritFrm.getChildren().length-1].disabled=false;
-					}
-				}
-				dojo.xhrGet(xhrArgs);
-*/
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Save.merit.s2", {
 						form: medicalimagingMeritFrm.id,
-						handleAs: "text"
-					}).then(function(msg) {
-						bee.alert("核算完成");
+						handleAs: "xml"
+					}).then(function(doc) {
+						bee.alert(doc.documentElement.innerHTML||doc.documentElement.textContent);
 					}, function(err) {
 						bee.alert(err);
 					});

@@ -39,7 +39,6 @@ import org.hibernate.annotations.Subselect;
 		+ "medicalimaging.v_group g"
 		+ " left join medicalimaging.v_mi_executed_workload tech on g.staff_id=tech.worker_id and g.work_statistics_id=tech.work_statistics_id and tech.type in ('投照')"
 		+ " left join medicalimaging.v_mi_executed_workload diagno on g.staff_id=diagno.worker_id and g.work_statistics_id=diagno.work_statistics_id and diagno.type in ('诊断')"
-//		+ " group by g.work_statistics_id,g.group_id,g.group_name,g.staff_id,g.staff_name,g.staff_title,g.group_leader,g.staff_kind,g.staff_job_coef,tech.worker_quantity,tech.worker_statis_quantity,tech.point_total,diagno.worker_quantity,diagno.worker_statis_quantity,diagno.point_total"
 		+ " order by g.work_statistics_id, g.group_id, g.staff_id"
 	)
 @NamedQuery(name="VMiExecutedStaffPerformance.findAll", query="SELECT v FROM VMiExecutedStaffPerformance v")

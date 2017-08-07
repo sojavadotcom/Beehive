@@ -97,7 +97,10 @@ public class Save extends ActionSupport {
 	}
 
 	public void merit() throws Exception {
-		String msg = "";
+		DocumentFactory df = DocumentFactory.getInstance();
+		Document doc = df.createDocument(df.createElement("msg"));
+		Element msg = doc.getRootElement();
+
 		HSSFWorkbook overtimeBook = null;
 		HSSFWorkbook nurseBook = null;
 		FileInputStream in = null;
@@ -126,26 +129,28 @@ public class Save extends ActionSupport {
 					in.close();
 				}
 			}
-			msg = "正在核算";
+			msg.setText("正在核算");
 			miPerformanceService.merit(budget, nurseRate, medicalRate, manageRate, year, month, beginDate, endDate, dept, overtimeBook, nurseBook);
-			msg = "获取统计主信息";
+			msg.setText("获取统计主信息");
 			WorkStatistic workStatistic = miExecutedService.findWorkStatistic(year, month);
-			msg = "获取核算数据";
+			msg.setText("获取核算数据");
 			VMiExecutedStaffPerformance[] staffPerformances = miExecutedService.findStaffPerformance(workStatistic, null, false);
-			msg = "获取误餐费";
+			msg.setText("获取误餐费");
 			MiWorkload[] overtimes = miExecutedService.findWorkload(workStatistic, "误餐费", "补助", null);
-			msg = "获取护理组工作量";
+			msg.setText("获取护理组工作量");
 			MiWorkload[] nurseWorkloads = miExecutedService.findWorkload(workStatistic, "时数", "护理组", null);
-			msg = "生成绩效报表";
+			msg.setText("生成绩效报表");
 			miPerformanceService.saveStaffPerformanceReport(workStatistic, staffPerformances, overtimes, nurseWorkloads, false);
-			msg = "核算完成";
+			msg.setText("核算完成");
+
+			msg.addAttribute("success", "true");
 		}
 		catch(Exception ex) {
-			msg = msg + "时发生：" + ex.getMessage();
-			throw new ErrorException(this.getClass(), msg);
+			msg.addAttribute("success", "false");
+			msg.setText(msg.getText() + "时发生：" + ex.getMessage());
 		}
 		finally {
-			new Writer(getRequest(), getResponse()).output(msg);
+			new Writer(getRequest(), getResponse()).output(doc);
 		}
 	}
 

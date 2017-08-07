@@ -219,21 +219,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		for (VMiExecutedStaffPerformance staffPerformance: list) {
 			jobCoefTotal += staffPerformance.getStaffJobCoef() != null ? staffPerformance.getStaffJobCoef() : 0d;
 		}
-/*
-		String groupName = "";
-		double medicalTotal_ = 0d,
-				totalAmount_ = 0d,
-				techPointTotal_ = 0d,
-				diagnoPointTotal_ = 0d,
-				assistPointTotal_ = 0d,
-				pointTotal_ = 0d;
-		double medicalTotal__ = 0d,
-				totalAmount__ = 0d,
-				techPointTotal__ = 0d,
-				diagnoPointTotal__ = 0d,
-				assistPointTotal__ = 0d,
-				pointTotal__ = 0d;
-*/
+
 		for (int i = 0; i < list.size(); i ++) {
 			VMiExecutedStaffPerformance staffPerformance = list.get(i);
 
@@ -277,78 +263,6 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			staffPerformance.setMedicalTotal(scale ? FormatUtil.formatDecimal(medicalTotal, 2) : medicalTotal);
 			staffPerformance.setManageTotal(scale ? FormatUtil.formatDecimal(manageTotal, 2) : manageTotal);
 			staffPerformance.setTotalAmount(scale ? FormatUtil.formatDecimal(totalAmount, 2) : totalAmount);
-/*
-			String _groupName = staffPerformance.getGroupName();
-			if (!groupName.equals(_groupName) || i == list.size()-1) {
-				VMiExecutedStaffPerformance amountItem = null;
-				if (i > 0 || i == list.size()-1) {
-					amountItem = new VMiExecutedStaffPerformance();
-					amountItem.setGroupName(_groupName);
-					amountItem.setStaffName("合计");
-					amountItem.setMedicalTotal(scale ? FormatUtil.formatDecimal(medicalTotal_, 2) : medicalTotal_);
-					amountItem.setTotalAmount(scale ? FormatUtil.formatDecimal(totalAmount_, 2) : totalAmount_);
-					amountItem.setTechPointTotal(scale ? FormatUtil.formatDecimal(techPointTotal_,  4) : techPointTotal_);
-					amountItem.setDiagnoPointTotal(scale ? FormatUtil.formatDecimal(diagnoPointTotal_, 4) : diagnoPointTotal_);
-					amountItem.setAssistPointTotal(scale ? FormatUtil.formatDecimal(assistPointTotal_, 4) : assistPointTotal_);
-					amountItem.setPointTotal(scale ? FormatUtil.formatDecimal(pointTotal_, 4) : pointTotal_);
-
-					medicalTotal_ = 0d;
-					totalAmount_ = 0d;
-					techPointTotal_ = 0d;
-					diagnoPointTotal_ = 0d;
-					assistPointTotal_ = 0d;
-					pointTotal_ = 0d;
-				}
-
-				if (i == list.size()-1) {
-					list.add(amountItem);
-					VMiExecutedStaffPerformance totalAmountItem = new VMiExecutedStaffPerformance();
-					totalAmountItem.setGroupName("");
-					totalAmountItem.setStaffName("总计");
-					totalAmountItem.setMedicalTotal(scale ? FormatUtil.formatDecimal(medicalTotal__, 2) : medicalTotal__);
-					totalAmountItem.setTotalAmount(scale ? FormatUtil.formatDecimal(totalAmount__, 2) : totalAmount__);
-					totalAmountItem.setTechPointTotal(scale ? FormatUtil.formatDecimal(techPointTotal__, 4) : techPointTotal__);
-					totalAmountItem.setDiagnoPointTotal(scale ? FormatUtil.formatDecimal(diagnoPointTotal__, 4) : diagnoPointTotal__);
-					totalAmountItem.setAssistPointTotal(scale ? FormatUtil.formatDecimal(assistPointTotal__, 4) : assistPointTotal__);
-					totalAmountItem.setPointTotal(scale ? FormatUtil.formatDecimal(pointTotal__, 4) : pointTotal__);
-					list.add(totalAmountItem);
-					break;
-				} else if (i > 0) {
-					list.add(i, amountItem);
-				}
-
-				groupName = _groupName;
-			} else {
-				medicalTotal_ += medicalTotal;
-				totalAmount_ += totalAmount;
-				techPointTotal_ += techPointTotal;
-				diagnoPointTotal_ += diagnoPointTotal;
-				assistPointTotal_ += assistPointTotal;
-				pointTotal_ += pointTotal;
-	
-				medicalTotal__ += medicalTotal;
-				totalAmount__ += totalAmount;
-				techPointTotal__ += techPointTotal;
-				diagnoPointTotal__ += diagnoPointTotal;
-				assistPointTotal__ += assistPointTotal;
-				pointTotal__ += pointTotal;
-			}
-			if (i == 0) {
-				medicalTotal_ += medicalTotal;
-				totalAmount_ += totalAmount;
-				techPointTotal_ += techPointTotal;
-				diagnoPointTotal_ += diagnoPointTotal;
-				assistPointTotal_ += assistPointTotal;
-				pointTotal_ += pointTotal;
-	
-				medicalTotal__ += medicalTotal;
-				totalAmount__ += totalAmount;
-				techPointTotal__ += techPointTotal;
-				diagnoPointTotal__ += diagnoPointTotal;
-				assistPointTotal__ += assistPointTotal;
-				pointTotal__ += pointTotal;
-			}
-*/
 		}
 
 		return list.toArray(new VMiExecutedStaffPerformance[0]);
