@@ -8,8 +8,8 @@ import java.sql.ResultSet;
 
 public class MedicalItemSpliter {
 	private final static String DB_DRIVER_NAME = "org.postgresql.Driver";
-	private final static String DB_URL = "jdbc:postgresql://127.0.0.1:5432/postgres";
-	private final static String DB_USER_NAME = "postgres";
+	private final static String DB_URL = "jdbc:postgresql://192.168.200.1:5432/postgres";
+	private final static String DB_USER_NAME = "pgsql";
 	private final static String DB_PASSWORD = "johnjia";
 	private Connection connect;
 
