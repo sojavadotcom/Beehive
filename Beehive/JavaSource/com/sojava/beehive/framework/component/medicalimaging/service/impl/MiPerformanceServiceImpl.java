@@ -14,7 +14,6 @@ import com.sojava.beehive.framework.component.medicalimaging.service.MiPerforman
 import com.sojava.beehive.framework.math.Arith;
 import com.sojava.beehive.framework.util.FormatUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -175,19 +174,22 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 			HSSFCell recepCell = row.getCell(4);
 			double recepHours = 0d;
 			if (recepCell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
-				recepHours = masterCell.getNumericCellValue();
+				recepHours = recepCell.getNumericCellValue();
 			}
 			//职称系数
 			double titleCoef = miExecutedDao.getStaffCoef(staffId, StaffCoefType.Nurse);
-			double hourAmout = Arith.mul(masterHours, masterCoef) + Arith.mul(subHours, subCoef) + Arith.mul(recepHours, recepCoef);
+			double masterHour = Arith.mul(masterHours, masterCoef);
+			double subHour = Arith.mul(subHours, subCoef);
+			double recepHour = Arith.mul(recepHours, recepCoef);
+			double hourAmout = masterHour + subHour + recepHour;
 			double hourTotal = Arith.mul(hourAmout, titleCoef);
 
 			MiWorkload miWorkload = new MiWorkload();
 			miWorkload.setStaff(new Staff(staffId));
-			miWorkload.setItem1(masterCoef);
-			miWorkload.setItem2(subCoef);
-			miWorkload.setItem3(recepCoef);
-			miWorkload.setAmount(masterCoef + subCoef + recepCoef);
+			miWorkload.setItem1(masterHours);
+			miWorkload.setItem2(subHours);
+			miWorkload.setItem3(recepHours);
+			miWorkload.setAmount(masterHours + subHours + recepHours);
 			miWorkload.setAmountByCoef(hourTotal);
 			miWorkload.setType("时数");
 			miWorkload.setKind("护理组");
@@ -199,82 +201,6 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		result.put("hours", hourAmount);
 
 		return result;
-	}
-
-	@Override
-	public HSSFWorkbook writeExcelOfStaffPerformance(File overtimeFile, File nurseFile, WorkStatistic workStatistic, VMiExecutedStaffPerformance[] list) throws Exception {
-/*
-		HSSFWorkbook book = generateExcelOfStaffPerformance(workStatistic, list);
-		HSSFWorkbook overtimeBook = null, nurseBook = null;
-		double nurseMasterCoef = 0d, nurseSubCoef = 0d, nurseRecepCoef = 0d;
-		List<DicCoefficient> nurseCoefs = (List<DicCoefficient>) miPerformanceDao.query(DicCoefficient.class, new Criterion[]{Restrictions.in("name", new String[]{"主班", "副班", "登记"})}, null, null, true);
-		for(DicCoefficient nurseCoef: nurseCoefs) {
-			if (nurseCoef.getName().equals("主班")) {
-				nurseMasterCoef = nurseCoef.getPoints();
-			} else if (nurseCoef.getName().equals("副班")) {
-				nurseSubCoef = nurseCoef.getPoints();
-			} else if (nurseCoef.getName().equals("登记班")) {
-				nurseRecepCoef = nurseCoef.getPoints();
-			}
-		}
-		FileInputStream in = null;
-		if (overtimeFile != null) {
-			try {
-				in = new FileInputStream(overtimeFile);
-				overtimeBook = new HSSFWorkbook(in);
-			}
-			finally {
-				in.close();
-			}
-		}
-		if (nurseFile != null) {
-			try {
-				in = new FileInputStream(nurseFile);
-				nurseBook = new HSSFWorkbook(in);
-			}
-			finally {
-				if (in != null) in.close();
-			}
-		}
-		HSSFSheet nurseSheet = nurseBook == null ? null : nurseBook.getSheetAt(0);
-		Map<String, Double> nurseWorkload = calNurseJob(nurseSheet, nurseMasterCoef, nurseSubCoef, nurseRecepCoef);
-		double nurseHoursTotal = nurseWorkload.get("总时数");
-		double nursePrice = Arith.div(workStatistic.getNurseCost(), nurseHoursTotal);
-		try {
-			HSSFSheet sheet = book.getSheetAt(0);
-			HSSFSheet overtimeSheet = overtimeBook == null ? null : overtimeBook.getSheetAt(0);
-
-			for (int r = 4; r <= sheet.getLastRowNum(); r ++) {
-				HSSFRow row = sheet.getRow(r);
-				HSSFCell cell = row.getCell(0);
-				String text = cell.getStringCellValue();
-				if (text.equalsIgnoreCase("")
-						|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("合计")
-						|| text.replaceAll("\\Q　\\E", "").replaceAll("\\Q \\E", "").equalsIgnoreCase("总计")
-						|| isMerged(cell, sheet)
-					) continue;
-				HSSFCell overtimeCell = row.getCell(4);
-				HSSFCell nurseCell = row.getCell(3);
-
-				Object[] ret = getCellsValue(overtimeSheet, text, 3);
-				if (ret.length > 0) {
-					if (ret[0] instanceof Double) {
-						overtimeCell.setCellValue(Double.parseDouble(ret[0].toString()));
-					} else {
-						overtimeCell.setCellValue(ret[0].toString());
-					}
-				}
-				nurseCell.setCellValue(Arith.mul(nursePrice, nurseWorkload.get(text).doubleValue()));
-			}
-			autoSizeColumn(sheet);
-		}
-		finally {
-			in.close();
-		}
-
-		return book;
-*/
-		return null;
 	}
 
 	public Map<String, Double> calNurseJob(HSSFSheet sheet, double masterCoef, double subCoef, double recepCoef) throws Exception {

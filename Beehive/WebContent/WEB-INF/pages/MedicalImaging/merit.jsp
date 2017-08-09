@@ -50,7 +50,6 @@ function calculateBudget(o) {
 	frmObj.setValues({
 		budget: _budget,
 		nurseRate: _nurseRate,
-		performanceTotal: _performanceTotal,
 		medicalRate: _medicalRate,
 		manageRate: _manageRate,
 	});

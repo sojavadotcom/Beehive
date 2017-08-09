@@ -5,7 +5,6 @@ import com.sojava.beehive.framework.component.medicalimaging.bean.StaffPerforman
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 
-import java.io.File;
 import java.util.Date;
 import java.util.Properties;
 
@@ -20,7 +19,6 @@ public interface MiPerformanceService {
 	StaffPerformanceReport[] generateStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads, boolean scale) throws Exception;
 	void saveStaffPerformanceReport(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads, boolean scale) throws Exception;
 	StaffPerformanceReport[] findStaffPerformanceReport(WorkStatistic workStatistic) throws Exception;
-	HSSFWorkbook writeExcelOfStaffPerformance(File overtimeFile, File nurseFile, WorkStatistic workStatistic, VMiExecutedStaffPerformance[] list) throws Exception;
 	HSSFWorkbook generateExcelOfStaffPerformance(WorkStatistic workStatistic, VMiExecutedStaffPerformance[] staffPerformances, MiWorkload[] overtimes, MiWorkload[] nurseWorkloads) throws Exception;
 	HSSFWorkbook generateExcelOfStaffPerformanceReport(WorkStatistic workStatistic) throws Exception;
 }
