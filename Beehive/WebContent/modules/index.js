@@ -161,8 +161,8 @@ function(dojo) {
 			var match = ieReg.exec(userAgent);
 			dojo.isIE = match ? match[2] - 0 : undefined;
 		}
-		if (!systemConfig.isOnline) bee.login.show();
-		else if (systemConfig.isPInit) bee.password.show();
+		// if (!systemConfig.isOnline) bee.login.show();
+		// else if (systemConfig.isPInit) bee.password.show();
 		bee.open();
 	});
 });

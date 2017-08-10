@@ -22,7 +22,7 @@ public class Query extends ActionSupport {
 	private String value;
 	private String label;
 
-	@Action("Query")
+	@Action("Query.*")
 	@Override
 	public String input() throws Exception {
 		super.execute();
@@ -31,6 +31,12 @@ public class Query extends ActionSupport {
 	}
 
 	public void query() throws Exception {
+
+		String actionName = this.getActionContext().getName();
+		if (actionName.split("\\Q.\\E").length > 1) actionName = actionName.split("\\Q.\\E")[1];
+		if (actionName.equalsIgnoreCase("name")) {
+			setAction("nameByUserName");
+		}
 
 		Writer out = new Writer(getRequest(), getResponse());
 		if (getAction().equals("depts")) {

@@ -116,6 +116,7 @@
 		<filter-name>beehiveFilter</filter-name>
 		<url-pattern>*.s2</url-pattern>
 	</filter-mapping>
+<!-- 
 	<filter-mapping>
 		<filter-name>beehiveFilter</filter-name>
 		<url-pattern>*.html</url-pattern>
@@ -128,7 +129,8 @@
 		<filter-name>beehiveFilter</filter-name>
 		<url-pattern>*.css</url-pattern>
 	</filter-mapping>
-
+ -->
+ 
 	<filter>
 		<filter-name>struts2Filter</filter-name>
 		<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
