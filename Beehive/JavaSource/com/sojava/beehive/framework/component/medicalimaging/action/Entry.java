@@ -51,8 +51,8 @@ public class Entry extends ActionSupport {
 			String action = this.getActionContext().getName();
 			if (action.split("\\Q.\\E").length > 2) action = action.split("\\Q.\\E")[2];
 			if (action.equalsIgnoreCase("workStatistics")) {
-				year = year == null || year == 2017 ? FormatUtil.currentYear() : year;
-				month = month == null || month == 1 ? FormatUtil.currentMonth() : month;
+				year = year == null ? FormatUtil.currentYear() : year;
+				month = month == null ? FormatUtil.currentMonth() : month;
 				JSONObject json = new RecordUtil().generateJsonByMapping(miExecutedService.findWorkStatistic(year, month));
 				new Writer(getRequest(), getResponse()).output(json);
 			} else if (action.equalsIgnoreCase("staffPerformance")) {
