@@ -70,10 +70,10 @@ public class MiPerformanceServiceImpl implements MiPerformanceService {
 		workStatistic.setNurseRate(nurseRate);
 		workStatistic.setNurseCost(Arith.mul(
 										Arith.div(workStatistic.getNurseRate(), 100),
-										(workStatistic.getBudget()-workStatistic.getOvertimeCost())
+										(workStatistic.getBudget())
 									));
 		workStatistic.setNurseHours(nurseHours);
-		workStatistic.setPerformanceTotal(workStatistic.getBudget() - workStatistic.getOvertimeCost() - workStatistic.getNurseCost());
+		workStatistic.setPerformanceTotal(workStatistic.getBudget() - workStatistic.getNurseCost() - workStatistic.getOvertimeCost());
 		workStatistic.setMedicalRate(medicalRate);
 		workStatistic.setMedicalTotal(Arith.mul(
 										Arith.div(workStatistic.getMedicalRate(), 100),
