@@ -139,6 +139,10 @@ public class MiExecuted implements Serializable {
 	}
 
 	public MiExecuted(MiExecuted miExecuted) {
+		setMiExecuted(miExecuted);
+	}
+
+	public void setMiExecuted(MiExecuted miExecuted) {
 		MiExecutedPK pk = new MiExecutedPK(miExecuted.getId());
 		this.setId(pk);
 		this.setApplyDept(miExecuted.getApplyDept());

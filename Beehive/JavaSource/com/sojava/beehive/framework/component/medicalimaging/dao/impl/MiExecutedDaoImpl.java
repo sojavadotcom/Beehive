@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sojava.beehive.common.identifier.UUID;
 import com.sojava.beehive.framework.component.medicalimaging.StaffCoefType;
-import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
@@ -33,15 +32,16 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 	@SuppressWarnings({ "unchecked" })
 	@Override
 	public void save(Object[] entities) throws Exception {
+/*
 		for (MiExecuted me : (MiExecuted[]) entities) {
 			List<MiExecuted> list = (List<MiExecuted>) this.query(MiExecuted.class, new Criterion[]{Restrictions.eq("id.medicalNo", me.getId().getMedicalNo()), Restrictions.eq("id.medicalItem", me.getId().getMedicalItem())}, null, null, true);
-			List<DicRbrvs> rbrvs = (List<DicRbrvs>) this.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("name", me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）")), Restrictions.eq("dept", me.getKind())}, null, null, true);
-			getSession().flush();
-			getSession().clear();
-			if (rbrvs.size() == 1) me.setRbrvsId(rbrvs.get(0).getId());
+//			List<DicRbrvs> rbrvs = (List<DicRbrvs>) this.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("name", me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）")), Restrictions.eq("dept", me.getKind())}, null, null, true);
+//			getSession().flush();
+//			getSession().clear();
+//			if (rbrvs.size() == 1) me.setRbrvsId(rbrvs.get(0).getId());
 			if (list.size() == 0) {
-				MiExecutedPK pk = me.getId();
-				pk.setId(UUID.getId());
+//				MiExecutedPK pk = me.getId();
+//				pk.setId(UUID.getId());
 //				me.setCreateUserId(getUserInfo().getUserId());
 //				me.setCreateUserName(getUserInfo().getName());
 //				me.setCreateDeptId(getUserInfo().getDeptName());
@@ -61,8 +61,12 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 //				me.setModifyDeptName(getUserInfo().getDeptName());
 				me.setModifyTime(new Date());
 				me.setDataFlag(DataFlag.modify);
+
+				list.get(0).setMiExecuted(me);
+				me = list.get(0);
 			}
 		}
+*/
 		super.save(entities);
 	}
 
