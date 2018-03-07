@@ -51,9 +51,9 @@ function(dojo) {
 				bee.login.form.setValues({'userName': value});
 				var me = this;
 				dojo.xhrPost({
-					url: '/User/Query.s2',
+					url: '/User/Query.name.s2',
 					handleAs: 'json',
-					content: {'action': 'nameByUserName', 'value': value}
+					content: {'value': value}
 				}).then(function(result) {
 					var _userName = "";
 					var _name = "";

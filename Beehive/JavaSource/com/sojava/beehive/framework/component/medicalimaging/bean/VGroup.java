@@ -51,6 +51,7 @@ import org.hibernate.annotations.Subselect;
 		+ " left join dic_coefficient jc on s.job_coef_id=jc.id"
 		+ " left join dic_coefficient nc on s.nurse_coef_id=nc.id"
 		+ " where "
+		+ " g.status='启用' and m.status='启用'"
 		+ " g.id=m.group_id"
 		+ " and m.staff_id=s.id"
 	)
