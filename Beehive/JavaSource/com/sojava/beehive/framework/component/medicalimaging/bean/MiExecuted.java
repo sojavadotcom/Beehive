@@ -111,11 +111,17 @@ public class MiExecuted implements Serializable {
 	@Column(name="register_no")
 	private String registerNo;
 
+	@Column(name="apply_time")
+	private Date applyTime;
+
 	@Column(name="register_time")
 	private Date registerTime;
 
 	@Column(name="report_time")
 	private Date reportTime;
+
+	@Column(name="check_time")
+	private Date checkTime;
 
 	private String status;
 
@@ -166,8 +172,10 @@ public class MiExecuted implements Serializable {
 		this.setPatientName(miExecuted.getPatientName());
 		this.setPatientType(miExecuted.getPatientType());
 		this.setRegisterNo(miExecuted.getRegisterNo());
+		this.setApplyTime(miExecuted.getApplyTime());
 		this.setRegisterTime(miExecuted.getRegisterTime());
 		this.setReportTime(miExecuted.getReportTime());
+		this.setCheckTime(miExecuted.getCheckTime());
 		this.setStatus(miExecuted.getStatus());
 		this.setRbrvsId(miExecuted.getRbrvsId());
 		this.setType(miExecuted.getType());
@@ -374,6 +382,14 @@ public class MiExecuted implements Serializable {
 		this.registerNo = registerNo;
 	}
 
+	public Date getApplyTime() {
+		return applyTime;
+	}
+
+	public void setApplyTime(Date applyTime) {
+		this.applyTime = applyTime;
+	}
+
 	public Date getRegisterTime() {
 		return this.registerTime;
 	}
@@ -388,6 +404,14 @@ public class MiExecuted implements Serializable {
 
 	public void setReportTime(Date reportTime) {
 		this.reportTime = reportTime;
+	}
+
+	public Date getCheckTime() {
+		return checkTime;
+	}
+
+	public void setCheckTime(Date checkTime) {
+		this.checkTime = checkTime;
 	}
 
 	public String getStatus() {

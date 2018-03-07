@@ -22,6 +22,8 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	<div style="margin: 10px 0px;">
 		<select name="dept" dojoType="dijit.form.Select">
 			<option value="影像科">影像科</option>
+			<option value="彩超室">彩超室</option>
+			<option value='检验科'>检验科</option>
 		</select>
 	</div>
 	<div style="margin: 10px 0px;">
