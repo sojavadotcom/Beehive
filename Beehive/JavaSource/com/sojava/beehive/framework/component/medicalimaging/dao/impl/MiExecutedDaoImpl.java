@@ -1,8 +1,8 @@
 package com.sojava.beehive.framework.component.medicalimaging.dao.impl;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import org.hibernate.SQLQuery;
 import org.hibernate.criterion.Criterion;
@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sojava.beehive.common.identifier.UUID;
 import com.sojava.beehive.framework.component.medicalimaging.StaffCoefType;
+import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
@@ -30,24 +31,20 @@ import com.sojava.beehive.hibernate.dao.impl.BeehiveDaoImpl;
 public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 
 	private static final long serialVersionUID = 6738789978458136449L;
+	private final Properties property = new Properties();
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void save(Object[] entities) throws Exception {
 
-		List<MiExecutedPK> keys = new ArrayList<>();
-		for (MiExecuted me : (MiExecuted[]) entities) {
-			keys.add(me.getId());
+		//调取所有kind有关的RBRVS
+		for(DicRbrvs r: (List<DicRbrvs>) this.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("dept", this.property.getProperty("kind"))}, null, null, true)) {
+			this.property.put("RBRVS:" + r.getName(), r.getId());
 		}
-		keys = findMiExecutedPK(keys.toArray(new MiExecutedPK[0]));
+		findMiExecutedPK(((List<MiExecutedPK>) this.property.get("keys")).toArray(new MiExecutedPK[0]));
 
 		for (MiExecuted me : (MiExecuted[]) entities) {
-			String id = null;
-			for(MiExecutedPK key: keys) {
-				if (key.getMedicalNo().equals(me.getId().getMedicalNo()) && key.getMedicalItem().equals(me.getId().getMedicalItem())) {
-					id = key.getId();
-					break;
-				}
-			}
+			String id = this.property.getProperty("PK:" + me.getId().getMedicalNo() + "-" + me.getId().getMedicalItem());
 			if (id == null) {
 				MiExecutedPK pk = me.getId();
 				pk.setId(UUID.getId());
@@ -75,14 +72,17 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 		}
 	}
 
+	public Properties getProperty() {
+		return this.property;
+	}
+
 	@Override
 	public List<MiExecuted> executedList(String keyword) throws Exception {
 		return null;
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<MiExecutedPK> findMiExecutedPK(MiExecutedPK[] keys) {
-		List<MiExecutedPK> result = new ArrayList<MiExecutedPK>();
+	public void findMiExecutedPK(MiExecutedPK[] keys) {
 
 		SQLQuery query = this.getSession().createSQLQuery("select id, medical_no, medical_item from medicalimaging.mi_executed where medical_no||'-'||medical_item in (:keys)");
 		String queryStr[] = new String[keys.length];
@@ -91,12 +91,9 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 			queryStr[i] = key.getMedicalNo() + "-" + key.getMedicalItem();
 		}
 		query.setParameterList("keys", queryStr);
-		List<Object[]> list = query.list();
-		for(Object[] k: list) {
-			result.add(new MiExecutedPK(k[0].toString(), k[1].toString(), k[2].toString()));
+		for(Object[] k: (List<Object[]>) query.list()) {
+			this.property.setProperty("PK:" + k[1].toString() + "-" + k[2].toString(), k[0].toString());
 		}
-
-		return result;
 	}
 
 	@SuppressWarnings("unchecked")

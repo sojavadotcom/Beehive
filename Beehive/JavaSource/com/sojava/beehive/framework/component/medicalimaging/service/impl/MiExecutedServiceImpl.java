@@ -11,7 +11,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
-import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
@@ -35,11 +34,15 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 	@Resource private MiExecutedDao miExecutedDao;
 	private String[] msg = new String[2];
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void importRecords(InputStream in, String kind) throws Exception {
 		List<MiExecuted> records = null;
-		List<DicRbrvs> rbrvs = (List<DicRbrvs>) miExecutedDao.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("dept", kind)}, null, null, true);
+		miExecutedDao.getProperty().setProperty("kind", kind);
+		miExecutedDao.getProperty().put("keys", new ArrayList<MiExecutedPK>());
+//		Map<String, Integer> rbrvs = new HashMap<String, Integer>();
+//		for(DicRbrvs r: (List<DicRbrvs>) miExecutedDao.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("dept", kind)}, null, null, true)) {
+//			rbrvs.put(r.getName(), r.getId());
+//		}
 
 		try {
 			msg[0] = "准备";
@@ -52,18 +55,13 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 				records = examinationDecomposition(kind, book);
 			}
 
-			msg[0] = "正在匹配RBRVS";
-			msg[1] = "";
-			for(MiExecuted me: records) {
-				String name = me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）");
-				msg[1] = "处理\"" + name + "\"";
-				for (DicRbrvs r: rbrvs) {
-					if (r.getName().equals(name)) {
-						me.setRbrvsId(r.getId());
-						break;
-					}
-				}
-			}
+//			msg[0] = "正在匹配RBRVS";
+//			msg[1] = "";
+//			for(MiExecuted me: records) {
+//				String name = me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）");
+//				msg[1] = "处理\"" + name + "\"";
+//				me.setRbrvsId(rbrvs.get(name));
+//			}
 
 			msg[0] = "保存数据";
 			msg[1] = "";
@@ -74,6 +72,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<MiExecuted> laboratoryDecomposition(String kind, HSSFWorkbook book) throws Exception {
 		List<MiExecuted> records = new ArrayList<MiExecuted>();
 
@@ -167,6 +166,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			msg[1] = "处理合并项目";
 			if (recordPk.getMedicalItem().indexOf(",") == -1) {
 				msg[1] = "非合并项目";
+				((List<MiExecutedPK>) miExecutedDao.getProperty().get("keys")).add(recordPk);
 				records.add(record);
 			} else {
 				msg[1] = "拆分合并项目";
@@ -177,6 +177,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		return records;
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<MiExecuted> examinationDecomposition(String kind, HSSFWorkbook book) throws Exception {
 		List<MiExecuted> records = new ArrayList<MiExecuted>();
 
@@ -288,6 +289,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			msg[1] = "处理合并项目";
 			if (recordPk.getMedicalItem().indexOf(",") == -1) {
 				msg[1] = "非合并项目";
+				((List<MiExecutedPK>) miExecutedDao.getProperty().get("keys")).add(recordPk);
 				records.add(record);
 			} else {
 				msg[1] = "拆分合并项目";
@@ -300,6 +302,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		return records;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<MiExecuted> recordSplit(MiExecuted miExecuted) {
 		List<MiExecuted> result = new ArrayList<MiExecuted>();
 		MiExecutedPK miExecutedPk = miExecuted.getId();
@@ -308,6 +311,7 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			MiExecuted rec = new MiExecuted(miExecuted);
 			MiExecutedPK recPk = rec.getId();
 			recPk.setMedicalItem(medicalItems[i]);
+			((List<MiExecutedPK>) miExecutedDao.getProperty().get("keys")).add(recPk);
 			result.add(rec);
 		}
 		return result;
