@@ -11,11 +11,15 @@ import info.monitorenter.cpdetector.io.JChardetFacade;
 import info.monitorenter.cpdetector.io.ParsingDetector;
 import info.monitorenter.cpdetector.io.UnicodeDetector;
 
+/*
+ * 检查工具
+ */
 public class CheckUtil {
 
 	private static CodepageDetectorProxy detector = null;
 	private static boolean inited = false;
 
+	//判断字符集对象初始化
 	private static void init() {
 		if (inited) return;
 
@@ -28,6 +32,7 @@ public class CheckUtil {
 		inited = true;
 	}
 
+	//获取流字符集
 	public final static Charset getCharset(InputStream in) throws IOException {
 		init();
 
@@ -37,6 +42,7 @@ public class CheckUtil {
 		return charset;
 	}
 
+	//获取URL字符集
 	public final static Charset getCharset(URL url) throws IOException {
 		init();
 
