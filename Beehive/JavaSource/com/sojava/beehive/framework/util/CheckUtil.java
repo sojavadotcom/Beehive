@@ -17,11 +17,11 @@ import info.monitorenter.cpdetector.io.UnicodeDetector;
 public class CheckUtil {
 
 	private static CodepageDetectorProxy detector = null;
-	private static boolean inited = false;
+	private static boolean detectorInited = false;
 
 	//判断字符集对象初始化
-	private static void init() {
-		if (inited) return;
+	private static void detectorInit() {
+		if (detectorInited) return;
 
 		detector = CodepageDetectorProxy.getInstance();
 		detector.add(new ParsingDetector(false));
@@ -29,12 +29,12 @@ public class CheckUtil {
 		detector.add(JChardetFacade.getInstance());//内部引用了 chardet.jar的类
 		detector.add(ASCIIDetector.getInstance());
 
-		inited = true;
+		detectorInited = true;
 	}
 
 	//获取流字符集
 	public final static Charset getCharset(InputStream in) throws IOException {
-		init();
+		detectorInit();
 
 		Charset charset = CheckUtil.detector.detectCodepage(in, Integer.MAX_VALUE);
 		if (charset == null) charset = Charset.forName("GBK");
@@ -44,7 +44,7 @@ public class CheckUtil {
 
 	//获取URL字符集
 	public final static Charset getCharset(URL url) throws IOException {
-		init();
+		detectorInit();
 
 		Charset charset = CheckUtil.detector.detectCodepage(url);
 		if (charset == null) charset = Charset.forName("GBK");
