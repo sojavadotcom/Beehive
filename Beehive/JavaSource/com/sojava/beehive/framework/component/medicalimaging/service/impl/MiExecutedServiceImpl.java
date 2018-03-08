@@ -39,10 +39,6 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		List<MiExecuted> records = null;
 		miExecutedDao.getProperty().setProperty("kind", kind);
 		miExecutedDao.getProperty().put("keys", new ArrayList<MiExecutedPK>());
-//		Map<String, Integer> rbrvs = new HashMap<String, Integer>();
-//		for(DicRbrvs r: (List<DicRbrvs>) miExecutedDao.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("dept", kind)}, null, null, true)) {
-//			rbrvs.put(r.getName(), r.getId());
-//		}
 
 		try {
 			msg[0] = "准备";
@@ -54,14 +50,6 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			} else {
 				records = examinationDecomposition(kind, book);
 			}
-
-//			msg[0] = "正在匹配RBRVS";
-//			msg[1] = "";
-//			for(MiExecuted me: records) {
-//				String name = me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）");
-//				msg[1] = "处理\"" + name + "\"";
-//				me.setRbrvsId(rbrvs.get(name));
-//			}
 
 			msg[0] = "保存数据";
 			msg[1] = "";

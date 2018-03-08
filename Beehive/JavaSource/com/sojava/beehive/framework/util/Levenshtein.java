@@ -1,5 +1,8 @@
 package com.sojava.beehive.framework.util;
 
+/*
+ * 判别字符串相似度
+ */
 public class Levenshtein {
 
 	private int compare(String str, String target) {

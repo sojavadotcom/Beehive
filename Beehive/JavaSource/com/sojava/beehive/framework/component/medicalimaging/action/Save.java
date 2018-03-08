@@ -17,11 +17,14 @@ import com.sojava.beehive.framework.component.medicalimaging.service.MiExecutedS
 import com.sojava.beehive.framework.component.medicalimaging.service.MiPerformanceService;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.io.Writer;
+import com.sojava.beehive.framework.util.ZipUtil;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -35,6 +38,7 @@ public class Save extends ActionSupport {
 	@Resource private MiPerformanceService miPerformanceService;
 
     private File workloadFile;
+    private String workloadFileName;
     private File overtimeFile;
     private File nurseFile;
     private Double budget;
@@ -81,7 +85,19 @@ public class Save extends ActionSupport {
 		try {
 			if (workloadFile == null) throw new ErrorException(getClass(), "未上传数据文件");
 			in = new FileInputStream(workloadFile);
-			miExecutedService.importRecords(in, dept);
+			String extName = workloadFileName.substring(workloadFileName.lastIndexOf(".")+1);
+			if (extName.equalsIgnoreCase("zip")) {
+				Map<String, byte[]> files = ZipUtil.decompress(in);
+				in.close();
+				for(String key: files.keySet()) {
+					in = new ByteArrayInputStream(files.get(key));
+					miExecutedService.importRecords(in, dept);
+					in.close();
+				}
+			} else {
+				miExecutedService.importRecords(in, dept);
+				in.close();
+			}
 			msg.addAttribute("success", "true");
 			msg.setText("导入完成");
 		}
@@ -90,7 +106,6 @@ public class Save extends ActionSupport {
 			msg.setText(ex.getMessage());
 		}
 		finally {
-			if (in != null) in.close();
 			out.output(doc);
 		}
 	}
@@ -335,6 +350,14 @@ public class Save extends ActionSupport {
 
 	public void setPerformanceCost(Double performanceCost) {
 		this.performanceCost = performanceCost;
+	}
+
+	public String getWorkloadFileName() {
+		return workloadFileName;
+	}
+
+	public void setWorkloadFileName(String workloadFileName) {
+		this.workloadFileName = workloadFileName;
 	}
 
 }
