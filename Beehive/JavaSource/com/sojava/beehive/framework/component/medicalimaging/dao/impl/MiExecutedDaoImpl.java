@@ -1,8 +1,10 @@
 package com.sojava.beehive.framework.component.medicalimaging.dao.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.SQLQuery;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Scope;
@@ -29,19 +31,26 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 
 	private static final long serialVersionUID = 6738789978458136449L;
 
-	@SuppressWarnings({ "unchecked" })
 	@Override
 	public void save(Object[] entities) throws Exception {
-/*
+
+		List<MiExecutedPK> keys = new ArrayList<>();
 		for (MiExecuted me : (MiExecuted[]) entities) {
-			List<MiExecuted> list = (List<MiExecuted>) this.query(MiExecuted.class, new Criterion[]{Restrictions.eq("id.medicalNo", me.getId().getMedicalNo()), Restrictions.eq("id.medicalItem", me.getId().getMedicalItem())}, null, null, true);
-//			List<DicRbrvs> rbrvs = (List<DicRbrvs>) this.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("name", me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）")), Restrictions.eq("dept", me.getKind())}, null, null, true);
-//			getSession().flush();
-//			getSession().clear();
-//			if (rbrvs.size() == 1) me.setRbrvsId(rbrvs.get(0).getId());
-			if (list.size() == 0) {
-//				MiExecutedPK pk = me.getId();
-//				pk.setId(UUID.getId());
+			keys.add(me.getId());
+		}
+		keys = findMiExecutedPK(keys.toArray(new MiExecutedPK[0]));
+
+		for (MiExecuted me : (MiExecuted[]) entities) {
+			String id = null;
+			for(MiExecutedPK key: keys) {
+				if (key.getMedicalNo().equals(me.getId().getMedicalNo()) && key.getMedicalItem().equals(me.getId().getMedicalItem())) {
+					id = key.getId();
+					break;
+				}
+			}
+			if (id == null) {
+				MiExecutedPK pk = me.getId();
+				pk.setId(UUID.getId());
 //				me.setCreateUserId(getUserInfo().getUserId());
 //				me.setCreateUserName(getUserInfo().getName());
 //				me.setCreateDeptId(getUserInfo().getDeptName());
@@ -54,25 +63,40 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 				me.setModifyTime(me.getCreateTime());
 				me.setDataFlag(DataFlag.add);
 			} else {
-				me.setId(list.get(0).getId());
+				me.getId().setId(id);
 //				me.setModifyUserId(getUserInfo().getUserId());
 //				me.setModifyUserName(getUserInfo().getName());
 //				me.setModifyDeptId(getUserInfo().getDeptName());
 //				me.setModifyDeptName(getUserInfo().getDeptName());
 				me.setModifyTime(new Date());
 				me.setDataFlag(DataFlag.modify);
-
-				list.get(0).setMiExecuted(me);
-				me = list.get(0);
 			}
+			super.save(me);
 		}
-*/
-		super.save(entities);
 	}
 
 	@Override
 	public List<MiExecuted> executedList(String keyword) throws Exception {
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<MiExecutedPK> findMiExecutedPK(MiExecutedPK[] keys) {
+		List<MiExecutedPK> result = new ArrayList<MiExecutedPK>();
+
+		SQLQuery query = this.getSession().createSQLQuery("select id, medical_no, medical_item from medicalimaging.mi_executed where medical_no||'-'||medical_item in (:keys)");
+		String queryStr[] = new String[keys.length];
+		for (int i = 0; i < keys.length; i ++) {
+			MiExecutedPK key = keys[i];
+			queryStr[i] = key.getMedicalNo() + "-" + key.getMedicalItem();
+		}
+		query.setParameterList("keys", queryStr);
+		List<Object[]> list = query.list();
+		for(Object[] k: list) {
+			result.add(new MiExecutedPK(k[0].toString(), k[1].toString(), k[2].toString()));
+		}
+
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")

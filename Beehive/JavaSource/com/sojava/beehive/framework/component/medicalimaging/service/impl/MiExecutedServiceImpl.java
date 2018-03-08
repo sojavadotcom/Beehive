@@ -11,7 +11,6 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
-import com.sojava.beehive.common.identifier.UUID;
 import com.sojava.beehive.framework.component.medicalimaging.bean.DicRbrvs;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
@@ -164,7 +163,6 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			msg[1] = "设置分类[kind]";
 			record.setKind(kind);
 			msg[1] = "设置主键";
-			recordPk.setId(UUID.getId());
 			record.setId(recordPk);
 			msg[1] = "处理合并项目";
 			if (recordPk.getMedicalItem().indexOf(",") == -1) {
@@ -286,7 +284,6 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 			msg[1] = "设置分类[kind]";
 			record.setKind(kind);
 			msg[1] = "设置主键";
-			recordPk.setId(UUID.getId());
 			record.setId(recordPk);
 			msg[1] = "处理合并项目";
 			if (recordPk.getMedicalItem().indexOf(",") == -1) {
@@ -310,7 +307,6 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 		for (int i = 0; i < medicalItems.length; i ++) {
 			MiExecuted rec = new MiExecuted(miExecuted);
 			MiExecutedPK recPk = rec.getId();
-			recPk.setId(UUID.getId());
 			recPk.setMedicalItem(medicalItems[i]);
 			result.add(rec);
 		}
