@@ -39,12 +39,14 @@ public class MiExecutedDaoImpl extends BeehiveDaoImpl implements MiExecutedDao {
 
 		//调取所有kind有关的RBRVS
 		for(DicRbrvs r: (List<DicRbrvs>) this.query(DicRbrvs.class, new Criterion[]{Restrictions.eq("dept", this.property.getProperty("kind"))}, null, null, true)) {
-			this.property.put("RBRVS:" + r.getName(), r.getId());
+			this.property.setProperty("RBRVS:" + r.getName(), r.getId().toString());
 		}
 		findMiExecutedPK(((List<MiExecutedPK>) this.property.get("keys")).toArray(new MiExecutedPK[0]));
 
 		for (MiExecuted me : (MiExecuted[]) entities) {
 			String id = this.property.getProperty("PK:" + me.getId().getMedicalNo() + "-" + me.getId().getMedicalItem());
+			String rbrvsId = this.property.getProperty("RBRVS:" + me.getId().getMedicalItem().replaceAll("\\Q核磁\\E", "磁共振").replaceAll("\\Q(\\E", "（").replaceAll("\\Q)\\E", "）"));
+			me.setRbrvsId(rbrvsId == null ? null : Integer.parseInt(rbrvsId));
 			if (id == null) {
 				MiExecutedPK pk = me.getId();
 				pk.setId(UUID.getId());
