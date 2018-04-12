@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecuted;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiExecutedPK;
 import com.sojava.beehive.framework.component.medicalimaging.bean.MiWorkload;
+import com.sojava.beehive.framework.component.medicalimaging.bean.Staff;
 import com.sojava.beehive.framework.component.medicalimaging.bean.VMiExecutedStaffPerformance;
 import com.sojava.beehive.framework.component.medicalimaging.bean.WorkStatistic;
 import com.sojava.beehive.framework.component.medicalimaging.dao.MiExecutedDao;
@@ -26,7 +27,9 @@ import com.sojava.beehive.framework.util.FormatUtil;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MiExecutedServiceImpl implements MiExecutedService {
@@ -168,6 +171,10 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 	@SuppressWarnings("unchecked")
 	private List<MiExecuted> examinationDecomposition(String kind, HSSFWorkbook book) throws Exception {
 		List<MiExecuted> records = new ArrayList<MiExecuted>();
+		Map<String, Integer> staffDic = new HashMap<String, Integer>();
+		for (Staff s : (List<Staff>) miExecutedDao.query(Staff.class, null, null, null, true)) {
+			staffDic.put(s.getName(), s.getId());
+		}
 
 		HSSFSheet sheet = book.getSheetAt(0);
 		for (int r = 3; r <= sheet.getLastRowNum(); r ++) {
@@ -218,27 +225,32 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 				case 10:
 					msg[1] = "读取\"操作技师\"";
 					record.setExecuteTechnician(value);
-					record.setExecuteTechnicianStaffId(miExecutedDao.getStaffId(record.getExecuteTechnician()));
+//					record.setExecuteTechnicianStaffId(miExecutedDao.getStaffId(record.getExecuteTechnician()));
+					record.setExecuteTechnicianStaffId(staffDic.get(record.getExecuteTechnician()));
 					break;
 				case 11:
 					msg[1] = "读取\"辅助技师\"";
 					record.setExecuteTechnicianAssociate(value);
-					record.setExecuteTechnicianAssociateStaffId(miExecutedDao.getStaffId(record.getExecuteTechnicianAssociate()));
+//					record.setExecuteTechnicianAssociateStaffId(miExecutedDao.getStaffId(record.getExecuteTechnicianAssociate()));
+					record.setExecuteTechnicianAssociateStaffId(staffDic.get(record.getExecuteTechnicianAssociate()));
 					break;
 				case 12:
 					msg[1] = "读取\"报告医生\"";
 					record.setExecuteDiagnostician(value);
-					record.setExecuteDiagnosticianStaffId(miExecutedDao.getStaffId(record.getExecuteDiagnostician()));
+//					record.setExecuteDiagnosticianStaffId(miExecutedDao.getStaffId(record.getExecuteDiagnostician()));
+					record.setExecuteDiagnosticianStaffId(staffDic.get(record.getExecuteDiagnostician()));
 					break;
 				case 13:
 					msg[1] = "读取\"审核医生\"";
 					record.setExecuteVerifier(value);
-					record.setExecuteVerifierStaffId(miExecutedDao.getStaffId(record.getExecuteVerifier()));
+//					record.setExecuteVerifierStaffId(miExecutedDao.getStaffId(record.getExecuteVerifier()));
+					record.setExecuteVerifierStaffId(staffDic.get(record.getExecuteVerifier()));
 					break;
 				case 14:
 					msg[1] = "读取\"分诊护士\"";
 					record.setExecuteNurse(value);
-					record.setExecuteNurseStaffId(miExecutedDao.getStaffId(record.getExecuteNurse()));
+//					record.setExecuteNurseStaffId(miExecutedDao.getStaffId(record.getExecuteNurse()));
+					record.setExecuteNurseStaffId(staffDic.get(record.getExecuteNurse()));
 					break;
 				case 15:
 					msg[1] = "读取\"申请医生\"";
