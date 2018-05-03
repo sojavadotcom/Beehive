@@ -11,7 +11,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name="survey_main", schema="wechat")
-@NamedQuery(name="SurveyMain.findAll", query="SELECT s FROM SurveyMain s")
+@NamedQuery(name="Survey.findAll", query="SELECT s FROM SurveyMain s")
 public class Survey implements Serializable {
 	private static final long serialVersionUID = -6122381410325199548L;
 
