@@ -10,7 +10,7 @@ import java.util.List;
  * 
  */
 @Entity
-@Table(name="survey_question", schema="wxapp")
+@Table(name="survey_question", schema="wechat")
 @NamedQuery(name="SurveyQuestion.findAll", query="SELECT s FROM SurveyQuestion s")
 public class SurveyQuestion implements Serializable {
 	private static final long serialVersionUID = 5643091684225264425L;
@@ -40,7 +40,7 @@ public class SurveyQuestion implements Serializable {
 	private String title;
 
 	//bi-directional many-to-one association to SurveyOption
-	@OneToMany(mappedBy="surveyQuestion")
+	@OneToMany(mappedBy="surveyQuestion", fetch=FetchType.EAGER, cascade=CascadeType.REFRESH)
 	private List<SurveyOption> surveyOptions;
 
 	//bi-directional many-to-one association to SurveyMain

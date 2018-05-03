@@ -3,7 +3,6 @@ package com.sojava.beehive.framework.component.wechat.bean;
 import java.io.Serializable;
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 
 /**
@@ -13,8 +12,8 @@ import java.util.List;
 @Entity
 @Table(name="survey_main", schema="wechat")
 @NamedQuery(name="SurveyMain.findAll", query="SELECT s FROM SurveyMain s")
-public class SurveyMain implements Serializable {
-	private static final long serialVersionUID = -2326057460144066594L;
+public class Survey implements Serializable {
+	private static final long serialVersionUID = -6122381410325199548L;
 
 	@Id
 	@SequenceGenerator(name="SURVEY_MAIN_ID_GENERATOR", sequenceName="SURVEY_MAIN_ID")
@@ -76,11 +75,7 @@ public class SurveyMain implements Serializable {
 
 	private String title;
 
-	//bi-directional many-to-one association to SurveyQuestion
-	@OneToMany(mappedBy="surveyMain", fetch=FetchType.EAGER, cascade=CascadeType.REFRESH)
-	private List<SurveyQuestion> surveyQuestions;
-
-	public SurveyMain() {
+	public Survey() {
 	}
 
 	public Integer getId() {
@@ -233,28 +228,6 @@ public class SurveyMain implements Serializable {
 
 	public void setTitle(String title) {
 		this.title = title;
-	}
-
-	public List<SurveyQuestion> getSurveyQuestions() {
-		return this.surveyQuestions;
-	}
-
-	public void setSurveyQuestions(List<SurveyQuestion> surveyQuestions) {
-		this.surveyQuestions = surveyQuestions;
-	}
-
-	public SurveyQuestion addSurveyQuestion(SurveyQuestion surveyQuestion) {
-		getSurveyQuestions().add(surveyQuestion);
-		surveyQuestion.setSurveyMain(this);
-
-		return surveyQuestion;
-	}
-
-	public SurveyQuestion removeSurveyQuestion(SurveyQuestion surveyQuestion) {
-		getSurveyQuestions().remove(surveyQuestion);
-		surveyQuestion.setSurveyMain(null);
-
-		return surveyQuestion;
 	}
 
 }

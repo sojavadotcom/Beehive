@@ -32,6 +32,8 @@ public class Survey extends ActionSupport {
 	private Map<String, Object> rest;
 	private Object[] list;
 
+	private Integer id;
+
 	public Survey() {
 		rest = new HashMap<String, Object>();
 	}
@@ -40,6 +42,10 @@ public class Survey extends ActionSupport {
 	@Actions(value = {
 		@Action(value = "List", results = {
 			@Result(name = SUCCESS, type = "json", params = {"root", "list"}),
+			@Result(name = ERROR, type = "json", params = {"root", "rest"})
+		}),
+		@Action(value = "Get", results = {
+			@Result(name = SUCCESS, type = "json", params = {"root", "rest"}),
 			@Result(name = ERROR, type = "json", params = {"root", "rest"})
 		})
 	})
@@ -73,6 +79,19 @@ public class Survey extends ActionSupport {
 		return ERROR;
 	}
 
+	public String get() {
+		try {
+			rest = surveyService.getSurvey(id);
+			return SUCCESS;
+		}
+		catch(Exception ex) {
+			new ErrorException(getClass(), ex);
+			rest.put("success", false);
+			rest.put("message", ex.getMessage());
+		}
+		return ERROR;
+	}
+
 	public Map<String, Object> getRest() {
 		return rest;
 	}
@@ -95,6 +114,14 @@ public class Survey extends ActionSupport {
 
 	public void setSurveyService(SurveyService surveyService) {
 		this.surveyService = surveyService;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 }

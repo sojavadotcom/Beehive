@@ -56,7 +56,7 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 				&& uri.indexOf("/User/Login.") == -1
 				&& uri.indexOf("/User/Logout.") == -1
 				&& uri.indexOf("/User/Query.name.") == -1
-				&& uri.indexOf("/WeChat/Login.") == -1
+				&& uri.indexOf("/WeChat/") == -1
 			) {
 			try {
 				new Writer((HttpServletRequest) request, (HttpServletResponse) response).output("<script>try {top.bee.login.show();} catch(e) {}</script>", ContentType.html);

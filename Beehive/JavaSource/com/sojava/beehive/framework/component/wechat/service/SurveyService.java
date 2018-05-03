@@ -1,10 +1,11 @@
 package com.sojava.beehive.framework.component.wechat.service;
 
+import java.util.Map;
+
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 public interface SurveyService {
 
 	JSONArray listSurvey() throws Exception;
-	JSONObject getSurvey(int id) throws Exception;
+	Map<String, Object> getSurvey(int id) throws Exception;
 }

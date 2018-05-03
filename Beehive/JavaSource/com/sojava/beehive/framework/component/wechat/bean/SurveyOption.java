@@ -9,7 +9,7 @@ import javax.persistence.*;
  * 
  */
 @Entity
-@Table(name="survey_option", schema="wxapp")
+@Table(name="survey_option", schema="wechat")
 @NamedQuery(name="SurveyOption.findAll", query="SELECT s FROM SurveyOption s")
 public class SurveyOption implements Serializable {
 	private static final long serialVersionUID = 2955442025748452948L;

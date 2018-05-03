@@ -13,7 +13,6 @@ import sun.net.www.content.text.PlainTextInputStream;
 import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.type.ClientType;
 import com.sojava.beehive.framework.component.type.ResultType;
-import com.sojava.beehive.framework.component.user.bean.UserInfo;
 import com.sojava.beehive.framework.component.user.service.UserService;
 import com.sojava.beehive.framework.io.Writer;
 
@@ -32,7 +31,7 @@ public class Login extends ActionSupport {
 
 	@Resource private UserService userService;
 
-	private final String USERID = "a90eab83dd084fcdbdc0b7cb36529eb7";
+//	private final String USERID = "a90eab83dd084fcdbdc0b7cb36529eb7";
 	private final String APPID = "wx781e209ee205bcd3";
 	private final String SECRET = "8044e4b6e7f0b1d1c787de2bf230cd24";
 	private String code = "";
@@ -59,10 +58,6 @@ public class Login extends ActionSupport {
 		in.close();
 		out.close();
 		rest = JSONObject.fromObject(out.toString());
-		if (!rest.containsKey("errcode")) {
-			UserInfo userInfo = userService.getUserByUserId(USERID);
-			getSession().setAttribute("UserInfo", userInfo);
-		}
 
 		new Writer(getRequest(), getResponse()).output(ClientType.WeChat, ResultType.Json, rest);
 
