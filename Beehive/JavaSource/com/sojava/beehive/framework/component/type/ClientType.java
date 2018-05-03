@@ -5,5 +5,6 @@ public enum ClientType {
 	Application,
 	Extjs, Jquery,
 	ExtjsGrid, ExtjsForm, ExtjsTree,
-	JeasyuiDatagrid, JeasyuiForm, JeasyuiTree
+	JeasyuiDatagrid, JeasyuiForm, JeasyuiTree,
+	WeChat
 }

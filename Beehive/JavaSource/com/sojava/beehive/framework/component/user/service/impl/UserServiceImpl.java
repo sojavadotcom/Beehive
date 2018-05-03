@@ -156,6 +156,16 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public UserInfo getUserByUserId(String userId) throws Exception {
+
+		List<UserInfo> list = (List<UserInfo>) userDao.query(UserInfo.class, new Criterion[]{Restrictions.eq("userId", userId)}, null, null, false);
+
+		if (list.size() == 0) return null;
+		else return list.get(0);
+	}
+
 	public UserDao getUserDao() {
 		return userDao;
 	}

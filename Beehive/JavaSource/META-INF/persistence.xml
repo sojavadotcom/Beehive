@@ -65,5 +65,8 @@
 		<class>com.sojava.beehive.framework.component.user.bean.UserInfo</class>
 		<class>com.sojava.beehive.framework.component.worksheet.bean.Refund</class>
 		<class>com.sojava.beehive.framework.component.worksheet.repair.bean.Repair</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyMain</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyOption</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion</class>
 	</persistence-unit>
 </persistence>

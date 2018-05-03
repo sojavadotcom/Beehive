@@ -17,4 +17,5 @@ public interface UserService {
 	JSONArray users(String label) throws Exception;
 	JSONObject validUser(UserInfo user, String password) throws Exception;
 	void changePassword(UserInfo user, String oldPassword, String password) throws Exception;
+	UserInfo getUserByUserId(String userId) throws Exception;
 }
