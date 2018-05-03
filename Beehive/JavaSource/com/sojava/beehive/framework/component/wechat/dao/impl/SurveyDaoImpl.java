@@ -1,6 +1,5 @@
 package com.sojava.beehive.framework.component.wechat.dao.impl;
 
-import com.sojava.beehive.framework.component.wechat.bean.Survey;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyMain;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion;
 import com.sojava.beehive.framework.component.wechat.dao.SurveyDao;
@@ -27,9 +26,9 @@ public class SurveyDaoImpl extends BeehiveDaoImpl implements SurveyDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Survey> listSurvey(Criterion[] filters, Order[] orders, Page page) throws Exception {
+	public List<SurveyMain> listSurvey(Criterion[] filters, Order[] orders, Page page) throws Exception {
 
-		return (List<Survey>) query(Survey.class, filters, orders, page, true);
+		return (List<SurveyMain>) query(SurveyMain.class, filters, orders, page, true);
 	}
 
 	@Override

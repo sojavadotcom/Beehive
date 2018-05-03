@@ -1,6 +1,5 @@
 package com.sojava.beehive.framework.component.wechat.service.impl;
 
-import com.sojava.beehive.framework.component.wechat.bean.Survey;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyMain;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyOption;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion;
@@ -35,8 +34,8 @@ public class SurveyServiceImpl implements SurveyService {
 		List<Criterion> filters = new ArrayList<Criterion>();
 		filters.add(Restrictions.eq("status", "启用"));
 
-		List<Survey> list = surveyDao.listSurvey(filters.toArray(new Criterion[0]), new Order[] {Order.desc("beginTime")}, page);
-		for(Survey survey : list) {
+		List<SurveyMain> list = surveyDao.listSurvey(filters.toArray(new Criterion[0]), new Order[] {Order.desc("beginTime")}, page);
+		for(SurveyMain survey : list) {
 			JSONObject item = new JSONObject();
 			item.accumulate("id", survey.getId());
 			item.accumulate("title", survey.getTitle());

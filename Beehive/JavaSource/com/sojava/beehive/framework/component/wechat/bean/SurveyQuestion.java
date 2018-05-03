@@ -40,7 +40,7 @@ public class SurveyQuestion implements Serializable {
 	private String title;
 
 	//bi-directional many-to-one association to SurveyOption
-	@OneToMany(mappedBy="surveyQuestion", fetch=FetchType.EAGER, cascade=CascadeType.REFRESH)
+	@OneToMany(mappedBy="surveyQuestion")
 	private List<SurveyOption> surveyOptions;
 
 	//bi-directional many-to-one association to SurveyMain
