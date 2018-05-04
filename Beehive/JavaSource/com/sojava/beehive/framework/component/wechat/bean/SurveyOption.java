@@ -15,7 +15,7 @@ public class SurveyOption implements Serializable {
 	private static final long serialVersionUID = 2955442025748452948L;
 
 	@Id
-	@SequenceGenerator(name="SURVEY_OPTION_ID_GENERATOR", sequenceName="SURVEY_OPTION_ID")
+	@SequenceGenerator(name="SURVEY_OPTION_ID_GENERATOR", sequenceName="WECHAT.SURVEY_OPTION_ID")
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="SURVEY_OPTION_ID_GENERATOR")
 	private Integer id;
 

@@ -8,4 +8,5 @@ public interface SurveyService {
 
 	JSONArray listSurvey() throws Exception;
 	Map<String, Object> getSurvey(int id) throws Exception;
+	void save(String data) throws Exception;
 }

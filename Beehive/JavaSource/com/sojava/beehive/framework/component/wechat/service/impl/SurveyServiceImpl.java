@@ -3,9 +3,12 @@ package com.sojava.beehive.framework.component.wechat.service.impl;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyMain;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyOption;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion;
+import com.sojava.beehive.framework.component.wechat.bean.SurveyResult;
 import com.sojava.beehive.framework.component.wechat.dao.SurveyDao;
 import com.sojava.beehive.framework.component.wechat.service.SurveyService;
 import com.sojava.beehive.framework.define.Page;
+import com.sojava.beehive.framework.util.AES;
+import com.sojava.beehive.framework.util.FormatUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,6 +18,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.codec.binary.Base64;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -88,6 +92,35 @@ public class SurveyServiceImpl implements SurveyService {
 			questions.add(question);
 		}
 		rest.put("questions", questions);
+
+		return rest;
+	}
+
+	@Override
+	public void save(String data) throws Exception {
+		JSONObject answer = JSONObject.fromObject(data);
+
+		SurveyResult rest = new SurveyResult();
+		rest.setMid(answer.getInt("id"));
+		rest.setOpenid(answer.getString("openid"));
+		rest.setBeginTime(FormatUtil.parseDateTime(answer.getString("beginTime")));
+		rest.setEndTime(new Date());
+		rest.setPhoneNumber(decryptData(answer.getString("encryptedData"), answer.getString("iv"), answer.getString("sessionKey")));
+		rest.setResult(data);
+
+		surveyDao.save(rest);
+	}
+
+	public String decryptData(String encryptedData, String iv, String sessionKey) throws Exception {
+		String rest = null;
+
+		byte[] resultByte = AES.decrypt(Base64.decodeBase64(encryptedData), Base64.decodeBase64(sessionKey), Base64.decodeBase64(iv));
+		if (null != resultByte && resultByte.length > 0) {
+			String userInfo = new String(resultByte, "UTF-8");
+
+			JSONObject userJson = JSONObject.fromObject(userInfo);
+			rest = userJson.getString("phoneNumber");
+		}
 
 		return rest;
 	}

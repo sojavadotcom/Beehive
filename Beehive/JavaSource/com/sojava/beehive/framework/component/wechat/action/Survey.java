@@ -15,7 +15,9 @@ import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.wechat.service.SurveyService;
 import com.sojava.beehive.framework.define.Page;
 import com.sojava.beehive.framework.exception.ErrorException;
+import com.sojava.beehive.framework.util.FormatUtil;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +33,10 @@ public class Survey extends ActionSupport {
 	@Resource private SurveyService surveyService;
 	private Map<String, Object> rest;
 	private Object[] list;
+	private com.sojava.beehive.framework.define.result.Result msg;
 
 	private Integer id;
+	private String data;
 
 	public Survey() {
 		rest = new HashMap<String, Object>();
@@ -42,11 +46,15 @@ public class Survey extends ActionSupport {
 	@Actions(value = {
 		@Action(value = "List", results = {
 			@Result(name = SUCCESS, type = "json", params = {"root", "list"}),
-			@Result(name = ERROR, type = "json", params = {"root", "rest"})
+			@Result(name = ERROR, type = "json", params = {"root", "msg"})
 		}),
 		@Action(value = "Get", results = {
 			@Result(name = SUCCESS, type = "json", params = {"root", "rest"}),
-			@Result(name = ERROR, type = "json", params = {"root", "rest"})
+			@Result(name = ERROR, type = "json", params = {"root", "msg"})
+		}),
+		@Action(value = "Answer", results = {
+			@Result(name = SUCCESS, type = "json", params = {"root", "msg"}),
+			@Result(name = ERROR, type = "json", params = {"root", "msg"})
 		})
 	})
 	public String input() throws Exception {
@@ -73,8 +81,8 @@ public class Survey extends ActionSupport {
 		}
 		catch(Exception ex) {
 			new ErrorException(getClass(), ex);
-			rest.put("success", false);
-			rest.put("message", ex.getMessage());
+			msg = new com.sojava.beehive.framework.define.result.Result(false);
+			msg.setMessage(ex.getMessage());
 		}
 		return ERROR;
 	}
@@ -82,12 +90,29 @@ public class Survey extends ActionSupport {
 	public String get() {
 		try {
 			rest = surveyService.getSurvey(id);
+			rest.put("beginTime", FormatUtil.DATETIME_FORMAT.format(new Date()));
 			return SUCCESS;
 		}
 		catch(Exception ex) {
 			new ErrorException(getClass(), ex);
-			rest.put("success", false);
-			rest.put("message", ex.getMessage());
+			msg = new com.sojava.beehive.framework.define.result.Result(false);
+			msg.setMessage(ex.getMessage());
+		}
+		return ERROR;
+	}
+
+	public String answer() {
+		try {
+			surveyService.save(data);
+			msg = new com.sojava.beehive.framework.define.result.Result(false);
+			msg.setMessage("完成");
+
+			return SUCCESS;
+		}
+		catch(Exception ex) {
+			new ErrorException(getClass(), ex);
+			msg = new com.sojava.beehive.framework.define.result.Result(false);
+			msg.setMessage(ex.getMessage());
 		}
 		return ERROR;
 	}
@@ -122,6 +147,14 @@ public class Survey extends ActionSupport {
 
 	public void setId(Integer id) {
 		this.id = id;
+	}
+
+	public String getData() {
+		return data;
+	}
+
+	public void setData(String data) {
+		this.data = data;
 	}
 
 }

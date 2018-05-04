@@ -68,5 +68,10 @@
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyMain</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyOption</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResult</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestion</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionPK</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswer</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswerPK</class>
 	</persistence-unit>
 </persistence>
