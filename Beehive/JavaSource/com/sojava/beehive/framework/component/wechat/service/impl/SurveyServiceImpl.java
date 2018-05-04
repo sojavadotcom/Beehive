@@ -8,6 +8,7 @@ import com.sojava.beehive.framework.component.wechat.service.SurveyService;
 import com.sojava.beehive.framework.define.Page;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,12 @@ public class SurveyServiceImpl implements SurveyService {
 		Page page = new Page(0, 1000);
 		List<Criterion> filters = new ArrayList<Criterion>();
 		filters.add(Restrictions.eq("status", "启用"));
+		Date now = new Date();
+		filters.add(Restrictions.or(
+				Restrictions.and(Restrictions.le("beginTime", now), Restrictions.ge("endTime", now)),
+				Restrictions.and(Restrictions.le("beginTime", now), Restrictions.isNull("endTime")),
+				Restrictions.and(Restrictions.ge("endTime", now), Restrictions.isNull("beginTime")))
+			);
 
 		List<SurveyMain> list = surveyDao.listSurvey(filters.toArray(new Criterion[0]), new Order[] {Order.desc("beginTime")}, page);
 		for(SurveyMain survey : list) {
@@ -52,7 +59,6 @@ public class SurveyServiceImpl implements SurveyService {
 	public Map<String, Object> getSurvey(int id) throws Exception {
 		Map<String, Object> rest = new HashMap<String, Object>();
 		List<Map<String, Object>> questions = new ArrayList<Map<String, Object>>();
-		Map<String, Object> lastQuest = null;
 
 		SurveyMain survey = surveyDao.getSurvey(id);
 
@@ -79,11 +85,8 @@ public class SurveyServiceImpl implements SurveyService {
 				options.add(option);
 			}
 			question.put("options", options);
-			if (quest.getId() == 0) questions.add(0, question);
-			else if (quest.getId() == 10000) lastQuest = question;
-			else questions.add(question);
+			questions.add(question);
 		}
-		questions.add(lastQuest);
 		rest.put("questions", questions);
 
 		return rest;

@@ -1,6 +1,7 @@
 package com.sojava.beehive.framework.component.wechat.dao.impl;
 
 import com.sojava.beehive.framework.component.wechat.bean.SurveyMain;
+import com.sojava.beehive.framework.component.wechat.bean.SurveyOption;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion;
 import com.sojava.beehive.framework.component.wechat.dao.SurveyDao;
 import com.sojava.beehive.framework.define.Page;
@@ -9,6 +10,7 @@ import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.exception.WarnException;
 import com.sojava.beehive.hibernate.dao.impl.BeehiveDaoImpl;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.hibernate.criterion.Criterion;
@@ -38,10 +40,19 @@ public class SurveyDaoImpl extends BeehiveDaoImpl implements SurveyDao {
 		rest = (SurveyMain) get(SurveyMain.class, id);
 
 		for (SurveyQuestion quest: rest.getSurveyQuestions()) {
-			for (int i = 0; i < quest.getSurveyOptions().size(); i ++) {
-				quest.getSurveyOptions().get(i);
-			}
+			quest.getSurveyOptions().sort(new Comparator<SurveyOption>() {
+				@Override
+				public int compare(SurveyOption o1, SurveyOption o2) {
+					return o1.getId().compareTo(o2.getId());
+				};
+			});
 		}
+		rest.getSurveyQuestions().sort(new Comparator<SurveyQuestion>() {
+			@Override
+			public int compare(SurveyQuestion o1, SurveyQuestion o2) {
+				return o1.getId().compareTo(o2.getId());
+			}
+		});
 
 		return rest;
 	}
