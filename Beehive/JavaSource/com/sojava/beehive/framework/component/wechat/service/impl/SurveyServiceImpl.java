@@ -4,6 +4,10 @@ import com.sojava.beehive.framework.component.wechat.bean.SurveyMain;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyOption;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyQuestion;
 import com.sojava.beehive.framework.component.wechat.bean.SurveyResult;
+import com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestion;
+import com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswer;
+import com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswerPK;
+import com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionPK;
 import com.sojava.beehive.framework.component.wechat.dao.SurveyDao;
 import com.sojava.beehive.framework.component.wechat.service.SurveyService;
 import com.sojava.beehive.framework.define.Page;
@@ -15,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -96,10 +101,12 @@ public class SurveyServiceImpl implements SurveyService {
 		return rest;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void save(String data) throws Exception {
+	public void saveResult(String data) throws Exception {
 		JSONObject answer = JSONObject.fromObject(data);
 
+		//主信息
 		SurveyResult rest = new SurveyResult();
 		rest.setMid(answer.getInt("id"));
 		rest.setOpenid(answer.getString("openid"));
@@ -107,8 +114,69 @@ public class SurveyServiceImpl implements SurveyService {
 		rest.setEndTime(new Date());
 		rest.setPhoneNumber(decryptData(answer.getString("encryptedData"), answer.getString("iv"), answer.getString("sessionKey")));
 		rest.setResult(data);
-
+		JSONObject userInfo = JSONObject.fromObject(answer.getString("userInfo"));
+		rest.setNickName(userInfo.containsKey("nickName") ? userInfo.getString("nickName") : null);
+		rest.setGender(userInfo.containsKey("gender") ? Short.valueOf(userInfo.getString("gender")) : null);
+		rest.setLanguage(userInfo.containsKey("language") ? userInfo.getString("language") : null);
+		rest.setCity(userInfo.containsKey("city") ? userInfo.getString("city") : null);
+		rest.setProvince(userInfo.containsKey("province") ? userInfo.getString("province") : null);
+		rest.setCountry(userInfo.containsKey("country") ? userInfo.getString("country") : null);
+		rest.setAvatarUrl(userInfo.containsKey("avatarUrl") ? userInfo.getString("avatarUrl") : null);
 		surveyDao.save(rest);
+
+		//匹配具体问题和具体选项
+		JSONArray list = answer.getJSONArray("answer");
+		SurveyMain surveyMain = surveyDao.getSurvey(rest.getMid());
+		for (int i = 0; i < list.size(); i ++) {
+			JSONObject quest = list.getJSONObject(i);
+			Set<String> keys = quest.keySet();
+			if (keys.size() == 0) continue;
+			int qid = Integer.parseInt(keys.toArray(new String[0])[0].replaceAll("\\D", ""));
+			String choiceVal = quest.containsKey("choice_" + qid) ? quest.getString("choice_" + qid) : "";
+			String inputVal = quest.containsKey("input_" + qid) ? quest.getString("input_" + qid).trim() : "";
+			boolean toContinue = !choiceVal.equals("") || !inputVal.equals("");
+
+			if (!toContinue) continue;
+
+			SurveyResultQuestionPK surveyResultQuestionPk = new SurveyResultQuestionPK();
+			surveyResultQuestionPk.setSid(rest.getId());
+			surveyResultQuestionPk.setQid(qid);
+			SurveyResultQuestion surveyResultQuestion = new SurveyResultQuestion();
+			surveyResultQuestion.setId(surveyResultQuestionPk);
+			surveyResultQuestion.setText(inputVal != null ? inputVal : "");
+			surveyDao.save(surveyResultQuestion);
+			if (choiceVal != null) {
+				SurveyQuestion surveyQuest = findQuest(surveyMain, qid);
+				JSONArray answerVals = null;
+				if (choiceVal.indexOf("[") == 0) {
+					answerVals = JSONArray.fromObject(choiceVal); 
+				} else {
+					answerVals = new JSONArray();
+					answerVals.add(choiceVal);
+				}
+
+				for (int j = 0; j < answerVals.size(); j ++) {
+					String questAnswer = answerVals.getString(j);
+					int oid = 0;
+					for (SurveyOption opt: surveyQuest.getSurveyOptions()) {
+						if (opt.getLabel().equals(questAnswer)) {
+							oid = opt.getId();
+							break;
+						}
+					}
+					if (oid == 0 && questAnswer.equals("")) continue;
+
+					SurveyResultQuestionAnswerPK surveyResultQuestionAnswerPK = new SurveyResultQuestionAnswerPK();
+					surveyResultQuestionAnswerPK.setSid(rest.getId());
+					surveyResultQuestionAnswerPK.setQid(qid);
+					surveyResultQuestionAnswerPK.setOid(oid);
+					SurveyResultQuestionAnswer surveyResultQuestionAnswer = new SurveyResultQuestionAnswer();
+					surveyResultQuestionAnswer.setId(surveyResultQuestionAnswerPK);
+					surveyResultQuestionAnswer.setValue(questAnswer);
+					surveyDao.save(surveyResultQuestionAnswer);
+				}
+			}
+		}
 	}
 
 	public String decryptData(String encryptedData, String iv, String sessionKey) throws Exception {
@@ -120,6 +188,19 @@ public class SurveyServiceImpl implements SurveyService {
 
 			JSONObject userJson = JSONObject.fromObject(userInfo);
 			rest = userJson.getString("phoneNumber");
+		}
+
+		return rest;
+	}
+
+	private SurveyQuestion findQuest(SurveyMain surveyMain, int qid) throws Exception {
+		SurveyQuestion rest = null;
+
+		for (SurveyQuestion quest: surveyMain.getSurveyQuestions()) {
+			if (quest.getId() == qid) {
+				rest = quest;
+				break;
+			}
 		}
 
 		return rest;

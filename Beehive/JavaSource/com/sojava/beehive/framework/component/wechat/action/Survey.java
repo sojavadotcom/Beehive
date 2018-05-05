@@ -103,7 +103,7 @@ public class Survey extends ActionSupport {
 
 	public String answer() {
 		try {
-			surveyService.save(data);
+			surveyService.saveResult(data);
 			msg = new com.sojava.beehive.framework.define.result.Result(false);
 			msg.setMessage("完成");
 
