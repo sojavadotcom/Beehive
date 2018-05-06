@@ -14,6 +14,7 @@ import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.type.ClientType;
 import com.sojava.beehive.framework.component.type.ResultType;
 import com.sojava.beehive.framework.component.user.service.UserService;
+import com.sojava.beehive.framework.component.wechat.define.WeChatInfo;
 import com.sojava.beehive.framework.io.Writer;
 
 import java.io.ByteArrayOutputStream;
@@ -31,9 +32,6 @@ public class Login extends ActionSupport {
 
 	@Resource private UserService userService;
 
-//	private final String USERID = "a90eab83dd084fcdbdc0b7cb36529eb7";
-	private final String APPID = "wx781e209ee205bcd3";
-	private final String SECRET = "8044e4b6e7f0b1d1c787de2bf230cd24";
 	private String code = "";
 
 	public Login() {}
@@ -47,7 +45,7 @@ public class Login extends ActionSupport {
 		int len = 0;
 		JSONObject rest;
 
-		String urlStr = "https://api.weixin.qq.com/sns/jscode2session?appid=" + APPID + "&secret=" + SECRET + "&js_code=" + code + "&grant_type=authorization_code";
+		String urlStr = "https://api.weixin.qq.com/sns/jscode2session?appid=" + WeChatInfo.APPID + "&secret=" + WeChatInfo.SECRET + "&js_code=" + code + "&grant_type=authorization_code";
 		URL url = new URL(urlStr);
 		URLConnection connect = url.openConnection();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();

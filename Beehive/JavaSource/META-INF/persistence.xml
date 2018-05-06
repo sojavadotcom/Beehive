@@ -73,5 +73,6 @@
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionPK</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswer</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswerPK</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.Message</class>
 	</persistence-unit>
 </persistence>
