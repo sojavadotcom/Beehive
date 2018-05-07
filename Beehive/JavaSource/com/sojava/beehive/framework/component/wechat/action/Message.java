@@ -29,9 +29,8 @@ public class Message extends ActionSupport {
 	private String echostr;
 	private String replyMsg;
 
-	@Override
 	@Action(value = "Receive")
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		return (String) this.getClass().getMethod(this.getActionContext().getName().toLowerCase(), new Class[0]).invoke(this, new Object[0]);
 	}

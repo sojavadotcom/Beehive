@@ -36,9 +36,8 @@ public class Login extends ActionSupport {
 
 	public Login() {}
 
-	@Override
 	@Action("Login")
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 
 		byte[] buff = new byte[1024];
@@ -60,14 +59,6 @@ public class Login extends ActionSupport {
 		new Writer(getRequest(), getResponse()).output(ClientType.WeChat, ResultType.Json, rest);
 
 		return null;
-	}
-
-	public String index() {
-		return SUCCESS;
-	}
-
-	public String edit() {
-		return SUCCESS;
 	}
 
 	public String getCode() {
