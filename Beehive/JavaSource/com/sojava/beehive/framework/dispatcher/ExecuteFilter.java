@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter;
+import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
 
 import com.sojava.beehive.framework.component.user.bean.UserInfo;
 import com.sojava.beehive.framework.exception.ErrorException;
