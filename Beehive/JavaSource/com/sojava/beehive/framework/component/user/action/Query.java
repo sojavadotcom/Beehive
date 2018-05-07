@@ -23,8 +23,7 @@ public class Query extends ActionSupport {
 	private String label;
 
 	@Action("Query.*")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		query();
 		return null;

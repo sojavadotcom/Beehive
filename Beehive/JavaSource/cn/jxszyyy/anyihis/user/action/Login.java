@@ -28,8 +28,7 @@ public class Login extends ActionSupport {
 	private String code;
 
 	@Action("Login")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		login();
 		return null;

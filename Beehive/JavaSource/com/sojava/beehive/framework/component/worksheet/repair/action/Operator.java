@@ -27,8 +27,7 @@ public class Operator extends ActionSupport {
 	private Repair repair;
 
 	@Action(value = "Operate")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		operator();
 		return null;

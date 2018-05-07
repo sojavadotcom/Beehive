@@ -40,8 +40,7 @@ public class Entry extends ActionSupport {
 			@Result(name = "merit", location = "merit.jsp"),
 			@Result(name = "export", location = "export.jsp")
 		})
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		String actionName = this.getActionContext().getName();
 		if (actionName.split("\\Q.\\E").length > 1) actionName = actionName.split("\\Q.\\E")[1];

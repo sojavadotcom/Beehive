@@ -25,8 +25,7 @@ public class Logout extends ActionSupport {
 	private String sid;
 
 	@Action("Logout")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		logout();
 		return null;

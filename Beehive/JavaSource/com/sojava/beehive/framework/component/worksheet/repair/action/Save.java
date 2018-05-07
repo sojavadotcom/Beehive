@@ -26,8 +26,7 @@ public class Save extends ActionSupport {
 	private Repair repair;
 
 	@Action(value = "Save")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		save();
 		return null;

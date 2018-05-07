@@ -20,8 +20,7 @@ public class Entry extends ActionSupport {
 		@Result(name = "login", location = "login.jsp"),
 		@Result(name = "password", location = "password.jsp")
 	})
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		return action;
 	}

@@ -39,14 +39,13 @@ public class InHospital extends ActionSupport {
 		rest = new HashMap<String, Object>();
 	}
 
-	@Override
 	@Actions(value = {
 		@Action(value = "indexCriticalPatient", results = {@Result(name = SUCCESS, location = "indexCriticalPatient.jsp")}),
 		@Action(value = "indexRefund", results = {@Result(name = SUCCESS, location = "indexRefund.jsp")}),
 		@Action(value = "ListCriticalPatient", results = {@Result(name = SUCCESS, type = "json", params = {"root", "list"})}),
 		@Action(value = "ListRefund", results = {@Result(name = SUCCESS, type = "json", params = {"root", "list"})})
 	})
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		String name = getActionContext().getName();
 		name = name.substring(0, 1).toLowerCase() + name.substring(1);

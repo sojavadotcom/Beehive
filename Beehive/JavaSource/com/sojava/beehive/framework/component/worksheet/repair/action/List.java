@@ -25,8 +25,7 @@ public class List extends ActionSupport {
 	private String action;
 
 	@Action(value = "List")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		list();
 

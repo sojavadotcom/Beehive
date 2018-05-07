@@ -21,8 +21,7 @@ public class Entry extends ActionSupport {
 		@Result(name = "index", location = "index.jsp"),
 		@Result(name = "preview", location = "preview.jsp")
 	})
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		return getAction();
 	}

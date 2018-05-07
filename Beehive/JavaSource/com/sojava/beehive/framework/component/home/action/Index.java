@@ -22,7 +22,6 @@ public class Index extends ActionSupport {
 	private boolean online;
 	private boolean PInit;
 
-	@Override
 	@Actions(value = {
 		@Action(
 			value = "index",
@@ -37,21 +36,20 @@ public class Index extends ActionSupport {
 			}
 		)
 	})
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
-		return (String) this.getClass().getMethod(getActionContext().getName(), new Class[0]).invoke(this, new Object[0]);
+		if (getActionContext().getName().equalsIgnoreCase("index")) {
+			setOnline(getUserInfo() != null);
+			if (isOnline()) setPInit(userService.passwordIsInit(getUserInfo().getUserName()));
+			else setPInit(false);
+
+			return SUCCESS;
+		}
+		else return (String) this.getClass().getMethod(getActionContext().getName(), new Class[0]).invoke(this, new Object[0]);
 	}
 
 	public String welcome() throws Exception {
 		super.execute();
-		return SUCCESS;
-	}
-
-	public String index() throws Exception {
-		setOnline(getUserInfo() != null);
-		if (isOnline()) setPInit(userService.passwordIsInit(getUserInfo().getUserName()));
-		else setPInit(false);
-
 		return SUCCESS;
 	}
 

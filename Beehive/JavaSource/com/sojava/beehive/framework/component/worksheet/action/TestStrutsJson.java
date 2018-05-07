@@ -28,11 +28,10 @@ public class TestStrutsJson extends ActionSupport {
 		result = new HashMap<String, Object>();
 	}
 
-	@Override
 	@Action(value = "index", results = {
 		@Result(name = SUCCESS, type = "json", params = {"root", "result"})
 	})
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		result.clear();
 		result.put("userInfo", getUserInfo());

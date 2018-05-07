@@ -2,6 +2,7 @@ package com.sojava.beehive.framework.component.medicalimaging.action;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.struts2.convention.annotation.Action;
+import org.apache.struts2.convention.annotation.Actions;
 import org.apache.struts2.convention.annotation.Namespace;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
@@ -30,7 +31,7 @@ import javax.annotation.Resource;
 
 @Controller("MedicalImaging/Save")
 @Scope("prototype")
-@Namespace("/MedicalImaging")
+@Namespace("/MedicalImaging/Save")
 public class Save extends ActionSupport {
 	private static final long serialVersionUID = 4567102317046354934L;
 
@@ -60,19 +61,19 @@ public class Save extends ActionSupport {
     private String dept;
     private WorkStatistic workStatistic;
 
-    @Action(value = "Save.*")
-	@Override
-	public String input() throws Exception {
+    @Actions({
+    	@Action(value = "Import"),
+    	@Action(value = "Merit")
+    })
+	public String index() throws Exception {
 		super.execute();
 		String contextName = this.getActionContext().getName();
-		if (contextName.equalsIgnoreCase("save.import")) {
+		if (contextName.equalsIgnoreCase("import")) {
 			import0();
 			return null;
-		} else if (contextName.equalsIgnoreCase("save.merit")) {
-			merit();
-			return null;
 		} else {
-			return SUCCESS;
+			this.getClass().getMethod(this.getActionContext().getName().toLowerCase(), new Class[0]).invoke(this, new Object[0]);
+			return null;
 		}
 	}
 

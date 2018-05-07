@@ -34,8 +34,7 @@ public class ApplyListByInHospital extends ActionSupport {
 	@Action(value = "CheckInHospitalApply", results = {
 		@Result(name = "applyList", location = "applyListByInHospital.jsp")
 	})
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		String result = null;
 

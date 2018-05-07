@@ -27,8 +27,7 @@ public class Password extends ActionSupport {
 	private String oldPassword;
 
 	@Action("Password")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		password();
 		return null;

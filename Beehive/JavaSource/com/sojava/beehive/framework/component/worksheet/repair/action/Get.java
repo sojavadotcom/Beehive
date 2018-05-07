@@ -26,8 +26,7 @@ public class Get extends ActionSupport {
 	private Repair repair;
 
 	@Action(value = "Get")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		get();
 		return null;

@@ -33,8 +33,7 @@ public class Export extends ActionSupport {
 	private Integer month;
 
 	@Action(value = "Export.*")
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		String actionName = this.getActionContext().getName();
 		if (actionName.split("\\Q.\\E").length > 1) actionName = actionName.split("\\Q.\\E")[1];

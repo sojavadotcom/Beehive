@@ -31,12 +31,11 @@ public class Statistic extends ActionSupport {
 	private String startDate;
 	private String endDate;
 
-	@Override
 	@Actions(value = {
 		@Action(value = "StatisticInhospital"),
 		@Action(value = "StatisticOutpatient")
 	})
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 
 		getClass().getMethod(getActionContext().getName().replaceFirst("\\QStatistic\\E", "").toLowerCase(), new Class[0]).invoke(this, new Object[0]);

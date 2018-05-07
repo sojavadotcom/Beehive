@@ -18,8 +18,7 @@ public class Entry extends ActionSupport {
 	@Action(value = "Entry", results = {
 		@Result(name = SUCCESS, location = "index.jsp")
 	})
-	@Override
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		return SUCCESS;
 	}

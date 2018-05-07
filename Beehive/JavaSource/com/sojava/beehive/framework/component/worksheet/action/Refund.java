@@ -37,7 +37,6 @@ public class Refund extends ActionSupport {
 		rest = new HashMap<String, Object>();
 	}
 
-	@Override
 	@Actions(value = {
 		@Action(value = "Index", results = {
 			@Result(name = SUCCESS, location = "index.jsp")
@@ -50,17 +49,9 @@ public class Refund extends ActionSupport {
 			@Result(name = ERROR, type = "json", params = {"root", "rest"})
 		})
 	})
-	public String input() throws Exception {
+	public String index() throws Exception {
 		super.execute();
 		return (String) this.getClass().getMethod(this.getActionContext().getName().toLowerCase(), new Class[0]).invoke(this, new Object[0]);
-	}
-
-	public String index() {
-		return SUCCESS;
-	}
-
-	public String edit() {
-		return SUCCESS;
 	}
 
 	public String list() {
