@@ -60,6 +60,9 @@ function(Form, Button, TextBox, Uploader, FileList, IFrame) {
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="导出" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
+				var rec = miExecutedStaffPerformanceFrm.getValues();
+				window.open("/MedicalImaging/Export.StaffPerformance.shtml?year=" + rec.year + "&month=" + rec.month, "", "");
+/*
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Export.StaffPerformance.shtml", {
@@ -71,6 +74,7 @@ function(Form, Button, TextBox, Uploader, FileList, IFrame) {
 						bee.alert(err);
 					});
 				});
+*/
 			</script>
 		</button>
 		<button label="关闭" dojoType="dijit.form.Button">

@@ -152,6 +152,8 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 		var exporterMenu = new Menu({});
 		var exporterExcelMenu = new MenuItem({label: "Excel", onClick: function () {
 				var rec = miExecutedGridForm.getValues();
+				window.open("/MedicalImaging/Export.StaffPerformance.shtml?year=" + rec.year + "&month=" + rec.month, "", "");
+/*
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Export.StaffPerformance.shtml", {
@@ -166,6 +168,7 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 						bee.alert(err);
 					});
 				});
+*/
 			}
 		});
 		exporterMenu.addChild(exporterExcelMenu);

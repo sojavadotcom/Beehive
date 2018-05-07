@@ -20,7 +20,7 @@ function(dojo) {
 <form jsId="loginForm" action="/User/Login.s2" dojoType="dijit.form.Form" method="post" class="login">
 	<script type="dojo/method" event="onSubmit">
 		if(this.validate()) {
-			dojo.xhrPost({form: this.domNode, handleAs: 'json'}).then(function(result) {
+			dojo.xhrGet({form: this.domNode, handleAs: 'json'}).then(function(result) {
 				var msg = "";
 				if (result.success) {
 					bee.login.form.reset();
@@ -50,7 +50,7 @@ function(dojo) {
 				if (this.checkable == "false" || value == "") return;
 				bee.login.form.setValues({'userName': value});
 				var me = this;
-				dojo.xhrPost({
+				dojo.xhrGet({
 					url: '/User/Query.name.s2',
 					handleAs: 'json',
 					content: {'value': value}

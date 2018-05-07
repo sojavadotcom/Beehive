@@ -167,6 +167,19 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="核算" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
+				require(["dojo/io/iframe"], function(iframe) {
+					iframe.send({
+						form: medicalimagingMeritFrm.id,
+						url: "/MedicalImaging/Save/Merit.s2",
+						method: "POST",
+						handleAs: "xml"
+					}).then(function(doc) {
+						bee.alert(doc.documentElement.innerHTML||doc.documentElement.textContent);
+					}, function(err) {
+						bee.alert(err);
+					});
+				});
+/*
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Save.merit.s2", {
@@ -178,6 +191,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 						bee.alert(err);
 					});
 				});
+*/
 			</script>
 		</button>
 		<button label="关闭" dojoType="dijit.form.Button">
