@@ -5,7 +5,7 @@ define("dojox/calendar/HorizontalRenderer", [
 "dojo/dom-style",
 "dijit/_WidgetBase",
 "dijit/_TemplatedMixin",
-"dojox/calendar/_RendererMixin",
+"./_RendererMixin",
 "dojo/text!./templates/HorizontalRenderer.html"],
 
 function(

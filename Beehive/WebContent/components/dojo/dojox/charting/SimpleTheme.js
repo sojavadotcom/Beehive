@@ -26,7 +26,7 @@ this.reverseFills();
 this._current=0;
 this._buildMarkerArray();
 },clone:function(){
-var _b=new this.constructor({chart:this.chart,plotarea:this.plotarea,axis:this.axis,grid:this.grid,series:this.series,marker:this.marker,colors:this.colors,markers:this.markers,indicator:this.indicator,seriesThemes:this.seriesThemes,markerThemes:this.markerThemes,noGradConv:this.noGradConv,noRadialConv:this.noRadialConv});
+var _b=new this.constructor({chart:this.chart,plotarea:this.plotarea,axis:this.axis,grid:this.grid,series:this.series,marker:this.marker,colors:this.colors,markers:this.markers,indicator:this.indicator,seriesThemes:this.seriesThemes,markerThemes:this.markerThemes,noGradConv:this.noGradConv,noRadialConv:this.noRadialConv,pieInnerRadius:this.pieInnerRadius});
 _2.forEach(["clone","clear","next","skip","addMixin","post","getTick"],function(_c){
 if(this.hasOwnProperty(_c)){
 _b[_c]=this[_c];

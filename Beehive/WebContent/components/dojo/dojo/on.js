@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -371,10 +371,12 @@ if(!("rotation" in _66)){
 _66.rotation=0;
 _66.scale=1;
 }
+if(window.TouchEvent&&_65 instanceof TouchEvent){
 var _69=_66.changedTouches[0];
 for(var i in _69){
 delete _66[i];
 _66[i]=_69[i];
+}
 }
 }
 return _64.call(this,_66);

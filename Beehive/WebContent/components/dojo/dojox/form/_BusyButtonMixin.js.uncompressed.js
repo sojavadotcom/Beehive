@@ -2,13 +2,14 @@ define("dojox/form/_BusyButtonMixin", [
 	"dojo/_base/lang",
 	"dojo/dom-attr",
 	"dojo/dom-class",
+        "dojo/dom-construct",
 	"dijit/form/Button",
 	"dijit/form/DropDownButton",
 	"dijit/form/ComboButton",
 	"dojo/i18n",
 	"dojo/i18n!dijit/nls/loading",
 	"dojo/_base/declare"
-], function(lang, domAttr, domClass, Button, DropDownButton, ComboButton, i18n, nlsLoading, declare){
+], function(lang, domAttr, domClass, domConstruct, Button, DropDownButton, ComboButton, i18n, nlsLoading, declare){
 return declare("dojox.form._BusyButtonMixin", null, {
 
 	// isBusy: Boolean
@@ -109,7 +110,7 @@ return declare("dojox.form._BusyButtonMixin", null, {
 		while(this.containerNode.firstChild){
 			this.containerNode.removeChild(this.containerNode.firstChild);
 		}
-		this.containerNode.appendChild(document.createTextNode(this.label));
+		this.containerNode.appendChild(domConstruct.toDom(this.label));
 
 		if(this.showLabel == false && !domAttr.get(this.domNode, "title")){
 			this.titleNode.title=lang.trim(this.containerNode.innerText || this.containerNode.textContent || '');

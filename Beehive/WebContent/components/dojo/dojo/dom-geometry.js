@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -35,46 +35,33 @@ return {l:l,t:t,r:r,b:b,w:l+r,h:t+b};
 _5.getMarginBox=function getMarginBox(_f,_10){
 _f=_3.byId(_f);
 var s=_10||_4.getComputedStyle(_f),me=_5.getMarginExtents(_f,s),l=_f.offsetLeft-me.l,t=_f.offsetTop-me.t,p=_f.parentNode,px=_4.toPixelValue,pcs;
-if(_1("mozilla")){
-var sl=parseFloat(s.left),st=parseFloat(s.top);
-if(!isNaN(sl)&&!isNaN(st)){
-l=sl;
-t=st;
-}else{
-if(p&&p.style){
-pcs=_4.getComputedStyle(p);
-if(pcs.overflow!="visible"){
-l+=pcs.borderLeftStyle!=_8?px(_f,pcs.borderLeftWidth):0;
-t+=pcs.borderTopStyle!=_8?px(_f,pcs.borderTopWidth):0;
-}
-}
-}
-}else{
-if(_1("opera")||(_1("ie")==8&&!_1("quirks"))){
+if((_1("ie")==8&&!_1("quirks"))){
 if(p){
 pcs=_4.getComputedStyle(p);
 l-=pcs.borderLeftStyle!=_8?px(_f,pcs.borderLeftWidth):0;
 t-=pcs.borderTopStyle!=_8?px(_f,pcs.borderTopWidth):0;
 }
 }
-}
 return {l:l,t:t,w:_f.offsetWidth+me.w,h:_f.offsetHeight+me.h};
 };
 _5.getContentBox=function getContentBox(_11,_12){
 _11=_3.byId(_11);
-var s=_12||_4.getComputedStyle(_11),w=_11.clientWidth,h,pe=_5.getPadExtents(_11,s),be=_5.getBorderExtents(_11,s);
+var s=_12||_4.getComputedStyle(_11),w=_11.clientWidth,h,pe=_5.getPadExtents(_11,s),be=_5.getBorderExtents(_11,s),l=_11.offsetLeft+pe.l+be.l,t=_11.offsetTop+pe.t+be.t;
 if(!w){
-w=_11.offsetWidth;
-h=_11.offsetHeight;
+w=_11.offsetWidth-be.w;
+h=_11.offsetHeight-be.h;
 }else{
 h=_11.clientHeight;
-be.w=be.h=0;
 }
-if(_1("opera")){
-pe.l+=be.l;
-pe.t+=be.t;
+if((_1("ie")==8&&!_1("quirks"))){
+var p=_11.parentNode,px=_4.toPixelValue,pcs;
+if(p){
+pcs=_4.getComputedStyle(p);
+l-=pcs.borderLeftStyle!=_8?px(_11,pcs.borderLeftWidth):0;
+t-=pcs.borderTopStyle!=_8?px(_11,pcs.borderTopWidth):0;
 }
-return {l:pe.l,t:pe.t,w:w-pe.w-be.w,h:h-pe.h-be.h};
+}
+return {l:l,t:t,w:w-pe.w,h:h-pe.h};
 };
 function _13(_14,l,t,w,h,u){
 u=u||"px";

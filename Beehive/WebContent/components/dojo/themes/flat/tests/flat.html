@@ -295,11 +295,11 @@ body {
 				</div>
 				<h4>dijit/Tooltip</h4>
 				<div class="tooltips">
-					<span id="tooltipAbove">above</span> | 
-					<span id="tooltipAboveCentered">above centered</span> | 
-					<span id="tooltipBelow">below</span> | 
-					<span id="tooltipBelowCentered">below centered</span> | 
-					<span id="tooltipBefore">before</span> | 
+					<span id="tooltipAbove">above</span> |
+					<span id="tooltipAboveCentered">above centered</span> |
+					<span id="tooltipBelow">below</span> |
+					<span id="tooltipBelowCentered">below centered</span> |
+					<span id="tooltipBefore">before</span> |
 					<span id="tooltipAfter">after</span>
 				</div>
 				<h4>dijit/TooltipDialog</h4>
@@ -327,8 +327,12 @@ body {
 			</div>
 			<div id="editorNode"></div>
 			<div data-dojo-type="dijit/layout/TabContainer" data-dojo-props="title:'Other Dijits', nested:true">
-				<div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="title:'Title Pane'">
+				<div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="title:'Title Pane/Fieldset'">
 					<div data-dojo-type="dijit/TitlePane" data-dojo-props="title:'Lorem Ipsum'">
+						<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce ornare mattis dolor, id tincidunt eros auctor a. Duis nisi purus, consectetur malesuada iaculis vitae, dignissim a justo. Suspendisse condimentum ex vel aliquet facilisis. Praesent efficitur dolor at nibh tristique mattis. Aliquam vulputate lobortis lacus eget sagittis. Maecenas risus velit, bibendum in nibh vitae, feugiat laoreet quam. Mauris nisi sem, accumsan ut dolor et, iaculis porta ligula.</p>
+					</div>
+					<p>&nbsp;</p>
+					<div data-dojo-type="dijit/Fieldset" data-dojo-props="title: 'Lorem Ipsum'">
 						<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce ornare mattis dolor, id tincidunt eros auctor a. Duis nisi purus, consectetur malesuada iaculis vitae, dignissim a justo. Suspendisse condimentum ex vel aliquet facilisis. Praesent efficitur dolor at nibh tristique mattis. Aliquam vulputate lobortis lacus eget sagittis. Maecenas risus velit, bibendum in nibh vitae, feugiat laoreet quam. Mauris nisi sem, accumsan ut dolor et, iaculis porta ligula.</p>
 					</div>
 				</div>
@@ -446,7 +450,7 @@ body {
 		</div>
 	</div>
 </div>
-<script src="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dojo/dojo.js"></script>
+<script src="//archive.dojotoolkit.org/cdn/1.12.2-cdn/1.12.2/dojo/dojo.js"></script>
 <script>
 var continentStore, continentModel, menu, showDialog;
 require([
@@ -745,7 +749,7 @@ require([
 	editor.startup();
 
 	// DnD
-	var dndList = new Source('DnDList', {});         
+	var dndList = new Source('DnDList', {});
 	dndList.insertNodes(false, [
 		'Wrist watch',
 		'Life jacket',

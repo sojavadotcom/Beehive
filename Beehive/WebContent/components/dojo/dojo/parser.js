@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -411,18 +411,11 @@ _8f.parentNode.removeChild(_8f);
 });
 return _8d;
 },parse:function(_90,_91){
-var _92;
-if(!_91&&_90&&_90.rootNode){
+if(_90&&typeof _90!="string"&&!("nodeType" in _90)){
 _91=_90;
-_92=_91.rootNode;
-}else{
-if(_90&&_3.isObject(_90)&&!("nodeType" in _90)){
-_91=_90;
-}else{
-_92=_90;
+_90=_91.rootNode;
 }
-}
-_92=_92?_6.byId(_92):_7.body();
+var _92=_90?_6.byId(_90):_7.body();
 _91=_91||{};
 var _93=_91.template?{template:true}:{},_94=[],_95=this;
 var p=this._scanAmd(_92,_91).then(function(){

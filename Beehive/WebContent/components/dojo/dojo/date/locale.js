@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -329,14 +329,15 @@ _4b=!_4b;
 });
 return _48(_4a.join(""));
 };
-function _2d(_4d,_4e,_4f,_50){
-_50=_6.escapeString(_50);
-if(!_4f.strict){
-_50=_50.replace(" a"," ?a");
+var _4d=["abbr","wide","narrow"];
+function _2d(_4e,_4f,_50,_51){
+_51=_6.escapeString(_51);
+if(!_50.strict){
+_51=_51.replace(" a"," ?a");
 }
-return _50.replace(/([a-z])\1*/ig,function(_51){
-var s,c=_51.charAt(0),l=_51.length,p2="",p3="";
-if(_4f.strict){
+return _51.replace(/([a-z])\1*/ig,function(_52){
+var s,c=_52.charAt(0),l=_52.length,p2="",p3="";
+if(_50.strict){
 if(l>1){
 p2="0"+"{"+(l-1)+"}";
 }
@@ -353,7 +354,16 @@ s="\\d{2,4}";
 break;
 case "M":
 case "L":
-s=(l>2)?"\\S+?":"1[0-2]|"+p2+"[1-9]";
+if(l>2){
+var _53=_4f["months-"+(c=="L"?"standAlone":"format")+"-"+_4d[l-3]].slice(0);
+s=_53.join("|");
+if(!_50.strict){
+s=s.replace(/\./g,"");
+s="(?:"+s+")\\.?";
+}
+}else{
+s="1[0-2]|"+p2+"[1-9]";
+}
 break;
 case "D":
 s="[12][0-9][0-9]|3[0-5][0-9]|36[0-6]|"+p2+"[1-9][0-9]|"+p3+"[1-9]";
@@ -389,9 +399,9 @@ case "S":
 s="\\d{"+l+"}";
 break;
 case "a":
-var am=_4f.am||_4e["dayPeriods-format-wide-am"],pm=_4f.pm||_4e["dayPeriods-format-wide-pm"];
+var am=_50.am||_4f["dayPeriods-format-wide-am"],pm=_50.pm||_4f["dayPeriods-format-wide-pm"];
 s=am+"|"+pm;
-if(!_4f.strict){
+if(!_50.strict){
 if(am!=am.toLowerCase()){
 s+="|"+am.toLowerCase();
 }
@@ -407,64 +417,64 @@ break;
 default:
 s=".*";
 }
-if(_4d){
-_4d.push(_51);
+if(_4e){
+_4e.push(_52);
 }
 return "("+s+")";
 }).replace(/[\xa0 ]/g,"[\\s\\xa0]");
 };
-var _52=[];
-var _53={};
-_a.addCustomFormats=function(_54,_55){
-_52.push({pkg:_54,name:_55});
-_53={};
+var _54=[];
+var _55={};
+_a.addCustomFormats=function(_56,_57){
+_54.push({pkg:_56,name:_57});
+_55={};
 };
-_a._getGregorianBundle=function(_56){
-if(_53[_56]){
-return _53[_56];
+_a._getGregorianBundle=function(_58){
+if(_55[_58]){
+return _55[_58];
 }
-var _57={};
-_2.forEach(_52,function(_58){
-var _59=_5.getLocalization(_58.pkg,_58.name,_56);
-_57=_1.mixin(_57,_59);
+var _59={};
+_2.forEach(_54,function(_5a){
+var _5b=_5.getLocalization(_5a.pkg,_5a.name,_58);
+_59=_1.mixin(_59,_5b);
 },this);
-return _53[_56]=_57;
+return _55[_58]=_59;
 };
 _a.addCustomFormats(_9.id.replace(/\/date\/locale$/,".cldr"),"gregorian");
-_a.getNames=function(_5a,_5b,_5c,_5d){
-var _5e,_5f=_a._getGregorianBundle(_5d),_60=[_5a,_5c,_5b];
-if(_5c=="standAlone"){
-var key=_60.join("-");
-_5e=_5f[key];
-if(_5e[0]==1){
-_5e=undefined;
+_a.getNames=function(_5c,_5d,_5e,_5f){
+var _60,_61=_a._getGregorianBundle(_5f),_62=[_5c,_5e,_5d];
+if(_5e=="standAlone"){
+var key=_62.join("-");
+_60=_61[key];
+if(_60[0]==1){
+_60=undefined;
 }
 }
-_60[1]="format";
-return (_5e||_5f[_60.join("-")]).concat();
+_62[1]="format";
+return (_60||_61[_62.join("-")]).concat();
 };
-_a.isWeekend=function(_61,_62){
-var _63=_4.getWeekend(_62),day=(_61||new Date()).getDay();
-if(_63.end<_63.start){
-_63.end+=7;
-if(day<_63.start){
+_a.isWeekend=function(_63,_64){
+var _65=_4.getWeekend(_64),day=(_63||new Date()).getDay();
+if(_65.end<_65.start){
+_65.end+=7;
+if(day<_65.start){
 day+=7;
 }
 }
-return day>=_63.start&&day<=_63.end;
+return day>=_65.start&&day<=_65.end;
 };
-_a._getDayOfYear=function(_64){
-return _3.difference(new Date(_64.getFullYear(),0,1,_64.getHours()),_64)+1;
+_a._getDayOfYear=function(_66){
+return _3.difference(new Date(_66.getFullYear(),0,1,_66.getHours()),_66)+1;
 };
-_a._getWeekOfYear=function(_65,_66){
+_a._getWeekOfYear=function(_67,_68){
 if(arguments.length==1){
-_66=0;
+_68=0;
 }
-var _67=new Date(_65.getFullYear(),0,1).getDay(),adj=(_67-_66+7)%7,_68=Math.floor((_a._getDayOfYear(_65)+adj-1)/7);
-if(_67==_66){
-_68++;
+var _69=new Date(_67.getFullYear(),0,1).getDay(),adj=(_69-_68+7)%7,_6a=Math.floor((_a._getDayOfYear(_67)+adj-1)/7);
+if(_69==_68){
+_6a++;
 }
-return _68;
+return _6a;
 };
 return _a;
 });

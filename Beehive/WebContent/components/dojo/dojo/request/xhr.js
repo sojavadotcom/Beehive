@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -30,7 +30,7 @@ if(!_5("native-response-type")){
 return;
 }
 var x=new XMLHttpRequest();
-x.open("GET","/",true);
+x.open("GET","https://dojotoolkit.org/",true);
 x.responseType="blob";
 var _6=x.responseType;
 x.abort();
@@ -146,6 +146,9 @@ var _24=_5("native-formdata")&&_22&&_22.data&&_22.data instanceof FormData;
 var _25=_4.parseArgs(url,_4.deepCreate(_21,_22),_24);
 url=_25.url;
 _22=_25.options;
+if(_5("ie")<=10){
+url=url.split("#")[0];
+}
 var _26,_27=function(){
 _26&&_26();
 };
@@ -159,7 +162,7 @@ _25.getHeader=_1e;
 if(_f){
 _26=_f(_28,dfd,_25);
 }
-var _29=_22.data,_2a=!_22.sync,_2b=_22.method;
+var _29=typeof (_22.data)==="undefined"?null:_22.data,_2a=!_22.sync,_2b=_22.method;
 try{
 _28.open(_2b,url,_2a,_22.user||_20,_22.password||_20);
 if(_22.withCredentials){

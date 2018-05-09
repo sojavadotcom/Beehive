@@ -9,6 +9,7 @@ define("dijit/CalendarLite", [
 	"dojo/date/stamp", // stamp.fromISOString
 	"dojo/dom", // dom.setSelectable
 	"dojo/dom-class", // domClass.contains
+	"dojo/dom-attr",
 	"dojo/_base/lang", // lang.getObject, lang.hitch
 	"dojo/on",
 	"dojo/sniff", // has("ie") has("webkit")
@@ -18,7 +19,7 @@ define("dijit/CalendarLite", [
 	"dojo/text!./templates/Calendar.html",
 	"./a11yclick",	// not used directly, but template has ondijitclick in it
 	"./hccss"    // not used directly, but sets CSS class on <body>
-], function(array, declare, cldrSupplemental, date, locale, stamp, dom, domClass, lang, on, has, string, _WidgetBase, _TemplatedMixin, template){
+], function(array, declare, cldrSupplemental, date, locale, stamp, dom, domClass, domAttr, lang, on, has, string, _WidgetBase, _TemplatedMixin, template){
 
 
 	// module:
@@ -162,7 +163,7 @@ define("dijit/CalendarLite", [
 			// summary:
 			//		Convert Number into Date, or copy Date object.   Then, round to nearest day,
 			//		setting to 1am to avoid issues when DST shift occurs at midnight, see #8521, #9366)
-			if(value){
+			if(value || value === 0){
 				value = new this.dateClassObj(value);
 				value.setHours(1, 0, 0, 0);
 			}
@@ -260,7 +261,13 @@ define("dijit/CalendarLite", [
 				template.dijitDateValue = dateVal;
 
 				// Set Date string (ex: "13").
-				this._setText(this.dateLabels[idx], date.getDateLocalized ? date.getDateLocalized(this.lang) : date.getDate());
+
+				var localizedDate = date.getDateLocalized ? date.getDateLocalized(this.lang) : date.getDate()
+				this._setText(this.dateLabels[idx], localizedDate);
+				domAttr.set(template, 'aria-label', locale.format(date, {
+					selector: 'date',
+					formatLength: 'long'
+				}));
 			}, this);
 		},
 
@@ -425,7 +432,7 @@ define("dijit/CalendarLite", [
 			//		protected
 			evt.stopPropagation();
 			evt.preventDefault();
-			for(var node = evt.target; node && !node.dijitDateValue; node = node.parentNode){
+			for(var node = evt.target; node && !node.dijitDateValue && node.dijitDateValue !== 0; node = node.parentNode){
 				;
 			}
 			if(node && !domClass.contains(node, "dijitCalendarDisabledDate")){

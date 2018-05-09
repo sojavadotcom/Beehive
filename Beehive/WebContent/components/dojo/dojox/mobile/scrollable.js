@@ -918,7 +918,7 @@ setTimeout(function(){
 _57.hideScrollBar();
 },300);
 },addCover:function(){
-if(!_d("touch")&&!this.noCover){
+if(!_d("touch")&&!(_d("pointer-events")||_d("MSPointer"))&&!this.noCover){
 if(!dm._cover){
 dm._cover=_7.create("div",null,_5.doc.body);
 dm._cover.className="mblScrollableCover";

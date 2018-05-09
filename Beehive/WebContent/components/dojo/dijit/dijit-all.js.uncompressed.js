@@ -986,6 +986,7 @@ define([
 	"dojo/on",
 	"dojo/ready",
 	"dojo/sniff", // has("ie") has("opera") has("dijit-legacy-requires")
+	"dojo/touch",
 	"dojo/window", // winUtils.getBox, winUtils.get
 	"dojo/dnd/Moveable", // Moveable
 	"dojo/dnd/TimedMoveable", // TimedMoveable
@@ -1003,7 +1004,7 @@ define([
 	"./a11yclick",	// template uses ondijitclick
 	"dojo/i18n!./nls/common"
 ], function(require, array, aspect, declare, Deferred,
-			dom, domClass, domGeometry, domStyle, fx, i18n, keys, lang, on, ready, has, winUtils,
+			dom, domClass, domGeometry, domStyle, fx, i18n, keys, lang, on, ready, has, touch, winUtils,
 			Moveable, TimedMoveable, focus, manager, _Widget, _TemplatedMixin, _CssStateMixin, _FormMixin, _DialogMixin,
 			DialogUnderlay, ContentPane, utils, template){
 
@@ -1097,6 +1098,9 @@ define([
 
 			aspect.after(this, "onExecute", lang.hitch(this, "hide"), true);
 			aspect.after(this, "onCancel", lang.hitch(this, "hide"), true);
+			on(this.closeButtonNode, touch.press, function(e){
+				e.stopPropagation();
+			});
 
 			this._modalconnects = [];
 		},
@@ -1675,13 +1679,33 @@ define([
 },
 'dojo/dnd/Moveable':function(){
 define([
-	"../_base/array", "../_base/declare", "../_base/lang",
-	"../dom", "../dom-class", "../Evented", "../on", "../topic", "../touch", "./common", "./Mover", "../_base/window"
-], function(array, declare, lang, dom, domClass, Evented, on, topic, touch, dnd, Mover, win){
+	"../_base/array", "../_base/declare", "../_base/lang", "../dom", "../dom-class", "../Evented",
+	"../has", "../on", "../topic", "../touch", "./common", "./Mover", "../_base/window"
+], function(array, declare, lang, dom, domClass, Evented, has, on, topic, touch, dnd, Mover, win){
 
 // module:
 //		dojo/dnd/Moveable
 
+var touchActionPropertyName;
+var setTouchAction = function () {};
+
+function setTouchActionPropertyName() {
+	if ("touchAction" in document.body.style) {
+		touchActionPropertyName = "touchAction";
+	}
+	else if ("msTouchAction" in document.body.style) {
+		touchActionPropertyName = "msTouchAction";
+	}
+	setTouchAction = function setTouchAction(/* Node */ node, /* string */ action) {
+		node.style[touchActionPropertyName] = action;
+	}
+	setTouchAction(arguments[0], arguments[1]);
+}
+
+if (has("touch-action")) {
+	// Ensure that the logic to determine "touchActionPropertyName" runs
+	setTouchAction = setTouchActionPropertyName;
+}
 
 var Moveable = declare("dojo.dnd.Moveable", [Evented], {
 	// summary:
@@ -1698,6 +1722,7 @@ var Moveable = declare("dojo.dnd.Moveable", [Evented], {
 		// params: Moveable.__MoveableArgs?
 		//		optional parameters
 		this.node = dom.byId(node);
+		setTouchAction(this.node, "none");
 		if(!params){ params = {}; }
 		this.handle = params.handle ? dom.byId(params.handle) : null;
 		if(!this.handle){ this.handle = this.node; }
@@ -1722,6 +1747,7 @@ var Moveable = declare("dojo.dnd.Moveable", [Evented], {
 		// summary:
 		//		stops watching for possible move, deletes all references, so the object can be garbage-collected
 		array.forEach(this.events, function(handle){ handle.remove(); });
+		setTouchAction(this.node, "");
 		this.events = this.node = this.handle = null;
 	},
 
@@ -2133,15 +2159,14 @@ exports.autoScrollNodes = function(e){
 	for(var n = e.target; n;){
 		if(n.nodeType == 1 && (n.tagName.toLowerCase() in exports._validNodes)){
 			var s = domStyle.getComputedStyle(n),
-				overflow = (s.overflow.toLowerCase() in exports._validOverflow),
 				overflowX = (s.overflowX.toLowerCase() in exports._validOverflow),
 				overflowY = (s.overflowY.toLowerCase() in exports._validOverflow);
-			if(overflow || overflowX || overflowY){
+			if(overflowX || overflowY){
 				b = domGeom.getContentBox(n, s);
 				t = domGeom.position(n, true);
 			}
 			// overflow-x
-			if(overflow || overflowX){
+			if(overflowX){
 				w = Math.min(exports.H_TRIGGER_AUTOSCROLL, b.w / 2);
 				rx = e.pageX - t.x;
 				if(has("webkit") || has("opera")){
@@ -2162,7 +2187,7 @@ exports.autoScrollNodes = function(e){
 				}
 			}
 			// overflow-y
-			if(overflow || overflowY){
+			if(overflowY){
 				//console.log(b.l, b.t, t.x, t.y, n.scrollLeft, n.scrollTop);
 				h = Math.min(exports.V_TRIGGER_AUTOSCROLL, b.h / 2);
 				ry = e.pageY - t.y;
@@ -6305,8 +6330,8 @@ define([
 				// reference that variable.  Alternately, could have a _getLabelAttr() method to return
 				// this.containerNode.innerHTML.
 				this.label = lang.trim(this.containerNode.innerHTML);
+				this.onLabelSet();		// set this.titleNode.title etc. according to label
 			}
-			this.onLabelSet();		// set this.titleNode.title etc. according to label
 		},
 
 		_setShowLabelAttr: function(val){
@@ -15278,31 +15303,19 @@ define([
 			if(this.disabled || this.readOnly){ return; }
 			var key = evt.charOrCode;
 
-			var doSearch = false;
 			this._prev_key_backspace = false;
 
-			switch(key){
-				case keys.DELETE:
-				case keys.BACKSPACE:
-					this._prev_key_backspace = true;
-					this._maskValidSubsetError = true;
-					doSearch = true;
-					break;
-
-				default:
-					// Non char keys (F1-F12 etc..) shouldn't start a search..
-					// Ascii characters and IME input (Chinese, Japanese etc.) should.
-					//IME input produces keycode == 229.
-					doSearch = typeof key == 'string' || key == 229;
+			if (key == keys.DELETE || key == keys.BACKSPACE) {
+				this._prev_key_backspace = true;
+				this._maskValidSubsetError = true;
 			}
-			if(doSearch){
-				// need to wait a tad before start search so that the event
-				// bubbles through DOM and we have value visible
-				if(!this.store){
-					this.onSearch();
-				}else{
-					this.searchTimer = this.defer("_startSearchFromInput", 1);
-				}
+
+			// need to wait a tad before start search so that the event
+			// bubbles through DOM and we have value visible
+			if(!this.store){
+				this.onSearch();
+			}else{
+				this.searchTimer = this.defer("_startSearchFromInput", 1);
 			}
 		},
 
@@ -16130,7 +16143,7 @@ define([
 			//
 			// Also, don't call preventDefault() on MSPointerDown event (on IE10) because that prevents the button
 			// from getting focus, and then the focus manager doesn't know what's going on (#17262)
-			if(e.type != "MSPointerDown" && e.type != "pointerdown"){
+			if(e.type != "MSPointerDown"){
 				e.preventDefault();
 			}
 
@@ -19061,7 +19074,7 @@ number._formatAbsolute = function(/*Number*/ value, /*String*/ pattern, /*number
 		whole = (off > 0) ? whole.slice(0, off) : "";
 		if(groupSize2){
 			groupSize = groupSize2;
-			delete groupSize2;
+			groupSize2 = undefined;
 		}
 	}
 	valueParts[0] = pieces.reverse().join(options.group || ",");
@@ -19851,7 +19864,7 @@ define([
 		//	|		]).play();
 		//	|	});
 		//
-		return new _chain(lang.isArray(animations) ? animations : Array.prototype.slice.call(arguments, 0)); // dojo/_base/fx.Animation
+		return new _chain(lang.isArray(animations) ? animations : Array.prototype.slice.call(animations, 0)); // dojo/_base/fx.Animation
 	};
 
 	var _combine = function(animations){
@@ -19961,7 +19974,7 @@ define([
 		//	|		anim.play(); // play the animation
 		//	|	});
 		//
-		return new _combine(lang.isArray(animations) ? animations : Array.prototype.slice.call(arguments, 0)); // dojo/_base/fx.Animation
+		return new _combine(lang.isArray(animations) ? animations : Array.prototype.slice.call(animations, 0)); // dojo/_base/fx.Animation
 	};
 
 	coreFx.wipeIn = function(/*Object*/ args){
@@ -20536,10 +20549,10 @@ define([
 						}
 
 						// If we've orphaned the focused node then move focus to the root node
-						if(tree.lastFocusedChild && !dom.isDescendant(tree.lastFocusedChild, tree.domNode)){
+						if(tree.lastFocusedChild && !dom.isDescendant(tree.lastFocusedChild.domNode, tree.domNode)){
 							delete tree.lastFocusedChild;
 						}
-						if(focusedChild && !dom.isDescendant(focusedChild, tree.domNode)){
+						if(focusedChild && !dom.isDescendant(focusedChild.domNode, tree.domNode)){
 							tree.focus();	// could alternately focus this node (parent of the deleted node)
 						}
 
@@ -21769,10 +21782,10 @@ define([
 					}
 
 					// If we've orphaned the focused node then move focus to the root node
-					if(this.lastFocusedChild && !dom.isDescendant(this.lastFocusedChild, this.domNode)){
+					if(this.lastFocusedChild && !dom.isDescendant(this.lastFocusedChild.domNode, this.domNode)){
 						delete this.lastFocusedChild;
 					}
-					if(this.focusedChild && !dom.isDescendant(this.focusedChild, this.domNode)){
+					if(this.focusedChild && !dom.isDescendant(this.focusedChild.domNode, this.domNode)){
 						this.focus();
 					}
 
@@ -23867,7 +23880,11 @@ define([
 
 			val = lang.trim(val);
 			var renderVal = this.renderAsHtml ? val : val.replace(/&/gm, "&amp;").replace(/</gm, "&lt;").replace(/>/gm, "&gt;").replace(/"/gm, "&quot;").replace(/\n/g, "<br>");
-			this.displayNode.innerHTML = renderVal || this.noValueIndicator;
+			if(this.editorParams && this.editorParams.type === 'password'){
+			    this.displayNode.innerHTML = "********";
+			}else{
+			    this.displayNode.innerHTML = renderVal || this.noValueIndicator;
+			}
 			this._set("value", val);
 
 			if(this._started){
@@ -26523,6 +26540,7 @@ function _processPattern(pattern, applyPattern, applyLiteral, applyAll){
 	return applyAll(chunks.join(''));
 }
 
+var widthList = ['abbr', 'wide', 'narrow'];
 function _buildDateTimeRE(tokens, bundle, options, pattern){
 	pattern = regexp.escapeString(pattern);
 	if(!options.strict){ pattern = pattern.replace(" a", " ?a"); } // kludge to tolerate no space before am/pm
@@ -26544,7 +26562,21 @@ function _buildDateTimeRE(tokens, bundle, options, pattern){
 				break;
 			case 'M':
 			case 'L':
-				s = (l>2) ? '\\S+?' : '1[0-2]|'+p2+'[1-9]';
+				if(l>2){
+					var months = bundle[
+						'months-' +
+						(c == 'L' ? 'standAlone' : 'format') +
+						'-' + widthList[l-3]
+					].slice(0);
+					s = months.join('|');
+					if(!options.strict){
+						s = s.replace(/\./g, '');
+						//Tolerate abbreviating period in month part
+						s = '(?:' + s + ')\\.?';
+					}
+				}else{
+					s = '1[0-2]|'+p2+'[1-9]';
+				}
 				break;
 			case 'D':
 				s = '[12][0-9][0-9]|3[0-5][0-9]|36[0-6]|'+p2+'[1-9][0-9]|'+p3+'[1-9]';
@@ -26842,6 +26874,7 @@ define([
 	"dojo/date/stamp", // stamp.fromISOString
 	"dojo/dom", // dom.setSelectable
 	"dojo/dom-class", // domClass.contains
+	"dojo/dom-attr",
 	"dojo/_base/lang", // lang.getObject, lang.hitch
 	"dojo/on",
 	"dojo/sniff", // has("ie") has("webkit")
@@ -26851,7 +26884,7 @@ define([
 	"dojo/text!./templates/Calendar.html",
 	"./a11yclick",	// not used directly, but template has ondijitclick in it
 	"./hccss"    // not used directly, but sets CSS class on <body>
-], function(array, declare, cldrSupplemental, date, locale, stamp, dom, domClass, lang, on, has, string, _WidgetBase, _TemplatedMixin, template){
+], function(array, declare, cldrSupplemental, date, locale, stamp, dom, domClass, domAttr, lang, on, has, string, _WidgetBase, _TemplatedMixin, template){
 
 
 	// module:
@@ -26995,7 +27028,7 @@ define([
 			// summary:
 			//		Convert Number into Date, or copy Date object.   Then, round to nearest day,
 			//		setting to 1am to avoid issues when DST shift occurs at midnight, see #8521, #9366)
-			if(value){
+			if(value || value === 0){
 				value = new this.dateClassObj(value);
 				value.setHours(1, 0, 0, 0);
 			}
@@ -27093,7 +27126,13 @@ define([
 				template.dijitDateValue = dateVal;
 
 				// Set Date string (ex: "13").
-				this._setText(this.dateLabels[idx], date.getDateLocalized ? date.getDateLocalized(this.lang) : date.getDate());
+
+				var localizedDate = date.getDateLocalized ? date.getDateLocalized(this.lang) : date.getDate()
+				this._setText(this.dateLabels[idx], localizedDate);
+				domAttr.set(template, 'aria-label', locale.format(date, {
+					selector: 'date',
+					formatLength: 'long'
+				}));
 			}, this);
 		},
 
@@ -27258,7 +27297,7 @@ define([
 			//		protected
 			evt.stopPropagation();
 			evt.preventDefault();
-			for(var node = evt.target; node && !node.dijitDateValue; node = node.parentNode){
+			for(var node = evt.target; node && !node.dijitDateValue && node.dijitDateValue !== 0; node = node.parentNode){
 				;
 			}
 			if(node && !domClass.contains(node, "dijitCalendarDisabledDate")){
@@ -27666,10 +27705,11 @@ define([
 define([
 	"dojo/_base/declare", // declare
 	"dojo/keys", // keys.DOWN_ARROW keys.ENTER keys.ESCAPE keys.TAB keys.UP_ARROW
+	"dojo/query",
 	"dojo/_base/lang", // lang.hitch
 	"../_TimePicker",
 	"./_DateTimeTextBox"
-], function(declare, keys, lang, _TimePicker, _DateTimeTextBox){
+], function(declare, keys, query, lang, _TimePicker, _DateTimeTextBox){
 
 	// module:
 	//		dijit/form/TimeTextBox
@@ -27710,6 +27750,18 @@ define([
 
 		openDropDown: function(/*Function*/ callback){
 			this.inherited(arguments);
+
+			// Fix #18683
+			var selectedNode = query(".dijitTimePickerItemSelected", this.dropDown.domNode),
+				parentNode=this.dropDown.domNode.parentNode;
+			if(selectedNode[0]){
+				// Center the selected node in the client area of the popup.
+				parentNode.scrollTop=selectedNode[0].offsetTop-(parentNode.clientHeight-selectedNode[0].clientHeight)/2;
+			}else{
+				// There is no currently selected value. Position the list so that the median
+				// node is visible.
+				parentNode.scrollTop=(parentNode.scrollHeight-parentNode.clientHeight)/2;
+            }
 
 			// For screen readers, as user arrows through values, populate <input> with latest value.
 			this.dropDown.on("input", lang.hitch(this, function(){
@@ -33468,6 +33520,12 @@ define([
 		_setupChild: function(/*dijit/_WidgetBase*/ tab){
 			// Overrides StackContainer._setupChild().
 			domClass.add(tab.domNode, "dijitTabPane");
+			this.inherited(arguments);
+		},
+
+		removeChild: function(/*dijit/_WidgetBase*/ child) {
+			// Overrides StackContainer.removeChild().
+			domClass.remove(child.domNode, "dijitTabPane");
 			this.inherited(arguments);
 		},
 

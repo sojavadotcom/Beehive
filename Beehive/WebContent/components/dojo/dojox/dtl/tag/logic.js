@@ -127,7 +127,8 @@ _2c.revcounter0=_2b.length-j-1;
 _2c.revcounter=_2b.length-j;
 _2c.first=!j;
 _2c.last=(j==_2b.length-1);
-if(_28.length>1&&_1.isArrayLike(_2d)){
+if(_1.isArrayLike(_2d)){
+if(_28.length>1){
 if(!_27){
 _27=true;
 _25=_25.push();
@@ -137,6 +138,9 @@ for(k=0;k<_2d.length&&k<_28.length;k++){
 _2e[_28[k]]=_2d[k];
 }
 _1.mixin(_25,_2e);
+}else{
+_25[_28[0]]=_2d[1];
+}
 }else{
 _25[_28[0]]=_2d;
 }

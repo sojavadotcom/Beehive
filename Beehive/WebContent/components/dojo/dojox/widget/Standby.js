@@ -318,6 +318,8 @@ _a.set(this._imageNode,"display","none");
 if(typeof _37==="string"){
 var w=_10.byId(_37);
 this._set("target",w?w.domNode:_6.byId(_37));
+}else{
+this._set("target",_37);
 }
 },_disableOverflow:function(){
 if(this.target===_c.body()||this.target===_c.doc){

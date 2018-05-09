@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -78,19 +78,35 @@ _13=_d[0];
 _f[0]=_13?_13._meta&&_13===_f[_f.length-_13._meta.bases.length]?_13._meta.bases.length:1:0;
 return _f;
 };
-function _17(_18,a,f){
+function _17(_18,a,f,g){
 var _19,_1a,_1b,_1c,_1d,_1e,_1f,opf,pos,_20=this._inherited=this._inherited||{};
-if(typeof _18=="string"){
+if(typeof _18==="string"){
 _19=_18;
 _18=a;
 a=f;
+f=g;
 }
-f=0;
+if(typeof _18==="function"){
+_1c=_18;
+_18=a;
+a=f;
+}else{
+try{
 _1c=_18.callee;
+}
+catch(e){
+if(e instanceof TypeError){
+_9("strict mode inherited() requires the caller function to be passed before arguments",this.declaredClass);
+}else{
+throw e;
+}
+}
+}
 _19=_19||_1c.nom;
 if(!_19){
 _9("can't deduce a name to call inherited()",this.declaredClass);
 }
+f=g=0;
 _1d=this.constructor._meta;
 _1b=_1d.bases;
 pos=_20.p;
@@ -164,16 +180,23 @@ if(f){
 return a===true?f:f.apply(this,a||_18);
 }
 };
-function _21(_22,_23){
-if(typeof _22=="string"){
+function _21(_22,_23,a){
+if(typeof _22==="string"){
+if(typeof _23==="function"){
+return this.__inherited(_22,_23,a,true);
+}
 return this.__inherited(_22,_23,true);
+}else{
+if(typeof _22==="function"){
+return this.__inherited(_22,_23,true);
+}
 }
 return this.__inherited(_22,true);
 };
-function _24(_25,a1,a2){
-var f=this.getInherited(_25,a1);
+function _24(_25,a1,a2,a3){
+var f=this.getInherited(_25,a1,a2);
 if(f){
-return f.apply(this,a2||a1||_25);
+return f.apply(this,a3||a2||a1||_25);
 }
 };
 var _26=_1.config.isDebug?_24:_17;
@@ -231,7 +254,7 @@ _35.safeMixin(this.prototype,_34);
 return this;
 };
 function _36(_37,_38){
-if(!(_37 instanceof Array||typeof _37=="function")){
+if(!(_37 instanceof Array||typeof _37==="function")){
 _38=_37;
 _37=undefined;
 }
@@ -391,7 +414,12 @@ break;
 }
 t=_53[i];
 (t._meta?_29:_4)(_50,t.prototype);
+if(_2("csp-restrictions")){
+_51=function(){
+};
+}else{
 _51=new Function;
+}
 _51.superclass=_4e;
 _51.prototype=_50;
 _4e=_50.constructor=_51;
@@ -413,6 +441,9 @@ _54=_4(_54||{},t.chains);
 }
 if(_50["-chains-"]){
 _54=_4(_54||{},_50["-chains-"]);
+}
+if(_4e&&_4e.prototype&&_4e.prototype["-chains-"]){
+_54=_4(_54||{},_4e.prototype["-chains-"]);
 }
 t=!_54||!_54.hasOwnProperty(_8);
 _53[0]=_51=(_54&&_54.constructor==="manual")?_42(_53):(_53.length==1?_3f(_4f.constructor,t):_39(_53,t));

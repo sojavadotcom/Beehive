@@ -17,8 +17,8 @@ this._setLabelFromContainer();
 },_setLabelFromContainer:function(){
 if(this.containerNode&&!this.label){
 this.label=_6.trim(this.containerNode.innerHTML);
-}
 this.onLabelSet();
+}
 },_setShowLabelAttr:function(_e){
 if(this.containerNode){
 _3.toggle(this.containerNode,"dijitDisplayNone",!_e);

@@ -323,9 +323,11 @@ class SharingMode implements Mode {
 			List<Object[]> list = (List<Object[]>) stmt.list();
 			for (int i = 0; i < list.size(); i ++) {
 				Object[] recs = list.get(i);
+				String _label[] = {"rbrvsPriceId","rbrvsId","price","point","quantity","worker1Id","worker1Name","worker1Coef","worker2Id","worker2Name","worker2Coef","type","kind","dept","executeDiagnosticianIsStudent"};
 				msg[1] = i + " - ";
-				for (Object rec : recs) {
-					msg[1] += rec == null ? "null" : rec.toString() + ",";
+				for (int j = 0; j < recs.length; j ++) {
+					Object rec = recs[j];
+					msg[1] += _label[j] + "=" + (rec == null ? "null" : rec.toString() + ",");
 				}
 				msg[1] = msg[1].substring(0, msg[1].length()-1);
 
@@ -376,7 +378,7 @@ class SharingMode implements Mode {
 			}
 		}
 		catch(Exception ex) {
-			throw new Exception(msg[0] + "[" + msg[1] + "]" + " : " + ex.getMessage());
+			throw new ErrorException(this.getClass(), msg[0] + "[" + msg[1] + "]" + " : " + ex.getMessage());
 		}
 	}
 }

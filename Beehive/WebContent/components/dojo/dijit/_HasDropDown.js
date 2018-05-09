@@ -4,7 +4,7 @@ return _1("dijit._HasDropDown",_f,{_buttonNode:null,_arrowWrapperNode:null,_popu
 if(this.disabled||this.readOnly){
 return;
 }
-if(e.type!="MSPointerDown"&&e.type!="pointerdown"){
+if(e.type!="MSPointerDown"){
 e.preventDefault();
 }
 this.own(on.once(this.ownerDocument,_b.release,_a.hitch(this,"_onDropDownMouseUp")));

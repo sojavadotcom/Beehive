@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -138,7 +138,7 @@ _2d.push((off>0)?_2e.substr(off):_2e);
 _2e=(off>0)?_2e.slice(0,off):"";
 if(_2b){
 _2a=_2b;
-delete _2b;
+_2b=undefined;
 }
 }
 _26[0]=_2d.reverse().join(_22.group||",");

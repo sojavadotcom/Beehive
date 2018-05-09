@@ -42,6 +42,7 @@ this.handle.setAttribute("aria-valuenow",_11);
 },postCreate:function(){
 this.inherited(arguments);
 function _16(e){
+e.stopPropagation();
 e.target.focus();
 function _17(e){
 _2c=_18?e[this._attrs.pageX]:(e.touches?e.touches[0][this._attrs.pageX]:e[this._attrs.clientX]);

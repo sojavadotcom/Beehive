@@ -16,7 +16,6 @@ define("dojox/calendar/ColumnView", [
 "dojo/date",
 "dojo/date/locale",
 "dojo/query",
-"dojox/html/metrics",
 "./SimpleColumnView",
 "dojo/text!./templates/ColumnView.html",
 "./ColumnViewSecondarySheet"],
@@ -37,7 +36,6 @@ function(
 	date,
 	locale,
 	query,
-	metrics,
 	SimpleColumnView,
 	template,
 	ColumnViewSecondarySheet){
@@ -76,13 +74,6 @@ function(
 				var args = lang.mixin({owner: this}, this.secondarySheetProps);
 				this.secondarySheet = new this.secondarySheetClass(args, this.secondarySheetNode);
 				this.secondarySheetNode = this.secondarySheet.domNode;
-			}
-		},
-
-		refreshRendering: function(recursive){
-			this.inherited(arguments);
-			if(recursive && this.secondarySheet){
-				this.secondarySheet.refreshRendering(true);
 			}
 		},
 
@@ -141,12 +132,15 @@ function(
 			this._set("subColumns", value);
 		},
 
-		refreshRendering: function(){
+		refreshRendering: function(recursive){
 			this.inherited(arguments);
 			if(this._secondaryHeightInvalidated){
 				this._secondaryHeightInvalidated = false;
 				var h = domGeometry.getMarginBox(this.secondarySheetNode).h;
 				this.resizeSecondarySheet(h);
+			}
+			if(recursive && this.secondarySheet){
+				this.secondarySheet.refreshRendering(true);
 			}
 		},
 

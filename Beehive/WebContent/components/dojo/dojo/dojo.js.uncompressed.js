@@ -1,5 +1,5 @@
 /*
-	Copyright (c) 2004-2011, The Dojo Foundation All Rights Reserved.
+	Copyright (c) 2004-2016, The JS Foundation All Rights Reserved.
 	Available via Academic Free License >= 2.1 OR the modified BSD license.
 	see: http://dojotoolkit.org/license for details
 */
@@ -75,6 +75,25 @@
 	// prid: plugin resource identifier
 	// The integer constant 1 is used in place of true and 0 in place of false.
 
+	// define global
+	var globalObject = (function(){
+		if (typeof global !== 'undefined' && typeof global !== 'function') {
+			// global spec defines a reference to the global object called 'global'
+			// https://github.com/tc39/proposal-global
+			// `global` is also defined in NodeJS
+			return global;
+		}
+		else if (typeof window !== 'undefined') {
+			// window is defined in browsers
+			return window;
+		}
+		else if (typeof self !== 'undefined') {
+			// self is defined in WebWorkers
+			return self;
+		}
+		return this;
+	})();
+
 	// define a minimal library to help build the loader
 	var	noop = function(){
 		},
@@ -138,7 +157,7 @@
 		},
 
 		// the loader uses the has.js API to control feature inclusion/exclusion; define then use throughout
-		global = this,
+		global = globalObject,
 
 		doc = global.document,
 
@@ -149,6 +168,10 @@
 		},
 
 		hasCache = has.cache = defaultConfig.hasCache;
+
+	if (isFunction(userConfig)) {
+		userConfig = userConfig(globalObject);
+	}
 
 	has.add = function(name, test, now, force){
 		(hasCache[name]===undefined || force) && (hasCache[name] = test);
@@ -1329,7 +1352,13 @@
 					}
 				}
 			});
+		},
+
+		fixupUrl= typeof userConfig.fixupUrl == "function" ? userConfig.fixupUrl : function(url){
+			url += ""; // make sure url is a Javascript string (some paths may be a Java string)
+			return url + (cacheBust ? ((/\?/.test(url) ? "&" : "?") + cacheBust) : "");
 		};
+
 
 
 	if( 0 ){
@@ -1347,12 +1376,7 @@
 			has.add("dojo-loader-eval-hint-url", 1);
 		}
 
-		var fixupUrl= typeof userConfig.fixupUrl == "function" ? userConfig.fixupUrl : function(url){
-				url += ""; // make sure url is a Javascript string (some paths may be a Java string)
-				return url + (cacheBust ? ((/\?/.test(url) ? "&" : "?") + cacheBust) : "");
-			},
-
-			injectPlugin = function(
+		var	injectPlugin = function(
 				module
 			){
 				// injects the plugin module given by module; may have to inject the plugin itself
@@ -1982,7 +2006,7 @@
 		req.boot && req.apply(null, req.boot);
 	}
 })
-(this.dojoConfig || this.djConfig || this.require || {}, {
+(function(global){ return global.dojoConfig || global.djConfig || global.require || {}; }, {
 		async:0,
 		hasCache:{
 				'config-selectorEngine':"acme",
@@ -2801,7 +2825,7 @@ define(["./kernel", "../has", "require", "module", "../json", "./lang", "./array
 
 },
 'dojo/_base/kernel':function(){
-define(["../has", "./config", "require", "module"], function(has, config, require, module){
+define(["../global", "../has", "./config", "require", "module"], function(global, has, config, require, module){
 	// module:
 	//		dojo/_base/kernel
 
@@ -2813,7 +2837,6 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 
 		// create dojo, dijit, and dojox
 		// FIXME: in 2.0 remove dijit, dojox being created by dojo
-		global = (function () { return this; })(),
 		dijit = {},
 		dojox = {},
 		dojo = {
@@ -2883,7 +2906,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 	dojo.isAsync = ! 1  || require.async;
 	dojo.locale = config.locale;
 
-	var rev = "$Rev: 3594395 $".match(/[0-9a-f]{7,}/);
+	var rev = "$Rev: aaa6750 $".match(/[0-9a-f]{7,}/);
 	dojo.version = {
 		// summary:
 		//		Version number of the Dojo Toolkit
@@ -2896,7 +2919,7 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 		//		- flag: String: Descriptor flag. If total version is "1.2.0beta1", will be "beta1"
 		//		- revision: Number: The Git rev from which dojo was pulled
 
-		major: 1, minor: 11, patch: 1, flag: "",
+		major: 1, minor: 13, patch: 0, flag: "",
 		revision: rev ? rev[0] : NaN,
 		toString: function(){
 			var v = dojo.version;
@@ -2960,7 +2983,10 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 
 	if( 1 ){
 		// IE 9 bug: https://bugs.dojotoolkit.org/ticket/18197
-		has.add("console-as-object", Function.prototype.bind && console && typeof console.log === "object");
+		has.add("console-as-object", function () {
+			return Function.prototype.bind && console && typeof console.log === "object";
+		});
+
 		typeof console != "undefined" || (console = {});  // intentional assignment
 		//	Be careful to leave 'log' always at the end
 		var cn = [
@@ -3112,8 +3138,28 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 });
 
 },
+'dojo/global':function(){
+define(function(){
+    if (typeof global !== 'undefined' && typeof global !== 'function') {
+        // global spec defines a reference to the global object called 'global'
+        // https://github.com/tc39/proposal-global
+        // `global` is also defined in NodeJS
+        return global;
+    }
+    else if (typeof window !== 'undefined') {
+        // window is defined in browsers
+        return window;
+    }
+    else if (typeof self !== 'undefined') {
+        // self is defined in WebWorkers
+        return self;
+    }
+    return this;
+});
+
+},
 'dojo/has':function(){
-define(["require", "module"], function(require, module){
+define(["./global", "require", "module"], function(global, require, module){
 	// module:
 	//		dojo/has
 	// summary:
@@ -3141,7 +3187,6 @@ define(["require", "module"], function(require, module){
 				window.location == location && window.document == document,
 
 			// has API variables
-			global = (function () { return this; })(),
 			doc = isBrowser && document,
 			element = doc && doc.createElement("DiV"),
 			cache = (module.config && module.config()) || {};
@@ -3231,6 +3276,10 @@ define(["require", "module"], function(require, module){
 		has.add("pointer-events", "pointerEnabled" in window.navigator ?
 				window.navigator.pointerEnabled : "PointerEvent" in window);
 		has.add("MSPointer", window.navigator.msPointerEnabled);
+		// The "pointermove"" event is only continuously emitted in a touch environment if
+		// the target node's "touch-action"" CSS property is set to "none"
+		// https://www.w3.org/TR/pointerevents/#the-touch-action-css-property
+		has.add("touch-action", has("touch") && has("pointer-events"));
 
 		// I don't know if any of these tests are really correct, just a rough guess
 		has.add("device-width", screen.availWidth || innerWidth);
@@ -3307,7 +3356,7 @@ define(["require", "module"], function(require, module){
 
 },
 'dojo/_base/config':function(){
-define(["../has", "require"], function(has, require){
+define(["../global", "../has", "require"], function(global, has, require){
 	// module:
 	//		dojo/_base/config
 
@@ -3470,7 +3519,6 @@ return {
 				p!="has" && has.add(prefix + p, featureSet[p], 0, booting);
 			}
 		};
-		var global = (function () { return this; })();
 		result =  1  ?
 			// must be a built version of the dojo loader; all config stuffed in require.rawConfig
 			require.rawConfig :
@@ -5309,24 +5357,6 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 			//		of these additional transactions can be done concurrently. Owing to this analysis, the entire preloading
 			//		algorithm can be discard during a build by setting the has feature dojo-preload-i18n-Api to false.
 
-			if(has("dojo-preload-i18n-Api")){
-				var split = id.split("*"),
-					preloadDemand = split[1] == "preload";
-				if(preloadDemand){
-					if(!cache[id]){
-						// use cache[id] to prevent multiple preloads of the same preload; this shouldn't happen, but
-						// who knows what over-aggressive human optimizers may attempt
-						cache[id] = 1;
-						preloadL10n(split[2], json.parse(split[3]), 1, require);
-					}
-					// don't stall the loader!
-					load(1);
-				}
-				if(preloadDemand || waitForPreloads(id, require, load)){
-					return;
-				}
-			}
-
 			var match = nlsRe.exec(id),
 				bundlePath = match[1] + "/",
 				bundleName = match[5] || match[4],
@@ -5340,7 +5370,38 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 					if(!--remaining){
 						load(lang.delegate(cache[loadTarget]));
 					}
-				};
+				},
+				split = id.split("*"),
+				preloadDemand = split[1] == "preload";
+
+			if(has("dojo-preload-i18n-Api")){
+				if(preloadDemand){
+					if(!cache[id]){
+						// use cache[id] to prevent multiple preloads of the same preload; this shouldn't happen, but
+						// who knows what over-aggressive human optimizers may attempt
+						cache[id] = 1;
+						preloadL10n(split[2], json.parse(split[3]), 1, require);
+					}
+					// don't stall the loader!
+					load(1);
+				}
+				if(preloadDemand || (waitForPreloads(id, require, load) && !cache[loadTarget])){
+					return;
+				}
+			}
+			else if (preloadDemand) {
+				// If a build is created with nls resources and 'dojo-preload-i18n-Api' has not been set to false,
+				// the built file will include a preload in the cache (which looks about like so:)
+				// '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","en-us","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn","ROOT"]']);}
+				// If the consumer of the build sets 'dojo-preload-i18n-Api' to false in the Dojo config, the cached
+				// preload will not be parsed and will result in an attempt to call 'require' passing it the unparsed
+				// preload, which is not a valid module id.
+				// In this case we should skip this request.
+				load(1);
+
+				return;
+			}
+
 			array.forEach(loadList, function(locale){
 				var target = bundlePathAndName + "/" + locale;
 				if(has("dojo-preload-i18n-Api")){
@@ -5531,44 +5592,7 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 	if( 1 ){
 		// this code path assumes the dojo loader and won't work with a standard AMD loader
 		var amdValue = {},
-			evalBundle =
-				// use the function ctor to keep the minifiers away (also come close to global scope, but this is secondary)
-				new Function(
-					"__bundle",				   // the bundle to evalutate
-					"__checkForLegacyModules", // a function that checks if __bundle defined __mid in the global space
-					"__mid",				   // the mid that __bundle is intended to define
-					"__amdValue",
-
-					// returns one of:
-					//		1 => the bundle was an AMD bundle
-					//		a legacy bundle object that is the value of __mid
-					//		instance of Error => could not figure out how to evaluate bundle
-
-					  // used to detect when __bundle calls define
-					  "var define = function(mid, factory){define.called = 1; __amdValue.result = factory || mid;},"
-					+ "	   require = function(){define.called = 1;};"
-
-					+ "try{"
-					+		"define.called = 0;"
-					+		"eval(__bundle);"
-					+		"if(define.called==1)"
-								// bundle called define; therefore signal it's an AMD bundle
-					+			"return __amdValue;"
-
-					+		"if((__checkForLegacyModules = __checkForLegacyModules(__mid)))"
-								// bundle was probably a v1.6- built NLS flattened NLS bundle that defined __mid in the global space
-					+			"return __checkForLegacyModules;"
-
-					+ "}catch(e){}"
-					// evaulating the bundle was *neither* an AMD *nor* a legacy flattened bundle
-					// either way, re-eval *after* surrounding with parentheses
-
-					+ "try{"
-					+		"return eval('('+__bundle+')');"
-					+ "}catch(e){"
-					+		"return e;"
-					+ "}"
-				),
+			evalBundle,
 
 			syncRequire = function(deps, callback, require){
 				var results = [];
@@ -5576,6 +5600,45 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 					var url = require.toUrl(mid + ".js");
 
 					function load(text){
+						if (!evalBundle) {
+							// use the function ctor to keep the minifiers away (also come close to global scope, but this is secondary)
+							evalBundle = new Function(
+								"__bundle",				   // the bundle to evalutate
+								"__checkForLegacyModules", // a function that checks if __bundle defined __mid in the global space
+								"__mid",				   // the mid that __bundle is intended to define
+								"__amdValue",
+
+								// returns one of:
+								//		1 => the bundle was an AMD bundle
+								//		a legacy bundle object that is the value of __mid
+								//		instance of Error => could not figure out how to evaluate bundle
+
+								// used to detect when __bundle calls define
+								"var define = function(mid, factory){define.called = 1; __amdValue.result = factory || mid;},"
+								+ "	   require = function(){define.called = 1;};"
+
+								+ "try{"
+								+		"define.called = 0;"
+								+		"eval(__bundle);"
+								+		"if(define.called==1)"
+											// bundle called define; therefore signal it's an AMD bundle
+								+			"return __amdValue;"
+
+								+		"if((__checkForLegacyModules = __checkForLegacyModules(__mid)))"
+											// bundle was probably a v1.6- built NLS flattened NLS bundle that defined __mid in the global space
+								+			"return __checkForLegacyModules;"
+
+								+ "}catch(e){}"
+								// evaulating the bundle was *neither* an AMD *nor* a legacy flattened bundle
+								// either way, re-eval *after* surrounding with parentheses
+
+								+ "try{"
+								+		"return eval('('+__bundle+')');"
+								+ "}catch(e){"
+								+		"return e;"
+								+ "}"
+							);
+						}
 						var result = evalBundle(text, checkForLegacyModules, mid, amdValue);
 						if(result===amdValue){
 							// the bundle was an AMD module; re-inject it through the normal AMD path
@@ -7815,7 +7878,7 @@ define(["./create"], function(create){
 	};
 	=====*/
 
-	return create("CancelError", null, null, { dojoType: "cancel" });
+	return create("CancelError", null, null, { dojoType: "cancel", log: false });
 });
 
 },
@@ -7970,6 +8033,17 @@ define([
 			return this.then(callbackOrErrback, callbackOrErrback);
 		},
 
+		"catch": function(errback){
+		    // summary:
+		    //		Add new errbacks to the promise. Follows ECMA specification naming.
+		    // errback: Function?
+		    //		Callback to be invoked when the promise is rejected.
+		    // returns: dojo/promise/Promise
+		    //		Returns a new promise for the result of the errback.
+
+		    return this.then(null, errback);
+		},
+
 		otherwise: function(errback){
 			// summary:
 			//		Add new errbacks to the promise.
@@ -8009,6 +8083,9 @@ define([
 	has.add("config-useDeferredInstrumentation", "report-unhandled-rejections");
 
 	function logError(error, rejection, deferred){
+		if(error && error.log === false){
+			return;
+		}
 		var stack = "";
 		if(error && error.stack){
 			stack += error.stack;
@@ -9060,11 +9137,13 @@ define(["./has!dom-addeventlistener?:./aspect", "./_base/kernel", "./sniff"], fu
 						event.rotation = 0;
 						event.scale = 1;
 					}
-					//use event.changedTouches[0].pageX|pageY|screenX|screenY|clientX|clientY|target
-					var firstChangeTouch = event.changedTouches[0];
-					for(var i in firstChangeTouch){ // use for-in, we don't need to have dependency on dojo/_base/lang here
-						delete event[i]; // delete it first to make it mutable
-						event[i] = firstChangeTouch[i];
+					if (window.TouchEvent && originalEvent instanceof TouchEvent) {
+						// use event.changedTouches[0].pageX|pageY|screenX|screenY|clientX|clientY|target
+						var firstChangeTouch = event.changedTouches[0];
+						for(var i in firstChangeTouch){ // use for-in, we don't need to have dependency on dojo/_base/lang here
+							delete event[i]; // delete it first to make it mutable
+							event[i] = firstChangeTouch[i];
+						}
 					}
 				}
 				return listener.call(this, event);
@@ -9348,15 +9427,20 @@ define([
 	'../io-query',
 	'../_base/array',
 	'../_base/lang',
-	'../promise/Promise'
-], function(exports, RequestError, CancelError, Deferred, ioQuery, array, lang, Promise){
+	'../promise/Promise',
+	'../has'
+], function(exports, RequestError, CancelError, Deferred, ioQuery, array, lang, Promise, has){
 	exports.deepCopy = function deepCopy(target, source){
 		for(var name in source){
 			var tval = target[name],
 				sval = source[name];
 			if(tval !== sval){
 				if(tval && typeof tval === 'object' && sval && typeof sval === 'object'){
-					exports.deepCopy(tval, sval);
+					if(sval instanceof Date){
+						target[name] = new Date(sval);
+					}else{
+						exports.deepCopy(tval, sval);
+					}
 				}else{
 					target[name] = sval;
 				}
@@ -9461,9 +9545,9 @@ define([
 	exports.parseArgs = function parseArgs(url, options, skipData){
 		var data = options.data,
 			query = options.query;
-		
+
 		if(data && !skipData){
-			if(typeof data === 'object'){
+			if(typeof data === 'object' && (!(has('native-xhr2')) || !(data instanceof ArrayBuffer || data instanceof Blob ))){
 				options.data = ioQuery.objectToQuery(data);
 			}
 		}
@@ -9573,7 +9657,10 @@ define([
 	has.add('native-xhr2-blob', function(){
 		if(!has('native-response-type')){ return; }
 		var x = new XMLHttpRequest();
-		x.open('GET', '/', true);
+		// The URL used here does not have to be reachable as the XHR's `send` method is never called.
+		// It does need to be parsable/resolvable in all cases, so it should be an absolute URL.
+		// XMLHttpRequest within a Worker created from a Blob does not support relative URL paths.
+		x.open('GET', 'https://dojotoolkit.org/', true);
 		x.responseType = 'blob';
 		// will not be set if unsupported
 		var responseType = x.responseType;
@@ -9725,6 +9812,11 @@ define([
 		url = response.url;
 		options = response.options;
 
+		if(has('ie') <= 10){
+			// older IE breaks point 9 in http://www.w3.org/TR/XMLHttpRequest/#the-open()-method and sends fragment, so strip it
+			url = url.split('#')[0];
+		}
+		
 		var remover,
 			last = function(){
 				remover && remover();
@@ -9754,7 +9846,8 @@ define([
 			remover = addListeners(_xhr, dfd, response);
 		}
 
-		var data = options.data,
+		// IE11 treats data: undefined different than other browsers
+		var data = typeof(options.data) === 'undefined' ? null : options.data,
 			async = !options.sync,
 			method = options.method;
 
@@ -10013,17 +10106,20 @@ define(["../has", "require"],
 		function(has, require){
 
 "use strict";
-var testDiv = document.createElement("div");
-has.add("dom-qsa2.1", !!testDiv.querySelectorAll);
-has.add("dom-qsa3", function(){
-			// test to see if we have a reasonable native selector engine available
-			try{
-				testDiv.innerHTML = "<p class='TEST'></p>"; // test kind of from sizzle
-				// Safari can't handle uppercase or unicode characters when
-				// in quirks mode, IE8 can't handle pseudos like :empty
-				return testDiv.querySelectorAll(".TEST:empty").length == 1;
-			}catch(e){}
-		});
+if (typeof document !== "undefined") {
+	var testDiv = document.createElement("div");
+	has.add("dom-qsa2.1", !!testDiv.querySelectorAll);
+	has.add("dom-qsa3", function(){
+		// test to see if we have a reasonable native selector engine available
+		try{
+			testDiv.innerHTML = "<p class='TEST'></p>"; // test kind of from sizzle
+			// Safari can't handle uppercase or unicode characters when
+			// in quirks mode, IE8 can't handle pseudos like :empty
+			return testDiv.querySelectorAll(".TEST:empty").length == 1;
+		}catch(e){}
+	});
+}
+
 var fullEngine;
 var acme = "./acme", lite = "./lite";
 return {
@@ -10031,6 +10127,15 @@ return {
 	//		This module handles loading the appropriate selector engine for the given browser
 
 	load: function(id, parentRequire, loaded, config){
+		if (config && config.isBuild) {
+			//Indicate that the optimizer should not wait
+			//for this resource any more and complete optimization.
+			//This resource will be resolved dynamically during
+			//run time in the web browser.
+			loaded();
+			return;
+		}
+
 		var req = require;
 		// here we implement the default logic for choosing a selector engine
 		id = id == "default" ? has("config-selectorEngine") || "css3" : id;
@@ -10266,9 +10371,8 @@ define(["./_base/kernel", "./has", "require", "./domReady", "./_base/lang"], fun
 
 },
 'dojo/domReady':function(){
-define(['./has'], function(has){
-	var global = (function () { return this; })(),
-		doc = document,
+define(['./global', './has'], function(global, has){
+	var doc = document,
 		readyStates = { 'loaded': 1, 'complete': 1 },
 		fixReadyState = typeof doc.readyState != "string",
 		ready = !!readyStates[doc.readyState],
@@ -10401,6 +10505,7 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		xtor, counter = 0, cname = "constructor";
 
 	if(!has("csp-restrictions")){
+		// 'new Function()' is preferable when available since it does not create a closure
 		xtor = new Function;
 	}else{
 		xtor = function(){};
@@ -10484,23 +10589,41 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		return result;
 	}
 
-	function inherited(args, a, f){
+	function inherited(args, a, f, g){
 		var name, chains, bases, caller, meta, base, proto, opf, pos,
 			cache = this._inherited = this._inherited || {};
 
 		// crack arguments
-		if(typeof args == "string"){
+		if(typeof args === "string"){
 			name = args;
 			args = a;
 			a = f;
+			f = g;
 		}
-		f = 0;
 
-		caller = args.callee;
+		if(typeof args === "function"){
+			// support strict mode
+			caller = args;
+			args = a;
+			a = f;
+		}else{
+			try{
+				caller = args.callee;
+			}catch (e){
+				if(e instanceof TypeError){
+					// caller was defined in a strict-mode context
+					err("strict mode inherited() requires the caller function to be passed before arguments", this.declaredClass);
+				}else{
+					throw e;
+				}
+			}
+		}
+
 		name = name || caller.nom;
 		if(!name){
 			err("can't deduce a name to call inherited()", this.declaredClass);
 		}
+		f = g = 0;
 
 		meta = this.constructor._meta;
 		bases = meta.bases;
@@ -10592,16 +10715,24 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		// intentionally no return if a super method was not found
 	}
 
-	function getInherited(name, args){
-		if(typeof name == "string"){
+	function getInherited(name, args, a){
+		if(typeof name === "string"){
+			if (typeof args === "function") {
+				return this.__inherited(name, args, a, true);
+			}
+			return this.__inherited(name, args, true);
+		}
+		else if (typeof name === "function") {
 			return this.__inherited(name, args, true);
 		}
 		return this.__inherited(name, true);
 	}
 
-	function inherited__debug(args, a1, a2){
-		var f = this.getInherited(args, a1);
-		if(f){ return f.apply(this, a2 || a1 || args); }
+	function inherited__debug(args, a1, a2, a3){
+		var f = this.getInherited(args, a1, a2);
+		if(f){
+			return f.apply(this, a3 || a2 || a1 || args);
+		}
 		// intentionally no return if a super method was not found
 	}
 
@@ -10727,18 +10858,18 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		return this;
 	}
 
-    function createSubclass(mixins, props){
-        // crack parameters
-        if(!(mixins instanceof Array || typeof mixins == 'function')){
-            props = mixins;
-            mixins = undefined;
-        }
+	function createSubclass(mixins, props){
+		// crack parameters
+		if(!(mixins instanceof Array || typeof mixins === 'function')){
+			props = mixins;
+			mixins = undefined;
+		}
 
-        props = props || {};
-        mixins = mixins || [];
+		props = props || {};
+		mixins = mixins || [];
 
-        return declare([this].concat(mixins), props);
-    }
+		return declare([this].concat(mixins), props);
+	}
 
 	// chained constructor compatible with the legacy declare()
 	function chainedConstructor(bases, ctorSpecial){
@@ -11176,7 +11307,12 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 				t = bases[i];
 				(t._meta ? mixOwn : mix)(proto, t.prototype);
 				// chain in new constructor
-				ctor = new Function;
+				if (has("csp-restrictions")) {
+					ctor = function () {};
+				}
+				else {
+					ctor = new Function;
+				}
 				ctor.superclass = superclass;
 				ctor.prototype = proto;
 				superclass = proto.constructor = ctor;
@@ -11202,6 +11338,10 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		}
 		if(proto["-chains-"]){
 			chains = mix(chains || {}, proto["-chains-"]);
+		}
+
+		if(superclass && superclass.prototype && superclass.prototype["-chains-"]) {
+			chains = mix(chains || {}, superclass.prototype["-chains-"]);
 		}
 
 		// build ctor
@@ -11251,7 +11391,7 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 		//		dojo/_base/declare() returns a constructor `C`.   `new C()` returns an Object with the following
 		//		methods, in addition to the methods and properties specified via the arguments passed to declare().
 
-		inherited: function(name, args, newArgs){
+		inherited: function(name, caller, args, newArgs){
 			// summary:
 			//		Calls a super method.
 			// name: String?
@@ -11259,6 +11399,18 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 			//		name. Usually "name" is specified in complex dynamic cases, when
 			//		the calling method was dynamically added, undecorated by
 			//		declare(), and it cannot be determined.
+			// caller: Function?
+			//		The reference to the calling function. Required only if the
+			//		call to "this.inherited" occurs from within strict-mode code.
+			//		If the caller is omitted within strict-mode code, an error will
+			//		be thrown.
+			//		The best way to obtain a reference to the calling function is to
+			//		use a named function expression (i.e. place a function name
+			//		after the "function" keyword and before the open paren, as in
+			//		"function fn(a, b)"). If the function is parsed as an expression
+			//		and not a statement (i.e. it's not by itself on its own line),
+			//		the function name will only be accessible as an identifier from
+			//		within the body of the function.
 			// args: Arguments
 			//		The caller supply this argument, which should be the original
 			//		"arguments".
@@ -11322,10 +11474,20 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 			//	|			return super.apply(this, arguments);
 			//	|		}
 			//	|	});
+			// example:
+			//	|	"use strict";
+			//	|	// class is defined in strict-mode code,
+			//	|	// so caller must be passed before arguments.
+			//	|	var B = declare(A, {
+			//	|		// using a named function expression with "fn" as the name.
+			//	|		method: function fn(a, b) {
+			//	|			this.inherited(fn, arguments);
+			//	|		}
+			//	|	});
 			return	{};	// Object
 		},
 
-		getInherited: function(name, args){
+		getInherited: function(name, caller, args){
 			// summary:
 			//		Returns a super method.
 			// name: String?
@@ -11333,6 +11495,11 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 			//		name. Usually "name" is specified in complex dynamic cases, when
 			//		the calling method was dynamically added, undecorated by
 			//		declare(), and it cannot be determined.
+			// caller: Function?
+			//		The caller function. This is required when running in
+			//		strict-mode code. A reference to the caller function
+			//		can be obtained by using a named function expression
+			//		(e.g. function fn(a,b) {...}).
 			// args: Arguments
 			//		The caller supply this argument, which should be the original
 			//		"arguments".
@@ -11353,6 +11520,19 @@ define(["./kernel", "../has", "./lang"], function(dojo, has, lang){
 			//	|				return 0;
 			//	|			}
 			//	|			return super.apply(this, arguments);
+			//	|		}
+			//	|	});
+			// example:
+			//	|	"use strict;" // first line of function or file
+			//	|	//...
+			//	|	var B = declare(A, {
+			//	|		// Using a named function expression with "fn" as the name,
+			//	|		// since we're in strict mode.
+			//	|		method: function fn(a, b){
+			//	|			var super = this.getInherited(fn, arguments);
+			//	|			if(super){
+			//	|				return super.apply(this, arguments);
+			//	|			}
 			//	|		}
 			//	|	});
 			return	{};	// Object
@@ -12167,29 +12347,9 @@ define(["./sniff", "./_base/window","./dom", "./dom-style"],
 		node = dom.byId(node);
 		var s = computedStyle || style.getComputedStyle(node), me = geom.getMarginExtents(node, s),
 			l = node.offsetLeft - me.l, t = node.offsetTop - me.t, p = node.parentNode, px = style.toPixelValue, pcs;
-		if(has("mozilla")){
-			// Mozilla:
-			// If offsetParent has a computed overflow != visible, the offsetLeft is decreased
-			// by the parent's border.
-			// We don't want to compute the parent's style, so instead we examine node's
-			// computed left/top which is more stable.
-			var sl = parseFloat(s.left), st = parseFloat(s.top);
-			if(!isNaN(sl) && !isNaN(st)){
-				l = sl;
-				t = st;
-			}else{
-				// If child's computed left/top are not parseable as a number (e.g. "auto"), we
-				// have no choice but to examine the parent's computed style.
-				if(p && p.style){
-					pcs = style.getComputedStyle(p);
-					if(pcs.overflow != "visible"){
-						l += pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
-						t += pcs.borderTopStyle != none ? px(node, pcs.borderTopWidth) : 0;
-					}
-				}
-			}
-		}else if(has("opera") || (has("ie") == 8 && !has("quirks"))){
-			// On Opera and IE 8, offsetLeft/Top includes the parent's border
+
+		if((has("ie") == 8 && !has("quirks"))){
+			// IE 8 offsetLeft/Top includes the parent's border
 			if(p){
 				pcs = style.getComputedStyle(p);
 				l -= pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
@@ -12217,20 +12377,26 @@ define(["./sniff", "./_base/window","./dom", "./dom-style"],
 		// fallback to offsetWidth/Height for special cases (see #3378)
 		node = dom.byId(node);
 		var s = computedStyle || style.getComputedStyle(node), w = node.clientWidth, h,
-			pe = geom.getPadExtents(node, s), be = geom.getBorderExtents(node, s);
+			pe = geom.getPadExtents(node, s), be = geom.getBorderExtents(node, s), l = node.offsetLeft + pe.l + be.l,
+			t = node.offsetTop + pe.t + be.t;
 		if(!w){
-			w = node.offsetWidth;
-			h = node.offsetHeight;
+			w = node.offsetWidth - be.w;
+			h = node.offsetHeight - be.h;
 		}else{
 			h = node.clientHeight;
-			be.w = be.h = 0;
 		}
-		// On Opera, offsetLeft includes the parent's border
-		if(has("opera")){
-			pe.l += be.l;
-			pe.t += be.t;
+
+		if((has("ie") == 8 && !has("quirks"))){
+			// IE 8 offsetLeft/Top includes the parent's border
+			var p = node.parentNode, px = style.toPixelValue, pcs;
+			if(p){
+				pcs = style.getComputedStyle(p);
+				l -= pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
+				t -= pcs.borderTopStyle != none ? px(node, pcs.borderTopWidth) : 0;
+			}
 		}
-		return {l: pe.l, t: pe.t, w: w - pe.w - be.w, h: h - pe.h - be.h};
+
+		return {l: l, t: t, w: w - pe.w, h: h - pe.h};
 	};
 
 	// Box setters depend on box context because interpretation of width/height styles
@@ -12548,7 +12714,7 @@ define(["./sniff", "./_base/window","./dom", "./dom-style"],
 
 },
 'dojo/dom-style':function(){
-define(["./sniff", "./dom"], function(has, dom){
+define(["./sniff", "./dom", "./_base/window"], function(has, dom, win){
 	// module:
 	//		dojo/dom-style
 
@@ -12595,8 +12761,12 @@ define(["./sniff", "./dom"], function(has, dom){
 		};
 	}else{
 		getComputedStyle = function(node){
-			return node.nodeType == 1 /* ELEMENT_NODE*/ ?
-				node.ownerDocument.defaultView.getComputedStyle(node, null) : {};
+			if(node.nodeType === 1 /* ELEMENT_NODE*/){
+				var dv = node.ownerDocument.defaultView,
+					w = dv.opener ? dv : win.global.window;
+				return w.getComputedStyle(node, null);
+			}
+			return {};
 		};
 	}
 	style.getComputedStyle = getComputedStyle;

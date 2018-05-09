@@ -147,10 +147,10 @@ delete _3b._openedNodes[_47];
 }
 _3b._saveExpandedNodes();
 }
-if(_3b.lastFocusedChild&&!_7.isDescendant(_3b.lastFocusedChild,_3b.domNode)){
+if(_3b.lastFocusedChild&&!_7.isDescendant(_3b.lastFocusedChild.domNode,_3b.domNode)){
 delete _3b.lastFocusedChild;
 }
-if(_3e&&!_7.isDescendant(_3e,_3b.domNode)){
+if(_3e&&!_7.isDescendant(_3e.domNode,_3b.domNode)){
 _3b.focus();
 }
 _41.destroyRecursive();
@@ -631,10 +631,10 @@ var _ba=_b9.getParent();
 if(_ba){
 _ba.removeChild(_b9);
 }
-if(this.lastFocusedChild&&!_7.isDescendant(this.lastFocusedChild,this.domNode)){
+if(this.lastFocusedChild&&!_7.isDescendant(this.lastFocusedChild.domNode,this.domNode)){
 delete this.lastFocusedChild;
 }
-if(this.focusedChild&&!_7.isDescendant(this.focusedChild,this.domNode)){
+if(this.focusedChild&&!_7.isDescendant(this.focusedChild.domNode,this.domNode)){
 this.focus();
 }
 _b9.destroyRecursive();
