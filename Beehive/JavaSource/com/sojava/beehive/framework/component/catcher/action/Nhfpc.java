@@ -37,29 +37,33 @@ public class Nhfpc {
 	private final String HOST = "www.nhfpc.gov.cn";
 	private final String URL = "http://www.nhfpc.gov.cn/interview/MyJsp.jsp";
 	private final String USER_AGENT = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)";
-	private final String ACCEPT = "text/html,application/xhtml+xml,application/xml,*/*; q=0.1";
+	private final String ACCEPT = "application/x-ms-application, image/jpeg, application/xaml+xml, image/gif, image/pjpeg, application/x-ms-xbap, */*";
 	private final String ACCEPT_LANGUAGE = "zh-CN";
 	private final String ACCEPT_ENCODING = "gzip, deflate";
-	private final String CONTENT_TYPE = "application/x-www-form-urlencoded";
+	private final String CONNECTION = "Keep-Alive";
 
 	private HttpClient client = HttpClientBuilder.create().build();
 
 	private int currPage = 1;
 	private Date currDate = null;
+	private final Date ed = new Date();
+
+	private final long INTERVAL=1000*5;
 
 	@Resource private CatchArticleDao catchArticleDao;
 
-	@Scheduled(cron = "0 */10 * * * ?")
-	@SuppressWarnings("unchecked")
+	@Scheduled(cron = "0 */1 * * * ?")
 	public void execute() throws Exception {
 
 		try {
-			Date ed = new Date();
 			currDate = catchArticleDao.getLastDate();
 			currDate = currDate == null ? DEFAULT_DATE : currDate;
+			NhfpcProcessor np = new NhfpcProcessor();
+			np.start();
+/*
 			while(currDate.getTime() <= ed.getTime()) {
 				String content = getPageContent(URL);
-				List<Object> list = parser(content);
+				List<Object> list = parse(content);
 				int _totalPage = 0, _currPage = 0;
 
 				for(Object item: list) {
@@ -86,6 +90,7 @@ public class Nhfpc {
 					}
 				}
 			}
+*/
 		}
 		catch(ErrorException ex) {}
 	}
@@ -95,11 +100,11 @@ public class Nhfpc {
 		RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
 		HttpGet request = new HttpGet(url + "?curr_page=" + currPage + "&date=" + FormatUtil.DATE_FORMAT.format(currDate));
 		request.setConfig(defaultConfig);
-		request.setHeader("User-Agent", USER_AGENT);
 		request.setHeader("Accept", ACCEPT);
 		request.setHeader("Accept-Language", ACCEPT_LANGUAGE);
+		request.setHeader("User-Agent", USER_AGENT);
 		request.setHeader("Accept-Encoding", ACCEPT_ENCODING);
-		request.setHeader("Content-Type", CONTENT_TYPE);
+		request.setHeader("Connection", CONNECTION);
 		HttpHost host = new HttpHost(HOST);
 		HttpResponse response = client.execute(host, request);
 		BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -113,7 +118,7 @@ public class Nhfpc {
 		return result.toString();
 	}
 
-	public List<Object> parser(String content) throws Exception {
+	public List<Object> parse(String content) throws Exception {
 		List<Object> list = new ArrayList<Object>();
 
 		try {
@@ -195,4 +200,72 @@ public class Nhfpc {
 		this.catchArticleDao = catchArticleDao;
 	}
 
+	class NhfpcProcessor extends Thread {
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void run() {
+			super.run();
+
+			try {
+				while(currDate.getTime() <= ed.getTime()) {
+					String content = getPageContent(URL);
+					List<Object> list = parse(content);
+					int _totalPage = 0, _currPage = 0;
+
+					for(Object item: list) {
+						if (item instanceof Properties) {
+							_totalPage = Integer.parseInt(((Properties) item).getProperty("totalPage"));
+							_currPage = Integer.parseInt(((Properties) item).getProperty("currPage"));
+						} else {
+							String _title = ((Map<String, String>) item).get("title");
+							String _url = ((Map<String, String>) item).get("url");
+							String _date = ((Map<String, String>) item).get("date");
+
+							catchArticleDao.save("卫健委每日更新", _title, _url, _date);
+						}
+					}
+					if (_currPage < _totalPage) {
+						currPage = ++ _currPage;
+					} else {
+						currPage = 1;
+						long _time = currDate.getTime() + 86400000L;
+						if (_time <= ed.getTime()) {
+							currDate.setTime(_time);
+						} else {
+							currDate.setTime(ed.getTime());
+						}
+					}
+				}
+			}
+			catch(ErrorException ex) {}
+			catch(Exception ex) {
+				new ErrorException(this.getClass(), ex);
+			}
+		}
+
+		public String getPageContent(String url) throws Exception {
+
+			RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+			HttpGet request = new HttpGet(url + "?curr_page=" + currPage + "&date=" + FormatUtil.DATE_FORMAT.format(currDate));
+			request.setConfig(defaultConfig);
+			request.setHeader("Accept", ACCEPT);
+			request.setHeader("Accept-Language", ACCEPT_LANGUAGE);
+			request.setHeader("User-Agent", USER_AGENT);
+			request.setHeader("Accept-Encoding", ACCEPT_ENCODING);
+			request.setHeader("Connection", CONNECTION);request.setHeader("Cookie", "JSESSIONID=5DCA4C846C9070A2F37B2AC4537455FB; banggoo.nuva.cookie=3|W073h|W073d; FSSBBIl1UgzbN7N80T=2dJFGibxMNBHDtS8srpeaSZK6ge_j2JLrosCCWzs9AA7pg30WxpMKR8qaeE_30Y92kg3HZxPO.oGawmbAPdErOUP4ijgzOJ2Ye_Ji3sK2gLkJX54dD4AKJnTd4OJ_PTHgNXDYuXT8BuBE_PQNIxUrXTIfS6qBTV3TK5BFPHHyqVgaZSwsUbZOsi9aaKXZf5T.8R2.FMx2P8dH8ztRdUnOzLZ8QimHgn7MlrE76fowLxhoLwb33Wgi6Dkj6fMbaf4rzTG1cwXm1AZYM.pKPm984Ru5sdE6l20.0o3wW1IQrcVQwa; FSSBBIl1UgzbN7N80S=HtSzlGPn9fgyMWKQMySu3nbXYKrKzNPWFl5OrHNFEBZDkBRO93yscLlG5u1GZbbs; security_session_verify=389d686db75a6c6650c9988b1ec84794");
+			HttpHost host = new HttpHost(HOST);
+			sleep(INTERVAL);
+			HttpResponse response = client.execute(host, request);
+			BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+
+			StringBuffer result = new StringBuffer();
+			String line = "";
+			while ((line = rd.readLine()) != null) {
+				result.append(line + "\n");
+			}
+
+			return result.toString();
+		}
+	}
 }
