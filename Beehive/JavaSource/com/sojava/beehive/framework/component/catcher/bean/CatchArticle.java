@@ -32,6 +32,21 @@ public class CatchArticle implements Serializable {
 	public CatchArticle() {
 	}
 
+	public CatchArticle(String kind, String title, String url, String date) {
+		this.kind = kind;
+		this.title = title;
+		this.url = url;
+		this.date = date;
+	}
+
+	public CatchArticle(String kind, String title, String content, String url, String date) {
+		this.kind = kind;
+		this.title = title;
+		this.content = content;
+		this.url = url;
+		this.date = date;
+	}
+
 	public Integer getId() {
 		return this.id;
 	}

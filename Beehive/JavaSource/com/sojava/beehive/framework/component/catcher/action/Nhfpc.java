@@ -1,7 +1,8 @@
 package com.sojava.beehive.framework.component.catcher.action;
 
+import com.sojava.beehive.framework.component.catcher.dao.CatchArticleDao;
 import com.sojava.beehive.framework.exception.ErrorException;
-import com.sojava.beehive.framework.exception.WarnException;
+import com.sojava.beehive.framework.util.FormatUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -10,8 +11,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Resource;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -19,8 +23,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -30,8 +32,7 @@ import javassist.NotFoundException;
 @Component
 public class Nhfpc {
 
-	private final boolean init = false;
-	private final Date bd = new Date(1422756036185L);
+	private final Date DEFAULT_DATE = new Date(1422756036185L);
 
 	private final String HOST = "www.nhfpc.gov.cn";
 	private final String URL = "http://www.nhfpc.gov.cn/interview/MyJsp.jsp";
@@ -44,32 +45,55 @@ public class Nhfpc {
 	private HttpClient client = HttpClientBuilder.create().build();
 
 	private int currPage = 1;
-	private String currDate = "2018-07-16";
+	private Date currDate = null;
 
-//	@Scheduled(cron = "* */10 * * * ?")
-//	public void execute() throws Exception {
-	public static void main(String[] args) throws Exception {
+	@Resource private CatchArticleDao catchArticleDao;
 
-		Nhfpc nhfpc = new Nhfpc();
-		if (nhfpc.init) nhfpc.init();
-		nhfpc.currPage = 1;
-		nhfpc.currDate = "2018-07-16";
-		String content = nhfpc.getPageContent(nhfpc.URL);
-		System.out.println(content);
+	@Scheduled(cron = "0 */10 * * * ?")
+	@SuppressWarnings("unchecked")
+	public void execute() throws Exception {
+
 		try {
-			nhfpc.parser(content);
+			Date ed = new Date();
+			currDate = catchArticleDao.getLastDate();
+			currDate = currDate == null ? DEFAULT_DATE : currDate;
+			while(currDate.getTime() <= ed.getTime()) {
+				String content = getPageContent(URL);
+				List<Object> list = parser(content);
+				int _totalPage = 0, _currPage = 0;
+
+				for(Object item: list) {
+					if (item instanceof Properties) {
+						_totalPage = Integer.parseInt(((Properties) item).getProperty("totalPage"));
+						_currPage = Integer.parseInt(((Properties) item).getProperty("currPage"));
+					} else {
+						String _title = ((Map<String, String>) item).get("title");
+						String _url = ((Map<String, String>) item).get("url");
+						String _date = ((Map<String, String>) item).get("date");
+
+						catchArticleDao.save("卫健委每日更新", _title, _url, _date);
+					}
+				}
+				if (_currPage < _totalPage) {
+					currPage = ++ _currPage;
+				} else {
+					currPage = 1;
+					long _time = currDate.getTime() + 86400000L;
+					if (_time <= ed.getTime()) {
+						currDate.setTime(_time);
+					} else {
+						currDate.setTime(ed.getTime());
+					}
+				}
+			}
 		}
 		catch(ErrorException ex) {}
-	}
-
-	public void init() throws Exception {
-		Date ed = new Date();
 	}
 
 	public String getPageContent(String url) throws Exception {
 
 		RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
-		HttpGet request = new HttpGet(url + "?curr_page=" + currPage + "&date=" + currDate);
+		HttpGet request = new HttpGet(url + "?curr_page=" + currPage + "&date=" + FormatUtil.DATE_FORMAT.format(currDate));
 		request.setConfig(defaultConfig);
 		request.setHeader("User-Agent", USER_AGENT);
 		request.setHeader("Accept", ACCEPT);
@@ -89,16 +113,17 @@ public class Nhfpc {
 		return result.toString();
 	}
 
-	public List<Map<String, ?>> parser(String content) throws Exception {
-		List<Map<String, ?>> list = new ArrayList<Map<String, ?>>();
+	public List<Object> parser(String content) throws Exception {
+		List<Object> list = new ArrayList<Object>();
 
 		try {
 			if (content.indexOf("该日没有更新稿件") != -1) throw new NotFoundException("该日没有更新稿件");
-			if (content.indexOf("<title>每日更新</title>") == -1) throw new ErrorException(getClass(), "无法解析内容");
+			if (content.indexOf("<title>每日更新</title>") == -1) throw new ErrorException(getClass(), "无法解析内容[page:" + currPage + ",date:" + FormatUtil.DATE_FORMAT.format(currDate) + "]");
 			int _currPage = 0, _totalPage = 0;
 			Pattern p;
 			Matcher m;
 			String str = "";
+			Properties prop = new Properties();
 			//总页数
 			p = Pattern.compile("\\Q共\\E.*\\Q页\\E");
 			m = p.matcher(content);
@@ -108,9 +133,7 @@ public class Nhfpc {
 				p = Pattern.compile("\\D*");
 				m = p.matcher(str);
 				_totalPage = Integer.parseInt(m.replaceAll(""));
-				Map<String, Integer> item = new HashMap<String, Integer>();
-				item.put("totalPage", _totalPage);
-				list.add(item);
+				prop.setProperty("totalPage", _totalPage+"");
 			}
 			//当前页数
 			p = Pattern.compile("\\Q当前第\\E.*\\Q页\\E");
@@ -121,10 +144,9 @@ public class Nhfpc {
 				p = Pattern.compile("\\D*");
 				m = p.matcher(str);
 				_currPage = Integer.parseInt(m.replaceAll(""));
-				Map<String, Integer> item = new HashMap<String, Integer>();
-				item.put("currPage", _currPage);
-				list.add(item);
+				prop.setProperty("currPage", _currPage+"");
 			}
+			list.add(prop);
 			//读取条目
 			p = Pattern.compile("\\Q<li>·<a \\E.*\\Q</span></li>\\E");
 			m = p.matcher(content);
@@ -150,16 +172,27 @@ public class Nhfpc {
 				}
 
 				Map<String, String> item = new HashMap<String, String>();
-				item.put("title", title);
-				item.put("url", "http://" + HOST + uri);
-				item.put("date", date);
+				item.put("title", title.trim());
+				item.put("url", "http://" + HOST + uri.trim());
+				item.put("date", date.trim());
 				list.add(item);
 			}
 		}
 		catch(NotFoundException ex) {}
+		catch(ErrorException ex) {
+			throw ex;
+		}
 		catch(Exception ex) {}
 
 		return list;
+	}
+
+	public CatchArticleDao getCatchArticleDao() {
+		return catchArticleDao;
+	}
+
+	public void setCatchArticleDao(CatchArticleDao catchArticleDao) {
+		this.catchArticleDao = catchArticleDao;
 	}
 
 }
