@@ -24,6 +24,12 @@ function(dojo) {
 		</script>
 	</div>
 	<div dojoType="dijit.MenuBarItem">
+		<span>RSS</span>
+		<script type="dojo/event" event="onClick" args="e">
+			bee.open("/Catcher/Index.shtml");
+		</script>
+	</div>
+	<div dojoType="dijit.MenuBarItem">
 		<span>影像科绩效核算</span>
 		<script type="dojo/event" event="onClick" args="e">
 			bee.open("/MedicalImaging/Entry.shtml");
