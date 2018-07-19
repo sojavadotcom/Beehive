@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import javassist.NotFoundException;
 
 @Component
-public class Nhfpc {
+public class NhfpcSchedule {
 
 	private final Date DEFAULT_DATE = new Date(1422756036185L);
 
@@ -59,7 +59,7 @@ public class Nhfpc {
 	@Resource private CatchArticleDao catchArticleDao;
 
 	public static void main(String[] args) {
-		Nhfpc n = new Nhfpc();
+		NhfpcSchedule n = new NhfpcSchedule();
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.YEAR, 2015);
 		c.set(Calendar.MONTH, 5);
