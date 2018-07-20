@@ -70,7 +70,7 @@ public class ActionSupport extends com.opensymphony.xwork2.ActionSupport {
 			range = range.replaceFirst("[\\D]*", "");
 			String ranges[] = range.split("\\Q-\\E");
 			this.start = Integer.parseInt(ranges[0]);
-			this.end = Integer.parseInt(ranges[1]);
+			this.end = ranges.length > 1 ? Integer.parseInt(ranges[1]) : 0;
 		}
 		//解析排序
 		if (this.sort != null) {
@@ -87,14 +87,7 @@ public class ActionSupport extends com.opensymphony.xwork2.ActionSupport {
 	}
 
 	public void setRange(int total) {
-		try  {
-			String range = request.getHeader("range");
-			String[] ranges = range.split("\\Q-\\E");
-			int start = Integer.parseInt(ranges[0].replaceAll("\\D", ""));
-			int end = Integer.parseInt(ranges[1]);
-			response.setHeader("Content-Range", "items " + (start) + "-" + (end) + "/" + total);
-		}
-		catch(Exception ex) {}
+		response.setHeader("Content-Range", "items " + this.start + "-" + this.end + "/" + total);
 	}
 
 	public ActionContext getActionContext() {

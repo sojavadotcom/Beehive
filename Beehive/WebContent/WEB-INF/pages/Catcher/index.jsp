@@ -41,34 +41,40 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 	dojo.ready(function() {
 		var catcher = new EnhancedGrid({
 			id: "catcherGrid",
-			store: new ObjectStore({objectStore: new JsonRest({sortParam: "sort",queryEngine: {start: 1, count: 200},target: "/Catcher/Query.shtml"})}),
+			store: new ObjectStore({objectStore: new JsonRest({sortParam: "sort",queryEngine: {start: 1, count: 100, sort: "-date"},target: "/Catcher/Query.shtml"})}),
 			selectionMode: "single",
 			columnReordering: "true",
 			structure: [
 				[
-					{field: "title", name: "标题", formatter: function (val, rowIndex, cell) {
-						var url = staffPerformance.getItem(rowIndex).url;
+					{field: "title", name: "标题", width: "50", filterable: true, datatype: "string", formatter: function (val, rowIndex, cell) {
+						var url = catcher.getItem(rowIndex).url;
 						return "<a href='" + url + "' target='blank'>" + val + "</a>";
 					}},
-					{field: "date", name: "日期"},
-					{field: "kind", name: "来源"}
+					{field: "date", name: "日期", filterable: true, datatype: "date", dataTypeArgs: {datePattern: "yyyy-M-d"}},
+					{field: "kind", name: "来源", filterable: true, datatype: "string", autoComplete: true}
 				]
 			],
 			plugins: {
-				dnd: false,
+				dnd: true,
 				nestedSorting: true,
 				indirectSelection: false,
 				pagination: {
-					pageSizes: ['All'],
-					defaultPageSize: 9999999,
+					pageSizes: ['100', '200', '300'],
+					defaultPageSize: 100,
 					description: true,
-					sizeSwitch: false,
-					pageStepper: false,
-					gotoButton: false,
+					sizeSwitch: true,
+					pageStepper: true,
+					gotoButton: true,
 					maxPageStep: 5,
 					position: 'bottom'
 				},
-				cellMerge: {}
+				filter: {
+					isServerSide: true,
+					setupFilterQuery: function (commands, request) {
+						console.log(commands);
+						console.log(request);
+					}
+				}
 			}
 		}, dojo.byId("catcherGridNode"));
 		catcher.startup();
