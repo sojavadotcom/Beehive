@@ -7,7 +7,6 @@ import com.sojava.beehive.framework.util.FormatUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +43,7 @@ public class NhfpcSchedule {
 	private final String ACCEPT_ENCODING = "gzip, deflate";
 	private final String CONNECTION = "Keep-Alive";
 
-	private String JSESSIONID = "4B1356F7D9618141000B33CF628D316A";
+	private String JSESSIONID = "JSESSIONID=85C69D9B4C938F8C8300FA325A7CBDDB";
 	private String SECURITY_SESSION_VERIFY = null;
 	private String FSSBBIl1UgzbN7N80T = null;
 	private String FSSBBIl1UgzbN7N80S = null;
@@ -57,21 +56,6 @@ public class NhfpcSchedule {
 	private final Date ed = new Date();
 
 	@Resource private CatchArticleDao catchArticleDao;
-
-	public static void main(String[] args) {
-		NhfpcSchedule n = new NhfpcSchedule();
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.YEAR, 2015);
-		c.set(Calendar.MONTH, 5);
-		c.set(Calendar.DAY_OF_MONTH, 22);
-		n.currDate = c.getTime();
-		try {
-			n.getPageContent(n.URL);
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
-	}
 
 	@SuppressWarnings("unchecked")
 	@Scheduled(cron = "6 2 0/10,11,14,16,18,20,22 * * ?")
@@ -130,7 +114,7 @@ public class NhfpcSchedule {
 		if (FSSBBIl1UgzbN7N80T != null) {
 			cookie = (cookie.length() > 0 ? ";" : "") + FSSBBIl1UgzbN7N80T + ";" + FSSBBIl1UgzbN7N80S;
 		}
-		request.setHeader("Cookie", cookie);
+		if (!cookie.equals("")) request.setHeader("Cookie", cookie);
 
 		HttpHost host = new HttpHost(HOST);
 		HttpResponse response = client.execute(host, request);
@@ -242,6 +226,22 @@ public class NhfpcSchedule {
 
 	public void setCatchArticleDao(CatchArticleDao catchArticleDao) {
 		this.catchArticleDao = catchArticleDao;
+	}
+
+	public int getCurrPage() {
+		return currPage;
+	}
+
+	public void setCurrPage(int currPage) {
+		this.currPage = currPage;
+	}
+
+	public Date getCurrDate() {
+		return currDate;
+	}
+
+	public void setCurrDate(Date currDate) {
+		this.currDate = currDate;
 	}
 
 }
