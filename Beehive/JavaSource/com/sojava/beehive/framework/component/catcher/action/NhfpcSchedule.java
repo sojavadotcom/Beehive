@@ -6,6 +6,8 @@ import com.sojava.beehive.framework.util.FormatUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,6 +19,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.httpclient.Cookie;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -42,13 +45,9 @@ public class NhfpcSchedule {
 	private final String ACCEPT_LANGUAGE = "zh-CN";
 	private final String ACCEPT_ENCODING = "gzip, deflate";
 	private final String CONNECTION = "Keep-Alive";
+	private final DateFormat F = new SimpleDateFormat("EEE, d-MMM-yy HH:mm:ss z");
 
-	private final Map<String, Properties> COOKIE = new HashMap<String, Properties>();
-	private String JSESSIONID = null;
-	private String SECURITY_SESSION_VERIFY = null;
-	private String FSSBBIl1UgzbN7N80T = null;
-	private String FSSBBIl1UgzbN7N80S = null;
-	private String BANGGOO_NUVA_COOKIE = null;
+	private final Map<String, Cookie> SetCookie = new HashMap<String, Cookie>();
 
 	private HttpClient client = HttpClientBuilder.create().build();
 
@@ -109,11 +108,10 @@ public class NhfpcSchedule {
 		request.setHeader("Accept-Encoding", ACCEPT_ENCODING);
 		request.setHeader("Connection", CONNECTION);
 		String cookie = "";
-		if (JSESSIONID != null) cookie = JSESSIONID;
-		if (SECURITY_SESSION_VERIFY != null) cookie = (cookie.length() > 0 ? ";" : "") + SECURITY_SESSION_VERIFY;
-		if (BANGGOO_NUVA_COOKIE != null) cookie = (cookie.length() > 0 ? ";" : "") + BANGGOO_NUVA_COOKIE;
-		if (FSSBBIl1UgzbN7N80T != null) {
-			cookie = (cookie.length() > 0 ? ";" : "") + FSSBBIl1UgzbN7N80T + ";" + FSSBBIl1UgzbN7N80S;
+		for(String key : SetCookie.keySet()) {
+			Cookie ck = SetCookie.get(key);
+			if (ck.isExpired()) continue;
+			cookie = (cookie.length() > 0 ? ";" : "") + ck.getName().toUpperCase() + "=" + ck.getValue();
 		}
 		if (!cookie.equals("")) request.setHeader("Cookie", cookie);
 
@@ -123,17 +121,7 @@ public class NhfpcSchedule {
 			String name = header.getName();
 			String value = header.getValue();
 			if (name.equalsIgnoreCase("Set-Cookie")) {
-				if (value.indexOf("JSESSIONID") == 0) {
-					JSESSIONID = value.substring(0, value.indexOf(";"));
-				} else if (value.indexOf("SECURITY_SESSION_VERIFY") == 0) {
-					SECURITY_SESSION_VERIFY = value.substring(0, value.indexOf(";"));
-				} else if (value.indexOf("FSSBBIl1UgzbN7N80T") == 0) {
-					FSSBBIl1UgzbN7N80T = value.substring(0, value.indexOf(";"));
-				} else if (value.indexOf("FSSBBIl1UgzbN7N80S") == 0) {
-					FSSBBIl1UgzbN7N80S = value.substring(0, value.indexOf(";"));
-				} else if (value.indexOf("banggoo.nuva.cookie") == 0) {
-					BANGGOO_NUVA_COOKIE = value.substring(0, value.indexOf(";"));
-				}
+				SetCookie.put(value.substring(0, value.indexOf("=")), parseCookie(value));
 			}
 		}
 		BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -221,6 +209,27 @@ public class NhfpcSchedule {
 		return list;
 	}
 
+	public Cookie parseCookie(String cookie) throws Exception {
+		Cookie ck = new Cookie();
+		for(String group : cookie.split("\\Q;\\E")) {
+			String[] attr = group.split("\\Q=\\E");
+			String name = attr[0];
+			String value = attr.length > 1 ? attr[1] : "";
+
+			if (name.equalsIgnoreCase("expires")) {
+				ck.setExpiryDate(F.parse(value));
+			} else if (name.equalsIgnoreCase("path")) {
+				ck.setPath(value);
+			} else if (name.equalsIgnoreCase("domain")) {
+				ck.setDomain(value);
+			} else {
+				ck.setName(name);
+				ck.setValue(value);
+			}
+		}
+		return ck;
+	}
+
 	public CatchArticleDao getCatchArticleDao() {
 		return catchArticleDao;
 	}
@@ -243,13 +252,6 @@ public class NhfpcSchedule {
 
 	public void setCurrDate(Date currDate) {
 		this.currDate = currDate;
-	}
-
-	class Cookie {
-		public String orig;
-		public String name;
-		public String value;
-		public Date expires;
 	}
 
 }
