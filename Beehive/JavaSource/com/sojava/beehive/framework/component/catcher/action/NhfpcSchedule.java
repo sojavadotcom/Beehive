@@ -43,7 +43,8 @@ public class NhfpcSchedule {
 	private final String ACCEPT_ENCODING = "gzip, deflate";
 	private final String CONNECTION = "Keep-Alive";
 
-	private String JSESSIONID = "JSESSIONID=85C69D9B4C938F8C8300FA325A7CBDDB";
+	private final Map<String, Properties> COOKIE = new HashMap<String, Properties>();
+	private String JSESSIONID = null;
 	private String SECURITY_SESSION_VERIFY = null;
 	private String FSSBBIl1UgzbN7N80T = null;
 	private String FSSBBIl1UgzbN7N80S = null;
@@ -58,7 +59,7 @@ public class NhfpcSchedule {
 	@Resource private CatchArticleDao catchArticleDao;
 
 	@SuppressWarnings("unchecked")
-	@Scheduled(cron = "6 2 0/10,11,14,16,18,20,22 * * ?")
+	@Scheduled(cron = "0 0 * * * ?")	//每小时执行一次
 	public void execute() throws Exception {
 
 		try {
@@ -242,6 +243,13 @@ public class NhfpcSchedule {
 
 	public void setCurrDate(Date currDate) {
 		this.currDate = currDate;
+	}
+
+	class Cookie {
+		public String orig;
+		public String name;
+		public String value;
+		public Date expires;
 	}
 
 }

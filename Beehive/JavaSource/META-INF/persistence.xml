@@ -75,5 +75,8 @@
 		<class>com.sojava.beehive.framework.component.wechat.bean.SurveyResultQuestionAnswerPK</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.Message</class>
 		<class>com.sojava.beehive.framework.component.catcher.bean.CatchArticle</class>
+		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTable</class>
+		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTableDetail</class>
+		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTableItem</class>
 	</persistence-unit>
 </persistence>
