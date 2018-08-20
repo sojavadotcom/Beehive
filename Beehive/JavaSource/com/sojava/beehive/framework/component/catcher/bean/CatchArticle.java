@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Table(name="catch_article", schema="public")
 @NamedQuery(name="CatchArticle.findAll", query="SELECT c FROM CatchArticle c")
 public class CatchArticle implements Serializable {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -8445995016599644949L;
 
 	@Id
 	@SequenceGenerator(name="CATCH_ARTICLE_ID_GENERATOR", sequenceName="CATCH_ARTICLE_ID")

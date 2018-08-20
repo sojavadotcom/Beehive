@@ -7,11 +7,13 @@ import com.sojava.beehive.framework.util.FormatUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -38,16 +40,10 @@ public class NhfpcSchedule {
 
 	private final Date DEFAULT_DATE = new Date(1422756036185L);
 
+	private final Properties HEADER = new Properties();
 	private final String HOST = "www.nhfpc.gov.cn";
 	private final String URL = "http://www.nhfpc.gov.cn/interview/MyJsp.jsp";
-	private final String USER_AGENT = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)";
-	private final String ACCEPT = "text/html, application/x-ms-application, image/jpeg, application/xaml+xml, image/gif, image/pjpeg, application/x-ms-xbap, */*";
-	private final String ACCEPT_LANGUAGE = "zh-CN";
-	private final String ACCEPT_ENCODING = "gzip, deflate";
-	private final String CONNECTION = "Keep-Alive";
-	private final DateFormat F = new SimpleDateFormat("EEE, d-MMM-yy HH:mm:ss z");
-
-	private final Map<String, Cookie> SetCookie = new HashMap<String, Cookie>();
+	private final Map<String, Cookie> COOKIE = new HashMap<String, Cookie>();
 
 	private HttpClient client = HttpClientBuilder.create().build();
 
@@ -56,6 +52,16 @@ public class NhfpcSchedule {
 	private final Date ed = new Date();
 
 	@Resource private CatchArticleDao catchArticleDao;
+	
+	public NhfpcSchedule() {
+		this.HEADER.setProperty("Host", "www.nhfpc.gov.cn");
+		this.HEADER.setProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E)");
+		this.HEADER.setProperty("Accept", "application/x-ms-application, image/jpeg, application/xaml+xml, image/gif, image/pjpeg, application/x-ms-xbap, */*");
+		this.HEADER.setProperty("Accept-Language", "zh-CN");
+		this.HEADER.setProperty("Accept-Encoding", "gzip, deflate");
+		this.HEADER.setProperty("Cache-Control", "no-cache");
+		this.HEADER.setProperty("Connection", "Keep-Alive");
+	}
 
 	@SuppressWarnings("unchecked")
 	@Scheduled(cron = "0 0 * * * ?")	//每小时执行一次
@@ -102,16 +108,14 @@ public class NhfpcSchedule {
 		RequestConfig defaultConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
 		HttpGet request = new HttpGet(url + "?curr_page=" + currPage + "&date=" + FormatUtil.DATE_FORMAT.format(currDate));
 		request.setConfig(defaultConfig);
-		request.setHeader("Accept", ACCEPT);
-		request.setHeader("Accept-Language", ACCEPT_LANGUAGE);
-		request.setHeader("User-Agent", USER_AGENT);
-		request.setHeader("Accept-Encoding", ACCEPT_ENCODING);
-		request.setHeader("Connection", CONNECTION);
+		for(String key : this.HEADER.keySet().toArray(new String[0])) {
+			request.setHeader(key, this.HEADER.getProperty(key));
+		}
 		String cookie = "";
-		for(String key : SetCookie.keySet()) {
-			Cookie ck = SetCookie.get(key);
+		for(String key : COOKIE.keySet()) {
+			Cookie ck = COOKIE.get(key);
 			if (ck.isExpired()) continue;
-			cookie = (cookie.length() > 0 ? ";" : "") + ck.getName().toUpperCase() + "=" + ck.getValue();
+			cookie += (cookie.length() > 0 ? ";" : "") + ck.getName().toUpperCase() + "=" + ck.getValue();
 		}
 		if (!cookie.equals("")) request.setHeader("Cookie", cookie);
 
@@ -121,7 +125,7 @@ public class NhfpcSchedule {
 			String name = header.getName();
 			String value = header.getValue();
 			if (name.equalsIgnoreCase("Set-Cookie")) {
-				SetCookie.put(value.substring(0, value.indexOf("=")), parseCookie(value));
+				COOKIE.put(value.substring(0, value.indexOf("=")), parseCookie(value));
 			}
 		}
 		BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -210,21 +214,37 @@ public class NhfpcSchedule {
 	}
 
 	public Cookie parseCookie(String cookie) throws Exception {
+		DateFormat df1 = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+		DateFormat df2 = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+		DateFormat df3 = new SimpleDateFormat("EEE, d-MMM-yy HH:mm:ss z", Locale.ENGLISH);
 		Cookie ck = new Cookie();
-		for(String group : cookie.split("\\Q;\\E")) {
-			String[] attr = group.split("\\Q=\\E");
-			String name = attr[0];
+		String[] group = cookie.split("\\Q;\\E");
+		for(int i = 0; i < group.length; i ++) {
+			String[] attr = group[i].split("\\Q=\\E");
+			String name = attr[0].trim();
 			String value = attr.length > 1 ? attr[1] : "";
 
-			if (name.equalsIgnoreCase("expires")) {
-				ck.setExpiryDate(F.parse(value));
-			} else if (name.equalsIgnoreCase("path")) {
-				ck.setPath(value);
-			} else if (name.equalsIgnoreCase("domain")) {
-				ck.setDomain(value);
-			} else {
+			if (i == 0) {
 				ck.setName(name);
 				ck.setValue(value);
+			} else {
+				if (name.equalsIgnoreCase("expires")) {
+					try {
+						ck.setExpiryDate(df1.parse(value));
+					}
+					catch(ParseException pe) {
+						try {
+							ck.setExpiryDate(df2.parse(value));
+						}
+						catch(ParseException pe2) {
+							ck.setExpiryDate(df3.parse(value));
+						}
+					}
+				} else if (name.equalsIgnoreCase("path")) {
+					ck.setPath(value);
+				} else if (name.equalsIgnoreCase("domain")) {
+					ck.setDomain(value);
+				}
 			}
 		}
 		return ck;
