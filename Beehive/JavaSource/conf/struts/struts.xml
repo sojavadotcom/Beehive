@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN" "http://struts.apache.org/dtds/struts-2.0.dtd">
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN" "http://struts.apache.org/dtds/struts-2.5.dtd">
 <struts>
 	<!-- RESTful plugin setup -->
 <!-- 
@@ -10,6 +10,9 @@
 	<constant name="struts.convention.package.locators" value="tp"/>
  -->
 
+	<package namespace="/" extends="struts-default">
+		<global-allowed-methods>regex:.*</global-allowed-methods>
+	</package>
 	<package name="json-default" extends="struts-default" namespace="/">
  		<result-types>
  			<result-type name="json" class="org.apache.struts2.json.JSONResult"/>

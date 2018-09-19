@@ -3,6 +3,7 @@ package com.sojava.beehive.framework.component.medicalimaging.action;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.Actions;
+import org.apache.struts2.convention.annotation.AllowedMethods;
 import org.apache.struts2.convention.annotation.Namespace;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
@@ -32,6 +33,7 @@ import javax.annotation.Resource;
 @Controller("MedicalImaging/Save")
 @Scope("prototype")
 @Namespace("/MedicalImaging/Save")
+@AllowedMethods({"Import", "import0"})
 public class Save extends ActionSupport {
 	private static final long serialVersionUID = 4567102317046354934L;
 
@@ -65,8 +67,9 @@ public class Save extends ActionSupport {
     	@Action(value = "Import"),
     	@Action(value = "Merit")
     })
-	public String index() throws Exception {
+	public String input() throws Exception {
 		super.execute();
+		System.out.println(this.getClass().getName() + ": 1");
 		String contextName = this.getActionContext().getName();
 		if (contextName.equalsIgnoreCase("import")) {
 			import0();
@@ -78,6 +81,7 @@ public class Save extends ActionSupport {
 	}
 
 	public void import0() throws Exception {
+    	System.out.println(this.getClass().getName() + ": 2");
 		InputStream in = null;
 		Writer out = new Writer(getRequest(), getResponse());
 		DocumentFactory df = DocumentFactory.getInstance();

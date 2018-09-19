@@ -18,7 +18,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	});
 });
 </script>
-<form jsId="miExecutedImportFrm" name="miExecutedImportFrm" method="post" action="/MedicalImaging/Save.import.s2" enctype="multipart/form-data" dojoType="dijit.form.Form">
+<form jsId="miExecutedImportFrm" name="miExecutedImportFrm" method="post" action="/MedicalImaging/Save/Import.s2" enctype="multipart/form-data" dojoType="dijit.form.Form" target="_blank">
 	<div style="margin: 10px 0px;">
 		<select name="dept" dojoType="dijit.form.Select">
 			<option value="影像科">影像科</option>
@@ -50,6 +50,8 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 					bee.alert("请选择数据文件");
 					return false;
 				}
+				miExecutedImportFrm.submit();
+				return;
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Save.import.s2", {
