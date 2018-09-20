@@ -50,8 +50,8 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 					bee.alert("请选择数据文件");
 					return false;
 				}
-				miExecutedImportFrm.submit();
-				return;
+miExecutedImportFrm.submit();
+return;
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;
 					iframe("/MedicalImaging/Save.import.s2", {

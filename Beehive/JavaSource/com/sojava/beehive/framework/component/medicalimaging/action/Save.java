@@ -69,7 +69,6 @@ public class Save extends ActionSupport {
     })
 	public String input() throws Exception {
 		super.execute();
-		System.out.println(this.getClass().getName() + ": 1");
 		String contextName = this.getActionContext().getName();
 		if (contextName.equalsIgnoreCase("import")) {
 			import0();
@@ -81,7 +80,6 @@ public class Save extends ActionSupport {
 	}
 
 	public void import0() throws Exception {
-    	System.out.println(this.getClass().getName() + ": 2");
 		InputStream in = null;
 		Writer out = new Writer(getRequest(), getResponse());
 		DocumentFactory df = DocumentFactory.getInstance();
