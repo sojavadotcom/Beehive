@@ -66,7 +66,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	});
 });
 </script>
-<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save.merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data">
+<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save/Merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
