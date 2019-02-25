@@ -66,7 +66,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	});
 });
 </script>
-<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save/Merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data">
+<form jsId="medicalimagingMeritFrm" name="miMeritFrm" method="post" action="/MedicalImaging/Save/Merit.s2" dojoType="dijit.form.Form" enctype="multipart/form-data" target="_blank">
 	<div style="margin: 5px 0; display: none;">
 		<label style="font-weight: bold;">核算科室：</label>
 		<select name="dept" dojoType="dijit.form.Select" trim="true" required="required" style="width: 70%">
@@ -80,6 +80,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 				<select name="year" dojoType="dijit.form.Select" trim="true" required="required" style="width: 80px" onChange="dateChange()">
 					<option value="2017">2017年</option>
 					<option value="2018">2018年</option>
+					<option value="2019">2019年</option>
 				</select>
 			</div>
 			<div class="dijitInline">
@@ -167,6 +168,8 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	<div class="dijitDialogPaneActionBar" style="text-align: right;">
 		<button label="核算" dojoType="dijit.form.Button">
 			<script type="dojo/method" event="onClick" args="event">
+				medicalimagingMeritFrm.submit();
+/*
 				require(["dojo/io/iframe"], function(iframe) {
 					iframe.send({
 						form: medicalimagingMeritFrm.id,
@@ -179,6 +182,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 						bee.alert(err);
 					});
 				});
+*/
 /*
 				require(["dojo/request/iframe"], function(iframe) {
 					iframe._currentDfd = null;

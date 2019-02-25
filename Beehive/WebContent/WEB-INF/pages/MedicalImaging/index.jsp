@@ -204,6 +204,7 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 					<select name="year" dojoType="dijit.form.Select" style="width: 80px; font-size: 16px; border: none;" onChange="refreshGrid()">
 						<option value="2017">2017年</option>
 						<option value="2018">2018年</option>
+						<option value="2019">2019年</option>
 					</select>
 					<select name="month" dojoType="dijit.form.Select" style="width: 70px; font-size: 16px; border: none;" onChange="refreshGrid()">
 						<option value="1">一月</option>
