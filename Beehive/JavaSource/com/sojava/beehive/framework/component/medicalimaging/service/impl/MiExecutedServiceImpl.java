@@ -271,6 +271,14 @@ public class MiExecutedServiceImpl implements MiExecutedService {
 					record.setReportTime(FormatUtil.parseDateTime(value));
 					break;
 				case 19:
+					msg[1] = "处理\"阴阳性\"";
+					record.setPositive(value);
+					break;
+				case 20:
+					msg[1] = "处理\"影像评级\"";
+					record.setRate(value);
+					break;
+				case 21:
 					msg[1] = "处理\"审核日期\"";
 					value = value.trim().equals("") ? "1901-01-01 00:00:00" : value;
 					record.setCheckTime(FormatUtil.parseDateTime(value));

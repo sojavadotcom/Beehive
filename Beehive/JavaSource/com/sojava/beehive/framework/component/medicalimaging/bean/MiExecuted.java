@@ -134,6 +134,12 @@ public class MiExecuted implements Serializable {
 	@Column(name="kind")
 	private String kind;
 
+	@Column(name="positive")
+	private String positive;
+
+	@Column(name="rate")
+	private String rate;
+
 	public MiExecuted() {
 		this.id = new MiExecutedPK();
 	}
@@ -184,6 +190,8 @@ public class MiExecuted implements Serializable {
 		this.setRbrvsId(miExecuted.getRbrvsId());
 		this.setType(miExecuted.getType());
 		this.setKind(miExecuted.getKind());
+		this.setPositive(miExecuted.getPositive());
+		this.setRate(miExecuted.getRate());
 	}
 
 	public MiExecutedPK getId() {
@@ -504,6 +512,22 @@ public class MiExecuted implements Serializable {
 
 	public void setExecuteTechnicianDrug(String executeTechnicianDrug) {
 		this.executeTechnicianDrug = executeTechnicianDrug;
+	}
+
+	public String getPositive() {
+		return positive;
+	}
+
+	public void setPositive(String positive) {
+		this.positive = positive;
+	}
+
+	public String getRate() {
+		return rate;
+	}
+
+	public void setRate(String rate) {
+		this.rate = rate;
 	}
 
 }
