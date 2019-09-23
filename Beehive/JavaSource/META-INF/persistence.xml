@@ -81,5 +81,6 @@
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnalyCheck</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform</class>
 	</persistence-unit>
 </persistence>

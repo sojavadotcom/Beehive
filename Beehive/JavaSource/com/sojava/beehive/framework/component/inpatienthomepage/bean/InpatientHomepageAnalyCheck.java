@@ -2,7 +2,7 @@ package com.sojava.beehive.framework.component.inpatienthomepage.bean;
 
 import java.io.Serializable;
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.util.Date;
 
 
 /**
@@ -21,7 +21,7 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 	private Integer id;
 
 	@Column(name="check_time")
-	private Timestamp checkTime;
+	private Date checkTime;
 
 	private String memo;
 
@@ -35,6 +35,12 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 	public InpatientHomepageAnalyCheck() {
 	}
 
+	public InpatientHomepageAnalyCheck(int pid, String memo) {
+		this.inpatientHomepageAnaly = new InpatientHomepageAnaly(pid);
+		this.checkTime = new Date();
+		this.memo = memo;
+	}
+
 	public Integer getId() {
 		return this.id;
 	}
@@ -43,11 +49,11 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 		this.id = id;
 	}
 
-	public Timestamp getCheckTime() {
+	public Date getCheckTime() {
 		return this.checkTime;
 	}
 
-	public void setCheckTime(Timestamp checkTime) {
+	public void setCheckTime(Date checkTime) {
 		this.checkTime = checkTime;
 	}
 

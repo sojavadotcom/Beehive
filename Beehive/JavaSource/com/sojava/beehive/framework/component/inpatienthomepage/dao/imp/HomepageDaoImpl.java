@@ -2,12 +2,17 @@ package com.sojava.beehive.framework.component.inpatienthomepage.dao.imp;
 
 import java.util.List;
 
+import org.hibernate.Query;
 import org.hibernate.SQLQuery;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary;
 import com.sojava.beehive.framework.component.inpatienthomepage.dao.HomepageDao;
 import com.sojava.beehive.framework.exception.CommonException;
 import com.sojava.beehive.framework.exception.ErrorException;
@@ -35,6 +40,28 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Dictionary> getDic(String kind) throws Exception {
+		List<Dictionary> list = null;
+		try {
+			list = (List<Dictionary>) query(Dictionary.class, new Criterion[]{Restrictions.eq("kind", kind)}, new Order[]{Order.asc("id")}, null, false);
+
+			return list;
+		}
+		catch(Exception ex) {
+			throw new ErrorException(getClass(), ex);
+		}
+	}
+
+	@Override
+	public boolean emptyCheckinfo(int pid) throws Exception {
+
+		Query stmt = getSession().createQuery("delete from InpatientHomepageAnalyCheck where inpatientHomepageAnaly.id=:pid");
+		stmt.setInteger("pid", pid);
+		return stmt.executeUpdate() > 0;
 	}
 
 }
