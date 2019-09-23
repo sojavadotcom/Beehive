@@ -64,7 +64,7 @@ public class NhfpcSchedule {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Scheduled(cron = "0 0 * * * ?")	//每小时执行一次
+//	@Scheduled(cron = "0 0 * * * ?")	//每小时执行一次
 	public void execute() throws Exception {
 
 		try {
