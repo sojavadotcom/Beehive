@@ -78,5 +78,8 @@
 		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTable</class>
 		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTableDetail</class>
 		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTableItem</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnalyCheck</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary</class>
 	</persistence-unit>
 </persistence>

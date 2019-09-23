@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app id="Beehive" version="2.5"
+<web-app id="Beehive" version="3.0"
  xmlns="http://java.sun.com/xml/ns/javaee"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+ xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+ metadata-complete="true">
 
 	<display-name>Beehive</display-name>
 
@@ -134,6 +135,12 @@
 	<filter>
 		<filter-name>struts2Filter</filter-name>
 		<filter-class>org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter</filter-class>
+<!-- 
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>conf/struts/struts.xml</param-value>
+		</init-param>
+ -->
 	</filter>
 	<filter-mapping>
 		<filter-name>struts2Filter</filter-name>

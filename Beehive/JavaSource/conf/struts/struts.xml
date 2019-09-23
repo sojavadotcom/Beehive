@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN" "http://struts.apache.org/dtds/struts-2.5.dtd">
 <struts>
+<!-- 
+	<constant name="struts.locale" value="zh_CN" />
+	<constant name="struts.i18n.encoding" value="UTF-8" />
+	<constant name="struts.objectFactory" value="spring" />
+	<constant name="struts.objectFactory.spring.autoWire" value="auto" />
+	<constant name="struts.objectFactory.spring.useClassCache" value="true" />
+	<constant name="struts.objectFactory.spring.autoWire.alwaysRespect" value="false" />
+	<constant name="struts.multipart.parser" value="jakarta" />
+	<constant name="struts.multipart.saveDir" value="" />
+	<constant name="struts.multipart.maxSize" value="3072000000" />
+	<constant name="struts.mapper.class" value="org.apache.struts2.dispatcher.mapper.DefaultActionMapper" />
+	<constant name="struts.action.extension" value="shtml,s2,jpg,js,upload" />
+	<constant name="struts.serve.static" value="true" />
+	<constant name="struts.serve.static.browserCache" value="false" />
+	<constant name="struts.enable.DynamicMethodInvocation" value="true" />
+	<constant name="struts.enable.SlashesInActionNames" value="false" />
+	<constant name="struts.tag.altSyntax" value="true" />
+	<constant name="struts.devMode" value="true" />
+	<constant name="struts.i18n.reload" value="true" />
+	<constant name="struts.ui.theme" value="xhtml" />
+	<constant name="struts.ui.templateDir" value="template" />
+	<constant name="struts.ui.templateSuffix" value="ftl" />
+	<constant name="struts.configuration.xml.reload" value="false" />
+	<constant name="struts.url.http.port" value="8080" />
+	<constant name="struts.url.https.port" value="8443" />
+	<constant name="struts.url.includeParams" value="all" />
+	<constant name="struts.dispatcher.parametersWorkaround" value="false" />
+	<constant name="struts.freemarker.templatesCache" value="false" />
+	<constant name="struts.freemarker.beanwrapperCache" value="false" />
+	<constant name="struts.freemarker.wrapper.altMap" value="true" />
+	<constant name="struts.freemarker.mru.max.strong.size" value="0" />
+	<constant name="struts.xslt.nocache" value="true" />
+	<constant name="struts.mapper.alwaysSelectFullNamespace" value="false" />
+	<constant name="struts.ognl.allowStaticMethodAccess" value="false" />
+	<constant name="struts.el.throwExceptionOnFailure" value="false" />
+	<constant name="struts.ognl.logMissingProperties" value="false" />
+	<constant name="struts.ognl.enableExpressionCache" value="true" />
+	<constant name="struts.handle.exception" value="true" />
+	<constant name="struts.convention.classes.reload" value="true" />
+	<constant name="struts.allowed.action.names" value="[a-zA-Z0-9._!/-]*" />
+	<constant name="struts.convention.result.path" value="/WEB-INF/pages/" />
+ -->
 	<!-- RESTful plugin setup -->
 <!-- 
 	<constant name="struts.mapper.class" value="rest" />
@@ -11,6 +53,12 @@
  -->
 
 	<package name="default" namespace="/" extends="struts-default">
+		<result-types>
+ 			<result-type name="json" class="org.apache.struts2.json.JSONResult"/>
+ 		</result-types>
+ 		<interceptors>
+ 			<interceptor name="json" class="org.apache.struts2.json.JSONInterceptor"/>
+ 		</interceptors>
 		<global-allowed-methods>regex:.*</global-allowed-methods>
 	</package>
 	<package name="json-default" extends="struts-default" namespace="/">
@@ -20,5 +68,6 @@
  		<interceptors>
  			<interceptor name="json" class="org.apache.struts2.json.JSONInterceptor"/>
  		</interceptors>
+		<global-allowed-methods>regex:.*</global-allowed-methods>
 	</package>
 </struts>
