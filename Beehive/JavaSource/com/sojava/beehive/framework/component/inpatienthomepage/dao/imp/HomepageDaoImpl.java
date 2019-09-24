@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary;
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform;
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.VIcdTransform;
 import com.sojava.beehive.framework.component.inpatienthomepage.dao.HomepageDao;
 import com.sojava.beehive.framework.exception.CommonException;
 import com.sojava.beehive.framework.exception.ErrorException;
@@ -44,10 +46,38 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Dictionary> getDic(String kind) throws Exception {
+	public List<Dictionary> getDictionary(String kind) throws Exception {
 		List<Dictionary> list = null;
 		try {
 			list = (List<Dictionary>) query(Dictionary.class, new Criterion[]{Restrictions.eq("kind", kind)}, new Order[]{Order.asc("id")}, null, false);
+
+			return list;
+		}
+		catch(Exception ex) {
+			throw new ErrorException(getClass(), ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<VIcdTransform> getHISDiagno() throws Exception {
+		List<VIcdTransform> list = null;
+		try {
+			list = (List<VIcdTransform>) query(VIcdTransform.class, null, null, null, false);
+
+			return list;
+		}
+		catch(Exception ex) {
+			throw new ErrorException(getClass(), ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<IcdTransform> getICD2() throws Exception {
+		List<IcdTransform> list = null;
+		try {
+			list = (List<IcdTransform>) query(IcdTransform.class, new Criterion[]{Restrictions.eq("kind", "ICD11")}, null, null, false);
 
 			return list;
 		}

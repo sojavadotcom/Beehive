@@ -101,30 +101,30 @@ public class HomepageServiceImpl implements HomepageService {
 	@Override
 	public void checkHomepage(String kind, String[] type) throws Exception {
 
-		rc001 = homepageDao.getDic(RecordRangeType.rc001).toArray(new Dictionary[0]);
-		rc002 = homepageDao.getDic(RecordRangeType.rc002).toArray(new Dictionary[0]);
-		rc003 = homepageDao.getDic(RecordRangeType.rc003).toArray(new Dictionary[0]);
-		rc011 = homepageDao.getDic(RecordRangeType.rc011).toArray(new Dictionary[0]);
-		rc013 = homepageDao.getDic(RecordRangeType.rc013).toArray(new Dictionary[0]);
-		rc014_1 = homepageDao.getDic(RecordRangeType.rc014_1).toArray(new Dictionary[0]);
-		rc014_2 = homepageDao.getDic(RecordRangeType.rc014_2).toArray(new Dictionary[0]);
-		rc016 = homepageDao.getDic(RecordRangeType.rc016).toArray(new Dictionary[0]);
-		rc019 = homepageDao.getDic(RecordRangeType.rc019).toArray(new Dictionary[0]);
-		rc023 = homepageDao.getDic(RecordRangeType.rc023).toArray(new Dictionary[0]);
-		rc026 = homepageDao.getDic(RecordRangeType.rc026).toArray(new Dictionary[0]);
-		rc027 = homepageDao.getDic(RecordRangeType.rc027).toArray(new Dictionary[0]);
-		rc028 = homepageDao.getDic(RecordRangeType.rc028).toArray(new Dictionary[0]);
-		rc029 = homepageDao.getDic(RecordRangeType.rc029).toArray(new Dictionary[0]);
-		rc030 = homepageDao.getDic(RecordRangeType.rc030).toArray(new Dictionary[0]);
-		rc031 = homepageDao.getDic(RecordRangeType.rc031).toArray(new Dictionary[0]);
-		rc032 = homepageDao.getDic(RecordRangeType.rc032).toArray(new Dictionary[0]);
-		rc033 = homepageDao.getDic(RecordRangeType.rc033).toArray(new Dictionary[0]);
-		rc035 = homepageDao.getDic(RecordRangeType.rc035).toArray(new Dictionary[0]);
-		rc036 = homepageDao.getDic(RecordRangeType.rc036).toArray(new Dictionary[0]);
-		rc037 = homepageDao.getDic(RecordRangeType.rc037).toArray(new Dictionary[0]);
-		rc038 = homepageDao.getDic(RecordRangeType.rc038).toArray(new Dictionary[0]);
-		rc039 = homepageDao.getDic(RecordRangeType.rc039).toArray(new Dictionary[0]);
-		rc040 = homepageDao.getDic(RecordRangeType.rc040).toArray(new Dictionary[0]);
+		rc001 = homepageDao.getDictionary(RecordRangeType.rc001).toArray(new Dictionary[0]);
+		rc002 = homepageDao.getDictionary(RecordRangeType.rc002).toArray(new Dictionary[0]);
+		rc003 = homepageDao.getDictionary(RecordRangeType.rc003).toArray(new Dictionary[0]);
+		rc011 = homepageDao.getDictionary(RecordRangeType.rc011).toArray(new Dictionary[0]);
+		rc013 = homepageDao.getDictionary(RecordRangeType.rc013).toArray(new Dictionary[0]);
+		rc014_1 = homepageDao.getDictionary(RecordRangeType.rc014_1).toArray(new Dictionary[0]);
+		rc014_2 = homepageDao.getDictionary(RecordRangeType.rc014_2).toArray(new Dictionary[0]);
+		rc016 = homepageDao.getDictionary(RecordRangeType.rc016).toArray(new Dictionary[0]);
+		rc019 = homepageDao.getDictionary(RecordRangeType.rc019).toArray(new Dictionary[0]);
+		rc023 = homepageDao.getDictionary(RecordRangeType.rc023).toArray(new Dictionary[0]);
+		rc026 = homepageDao.getDictionary(RecordRangeType.rc026).toArray(new Dictionary[0]);
+		rc027 = homepageDao.getDictionary(RecordRangeType.rc027).toArray(new Dictionary[0]);
+		rc028 = homepageDao.getDictionary(RecordRangeType.rc028).toArray(new Dictionary[0]);
+		rc029 = homepageDao.getDictionary(RecordRangeType.rc029).toArray(new Dictionary[0]);
+		rc030 = homepageDao.getDictionary(RecordRangeType.rc030).toArray(new Dictionary[0]);
+		rc031 = homepageDao.getDictionary(RecordRangeType.rc031).toArray(new Dictionary[0]);
+		rc032 = homepageDao.getDictionary(RecordRangeType.rc032).toArray(new Dictionary[0]);
+		rc033 = homepageDao.getDictionary(RecordRangeType.rc033).toArray(new Dictionary[0]);
+		rc035 = homepageDao.getDictionary(RecordRangeType.rc035).toArray(new Dictionary[0]);
+		rc036 = homepageDao.getDictionary(RecordRangeType.rc036).toArray(new Dictionary[0]);
+		rc037 = homepageDao.getDictionary(RecordRangeType.rc037).toArray(new Dictionary[0]);
+		rc038 = homepageDao.getDictionary(RecordRangeType.rc038).toArray(new Dictionary[0]);
+		rc039 = homepageDao.getDictionary(RecordRangeType.rc039).toArray(new Dictionary[0]);
+		rc040 = homepageDao.getDictionary(RecordRangeType.rc040).toArray(new Dictionary[0]);
 
 		InpatientHomepageAnaly[] homepageList = homepageList(kind, type, null, null, null, null, new Order[]{Order.asc("id")}, null);
 		for (InpatientHomepageAnaly homepage : homepageList) {

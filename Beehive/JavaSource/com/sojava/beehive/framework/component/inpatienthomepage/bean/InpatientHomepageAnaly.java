@@ -24,6 +24,8 @@ public class InpatientHomepageAnaly implements Serializable {
 
 	private String type;
 
+	private Integer version;
+
 	private Short checked;
 
 	private String bah;
@@ -1573,6 +1575,13 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.setId(id);
 	}
 
+	public InpatientHomepageAnaly(int id, String kind, String type, int version) {
+		this.id = id;
+		this.kind = kind;
+		this.type = type;
+		this.version = version;
+	}
+
 	public Integer getId() {
 		return this.id;
 	}
@@ -1595,6 +1604,14 @@ public class InpatientHomepageAnaly implements Serializable {
 
 	public void setTpe(String type) {
 		this.type = type;
+	}
+
+	public Integer getVersion() {
+		return version;
+	}
+
+	public void setVersion(Integer version) {
+		this.version = version;
 	}
 
 	public Short getChecked() {

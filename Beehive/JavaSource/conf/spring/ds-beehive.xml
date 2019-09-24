@@ -19,7 +19,7 @@
 
 	<bean id="beehiveDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName" value="org.postgresql.Driver"/>
-		<property name="url" value="jdbc:postgresql://192.168.200.1:5432/beehive"/>
+		<property name="url" value="jdbc:postgresql://127.0.0.1:5432/beehive"/>
 		<property name="username" value="bee"/>
 		<property name="password" value="bee"/>
 		<property name="maxActive" value="50"/>
@@ -35,7 +35,7 @@
 		<property name="hibernateProperties">
 			<props>
 				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
-				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.show_sql">true</prop>
 				<prop key="hibernate.format_sql">true</prop>
 				 <prop key="hibernate.hbm2ddl.auto">none</prop>
 			</props>

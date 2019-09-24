@@ -23,7 +23,11 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 	@Column(name="check_time")
 	private Date checkTime;
 
-	private String memo;
+	private String name;
+
+	private String value;
+
+	private String message;
 
 	private String type;
 
@@ -35,10 +39,20 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 	public InpatientHomepageAnalyCheck() {
 	}
 
-	public InpatientHomepageAnalyCheck(int pid, String memo) {
+	public InpatientHomepageAnalyCheck(int pid, String message) {
 		this.inpatientHomepageAnaly = new InpatientHomepageAnaly(pid);
 		this.checkTime = new Date();
-		this.memo = memo;
+		this.message = message;
+	}
+
+	public InpatientHomepageAnalyCheck(int id, int pid, String name, String value, String message, String type) {
+		this.id = id;
+		this.inpatientHomepageAnaly = new InpatientHomepageAnaly(pid);
+		this.checkTime = new Date();
+		this.name = name;
+		this.value = value;
+		this.message = message;
+		this.type = type;
 	}
 
 	public Integer getId() {
@@ -57,12 +71,28 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 		this.checkTime = checkTime;
 	}
 
-	public String getMemo() {
-		return this.memo;
+	public String getName() {
+		return name;
 	}
 
-	public void setMemo(String memo) {
-		this.memo = memo;
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public String getMessage() {
+		return this.message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 	public String getType() {
