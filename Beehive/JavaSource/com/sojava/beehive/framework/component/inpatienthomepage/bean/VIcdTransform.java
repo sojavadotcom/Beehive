@@ -16,8 +16,10 @@ public class VIcdTransform implements Serializable {
 
 	private String catalog;
 
+	@Id
 	private String code;
 
+	@Id
 	private String diagno;
 
 	@Column(name="icd2_code")
