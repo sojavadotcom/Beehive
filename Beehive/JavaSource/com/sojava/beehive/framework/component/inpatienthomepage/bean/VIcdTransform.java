@@ -1,7 +1,12 @@
 package com.sojava.beehive.framework.component.inpatienthomepage.bean;
 
 import java.io.Serializable;
-import javax.persistence.*;
+
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 
 /**
@@ -16,11 +21,8 @@ public class VIcdTransform implements Serializable {
 
 	private String catalog;
 
-	@Id
-	private String code;
-
-	@Id
-	private String diagno;
+	@EmbeddedId
+	private VIcdTransformPK id;
 
 	@Column(name="icd2_code")
 	private String icd2Code;
@@ -45,20 +47,12 @@ public class VIcdTransform implements Serializable {
 		this.catalog = catalog;
 	}
 
-	public String getCode() {
-		return this.code;
+	public VIcdTransformPK getId() {
+		return this.id;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getDiagno() {
-		return this.diagno;
-	}
-
-	public void setDiagno(String diagno) {
-		this.diagno = diagno;
+	public void setId(VIcdTransformPK id) {
+		this.id = id;
 	}
 
 	public String getIcd2Code() {

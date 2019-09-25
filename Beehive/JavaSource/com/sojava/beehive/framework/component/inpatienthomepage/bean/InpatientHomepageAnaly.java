@@ -26,7 +26,7 @@ public class InpatientHomepageAnaly implements Serializable {
 
 	private Integer version;
 
-	private Short checked;
+	private Integer checked;
 
 	private String bah;
 
@@ -1614,11 +1614,11 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.version = version;
 	}
 
-	public Short getChecked() {
+	public Integer getChecked() {
 		return this.checked;
 	}
 
-	public void setChecked(Short checked) {
+	public void setChecked(Integer checked) {
 		this.checked = checked;
 	}
 

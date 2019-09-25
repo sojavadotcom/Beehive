@@ -55,7 +55,6 @@ public class VMiExecutedTechPK implements Serializable {
 		this.reportTime = reportTime;
 	}
 
-
 	public boolean equals(Object other) {
 		if (this == other) {
 			return true;

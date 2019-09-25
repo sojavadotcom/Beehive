@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform;
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.RecordRangeType;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.VIcdTransform;
 import com.sojava.beehive.framework.component.inpatienthomepage.dao.HomepageDao;
 import com.sojava.beehive.framework.exception.CommonException;
@@ -60,10 +61,24 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<VIcdTransform> getHISDiagno() throws Exception {
+	public List<VIcdTransform> getHISDiagnosis(RecordRangeType type) throws Exception {
 		List<VIcdTransform> list = null;
+		String typeStr = "";
+		if (type.equals(RecordRangeType.DIAGNOSIS_CHINESE)) typeStr = "中医诊断";
+		else if (type.equals(RecordRangeType.DIAGNOSIS_WESTERN)) typeStr = "疾病诊断";
+		else if (type.equals(RecordRangeType.DIAGNOSIS_OPERATION)) typeStr = "手术诊断";
+		else if (type.equals(RecordRangeType.DIAGNOSIS_PATHOLOGY)) typeStr = "肿瘤形态学";
+
 		try {
-			list = (List<VIcdTransform>) query(VIcdTransform.class, null, null, null, false);
+			list = (List<VIcdTransform>) query(
+					VIcdTransform.class,
+					new Criterion[]{
+						Restrictions.eq("type", typeStr)
+					},
+					null,
+					null,
+					false
+				);
 
 			return list;
 		}
@@ -74,10 +89,25 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<IcdTransform> getICD2() throws Exception {
+	public List<IcdTransform> getICD20Diagnosis(RecordRangeType type) throws Exception {
 		List<IcdTransform> list = null;
+		String typeStr = "";
+		if (type.equals(RecordRangeType.DIAGNOSIS_CHINESE)) typeStr = "中医诊断";
+		else if (type.equals(RecordRangeType.DIAGNOSIS_WESTERN)) typeStr = "疾病诊断";
+		else if (type.equals(RecordRangeType.DIAGNOSIS_OPERATION)) typeStr = "手术诊断";
+		else if (type.equals(RecordRangeType.DIAGNOSIS_PATHOLOGY)) typeStr = "肿瘤形态学";
+
 		try {
-			list = (List<IcdTransform>) query(IcdTransform.class, new Criterion[]{Restrictions.eq("kind", "ICD11")}, null, null, false);
+			list = (List<IcdTransform>) query(
+					IcdTransform.class,
+					new Criterion[]{
+						Restrictions.eq("kind", "ICD11"),
+						Restrictions.eq("type", typeStr)
+					},
+					null,
+					null,
+					false
+				);
 
 			return list;
 		}
