@@ -13,7 +13,7 @@ public enum RecordRangeType {
 	public static final String rc016 = "判断代码";
 	public static final String rc019 = "离院方式";
 	public static final String rc023 = "科室代码";
-	public static final String rc026 = "入院途径代码";
+	public static final String rc026 = "入院途径";
 	public static final String rc027 = "入院病情";
 	public static final String rc028 = "药物过敏";
 	public static final String rc029 = "手术级别";

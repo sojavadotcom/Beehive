@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.persistence.Column;
@@ -185,24 +186,22 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		String name = null, value = null;
 		int checkIndex = checkRecord.size() + 1;
 		try {
+			Map<String, Integer> headNames = record.getParser().getHeaderMap();
 			for (Method method : homepage.getClass().getMethods()) {
 				String methodName = method.getName();
 				if (!methodName.startsWith("set")) continue;
 				name = method.getAnnotations().length == 0 ? methodName.substring(3).toLowerCase() : ((Column) method.getAnnotations()[0]).name();
 				if (name.equals("id") || name.equals("kind") || name.equals("type") || name.equals("checked") || name.equals("version") || name.startsWith("inpatienthomepageanalycheck")) continue;
 				Class<?> type = method.getParameterTypes()[0];
-				try {
-					value = record.get(name.toUpperCase());
-				}
-				catch(Exception ex) {
-					ex.printStackTrace();
-				}
+				name = headNames.containsKey(name) ? name : name.toUpperCase();
+				value = record.get(name);
 
 				try {
 					Object val = transValueType(name, value, type);
 					method.invoke(homepage, val);
 				}
 				catch(Exception ex) {
+					ex.printStackTrace();
 					checkRecord.add(new InpatientHomepageAnalyCheck(checkIndex ++, homepage.getId(), name, value, ex.getMessage(), "Item"));
 				}
 			}
@@ -212,7 +211,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			dataVerify(homepage);
 		}
 		catch(Exception ex) {
-			ex.printStackTrace();
+			new ErrorException(getClass(), ex.getMessage());
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -525,6 +524,22 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[NL:年龄（岁）=" + homepage.getNl() + "]必须是大于或等于0的整数",
 					"Item"
 				));
+		} else if (isDatetime(homepage.getRysj()) && isDate(homepage.getCsrq())) {
+			Calendar rysj = Calendar.getInstance();
+			Calendar csrq = Calendar.getInstance();
+			rysj.setTime(FormatUtil.parseDateTime(homepage.getRysj()));
+			csrq.setTime(FormatUtil.parseDate(homepage.getCsrq()));
+			int age = rysj.get(Calendar.YEAR) - csrq.get(Calendar.YEAR);
+			if (age != _age) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"NL",
+						homepage.getNl(),
+						"#" + row + "." + col + ".[NL:年龄（岁）=" + homepage.getNl() + "]逻辑验证未通过，年龄与实际年龄（" + age + "）不符",
+						"Item"
+					));
+			}
 		}
 		/*
 		 * 12. GJ	国籍	字符	40	必填	《值域范围参考RC038-国籍字典》
@@ -653,7 +668,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 20. CSD	出生地	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
 		col ++;
-		if (homepage.getCsd().isEmpty() || homepage.getCsd().length() <= 2) {
+		if (homepage.getCsd().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -676,7 +691,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 21. GG	籍贯	字符	50	必填	《值域范围参考RC036-籍贯》
 		 */
 		col ++;
-		if (homepage.getGg().isEmpty() || homepage.getGg().length() <= 2) {
+		if (homepage.getGg().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -685,7 +700,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[GG:籍贯=" + homepage.getGg() + "]未填写籍贯",
 					"Item"
 				));
-		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getGg())) {
+		} else if (!compareDic(rc036, RecordRangeType.code, homepage.getGg())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -699,7 +714,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 22. MZ	民族	字符	2	必填	《值域范围参考RC035-民族代码》
 		 */
 		col ++;
-		if (homepage.getMz().isEmpty() || homepage.getMz().length() <= 2) {
+		if (homepage.getMz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -708,7 +723,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[MZ:民族=" + homepage.getMz() + "]未填写民族",
 					"Item"
 				));
-		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getMz())) {
+		} else if (!compareDic(rc036, RecordRangeType.code, homepage.getMz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -842,7 +857,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 29. HKDZ	户口地址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
 		col ++;
-		if (homepage.getHkdz().isEmpty() || homepage.getHkdz().length() <= 2) {
+		if (homepage.getHkdz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -879,7 +894,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 31. GZDWJDZ	工作单位及地址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
 		col ++;
-		if (homepage.getGzdwjdz().isEmpty() || homepage.getGzdwjdz().length() <= 2) {
+		if (homepage.getGzdwjdz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -888,7 +903,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[GZDWJDZ:工作单位及地址=" + homepage.getGzdwjdz() + "]未填写工作单位及地址",
 					"Item"
 				));
-		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getGzdwjdz())) {
+		} else if (!homepage.getGzdwjdz().equals("-") && !homepage.getGzdwjdz().equals("─") && !compareDic(rc036, RecordRangeType.name, homepage.getGzdwjdz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -967,7 +982,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 36. DZ	联系人地址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
 		col ++;
-		if (homepage.getDz().isEmpty() || homepage.getDz().length() <= 2) {
+		if (homepage.getDz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -976,7 +991,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[DZ:联系人地址=" + homepage.getDz() + "]未填写联系人地址",
 					"Item"
 				));
-		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getDz())) {
+		} else if (!homepage.getGzdwjdz().equals("-") && !homepage.getGzdwjdz().equals("─") && !compareDic(rc036, RecordRangeType.name, homepage.getDz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -1027,7 +1042,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 39. ZLLB	治疗类别	字符	3		《值域范围参考RC039-治疗类别字典》
 		 */
 		col ++;
-		if (!homepage.getZllb().isEmpty() && !compareDic(rc039, RecordRangeType.code, homepage.getZllb())) {
+		if (!homepage.getZllb().isEmpty() && !homepage.getZllb().equals("-") && !homepage.getZllb().equals("─") && !compareDic(rc039, RecordRangeType.code, homepage.getZllb())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -1084,10 +1099,9 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 		} else {
 			if (isDatetime(homepage.getRysj())) {
-				Date _rysj = FormatUtil.parseDate(homepage.getRysj());
-				Calendar _rysjCal = Calendar.getInstance();
-				_rysjCal.setTime(_rysj);
-				int _hour = _rysjCal.get(Calendar.HOUR);
+				Calendar _rysj = Calendar.getInstance();
+				_rysj.setTime(FormatUtil.parseDateTime(homepage.getRysj()));
+				int _hour = _rysj.get(Calendar.HOUR_OF_DAY);
 				if (_hour != getInteger(homepage.getRysjS())) {
 							checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
@@ -1150,7 +1164,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[ZKKB:转科科别=" + homepage.getZkkb() + "]未填写转科科别",
 					"Item"
 				));
-		} else {
+		} else if (homepage.getZkkb().length() > 1) {
 			String[] _zkkbs = homepage.getZkkb().split("\\Q,\\E");
 			for (String _zkkb : _zkkbs) {
 				if (!compareDic(rc023, RecordRangeType.code, _zkkb.trim())) {
@@ -1226,10 +1240,9 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 		} else {
 			if (isDatetime(homepage.getCysj())) {
-				Date _cysj = FormatUtil.parseDate(homepage.getCysj());
-				Calendar _cysjCal = Calendar.getInstance();
-				_cysjCal.setTime(_cysj);
-				int _hour = _cysjCal.get(Calendar.HOUR);
+				Calendar _cysj = Calendar.getInstance();
+				_cysj.setTime(FormatUtil.parseDateTime(homepage.getCysj()));
+				int _hour = _cysj.get(Calendar.HOUR_OF_DAY);
 				if (_hour != getInteger(homepage.getCysjS())) {
 							checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
@@ -1304,9 +1317,9 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		} else if (isDatetime(homepage.getCysj()) && isDatetime(homepage.getRysj())) {
 			long _cysj = FormatUtil.parseDateTime(homepage.getCysj()).getTime();
 			long _rysj = FormatUtil.parseDateTime(homepage.getRysj()).getTime();
-			int _sjzy = (int) (_cysj - _rysj);
+			int _sjzy = (int) (_cysj - _rysj)/86400000;
 			_sjzy = _sjzy == 0 ? 1 : _sjzy;
-			if (_sjzy > 0 && _sjzy != getInteger(homepage.getSjzy())) {
+			if (_sjzy != getInteger(homepage.getSjzy())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1348,6 +1361,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		// 诊断逻辑校验
 		if (!homepage.getJbdm().isEmpty()
 			&& !homepage.getMzdZyzd().isEmpty()
+			&& !homepage.getJbdm().equals("-")
+			&& !homepage.getJbdm().equals("─")
+			&& !homepage.getMzdZyzd().equals("-")
+			&& !homepage.getMzdZyzd().equals("─")
 			&& !diagnosisVerify(homepage.getJbdm(), homepage.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
@@ -1389,13 +1406,31 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		// 诊断逻辑校验
 		if (!homepage.getJbbm().isEmpty()
 			&& !homepage.getMzzdXyzd().isEmpty()
+			&& !homepage.getJbbm().equals("-")
+			&& !homepage.getJbbm().equals("─")
+			&& !homepage.getMzzdXyzd().equals("-")
+			&& !homepage.getMzzdXyzd().equals("─")
 			&& !diagnosisVerify(homepage.getJbbm(), homepage.getMzzdXyzd(), RecordRangeType.DIAGNOSIS_WESTERN)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBBM",
 					homepage.getJbbm(),
-					"#" + row + "." + col + ".[MZZD_XYZD:门（急）诊诊断名称(西医诊断)=" + homepage.getMzzdXyzd() + "；JBBM:门（急）诊诊断编码(西医诊断)=" + homepage.getJbbm() + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配",
+					"#" + row + "." + col + ".[JBDM:门(急)诊诊断疾病代码(中医诊断)=" + homepage.getJbdm() + "；JBBM:门（急）诊诊断编码(西医诊断)=" + homepage.getJbbm() + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配",
+					"Item"
+				));
+		}
+		//门（急）诊逻辑校验
+		if (!homepage.getRytj().isEmpty()
+			&& (homepage.getRytj().equals("1") || homepage.getRytj().equals("2"))
+			&& (homepage.getJbbm().isEmpty() || homepage.getJbbm().equals("-") || homepage.getJbbm().equals("─"))
+			&& (homepage.getJbdm().isEmpty() || homepage.getJbdm().equals("-") || homepage.getJbdm().equals("─"))) {
+			checkRecord.add(new InpatientHomepageAnalyCheck(
+					checkIndex ++,
+					homepage.getId(),
+					"JBBM",
+					homepage.getJbbm(),
+					"#" + row + "." + col + ".[JBDM:门（急）诊诊断名称(西医诊断)=" + homepage.getMzzdXyzd() + "；JBBM:门（急）诊诊断编码(西医诊断)=" + homepage.getJbbm() + "]逻辑验证未通过，入院途径为门急诊时，门（急）诊诊断必填",
 					"Item"
 				));
 		}
@@ -1447,23 +1482,22 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		}
 		// 诊断逻辑校验
 		if (!homepage.getZyyj().isEmpty() && compareDic(rc016, RecordRangeType.code, homepage.getZyyj())) {
-			double _zyzjf = homepage.getZyzjf() == null ? 0 : homepage.getZyzjf();
-			if (homepage.getZyyj().equals("1") && _zyzjf <= 0) {
+			if (homepage.getZyyj().equals("1") && homepage.getZyzjf() <= 0) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYJ",
 					homepage.getZyyj(),
-					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "；ZYZJF:中药制剂费=" + _zyzjf + "]逻辑验证未通过，当值为\"是\"时，医疗机构中药制剂费>0",
+					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "；ZYZJF:中药制剂费=" + homepage.getZyzjf() + "]逻辑验证未通过，当值为\"是\"时，医疗机构中药制剂费>0",
 					"Item"
 				));
-			} else if (_zyzjf > 0 && !homepage.getZyyj().equals("1")) {
+			} else if (homepage.getZyzjf() > 0 && !homepage.getZyyj().equals("1")) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYJ",
 					homepage.getZyyj(),
-					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "；ZYZJF:中药制剂费=" + _zyzjf + "]逻辑验证未通过，医疗机构中药制剂费>0，值应为\"是\"",
+					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "；ZYZJF:中药制剂费=" + homepage.getZyzjf() + "]逻辑验证未通过，医疗机构中药制剂费>0，值应为\"是\"",
 					"Item"
 				));
 			}
@@ -1568,6 +1602,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		// 诊断逻辑校验
 		if (!homepage.getZbJbbm().isEmpty()
 			&& !homepage.getZb().isEmpty()
+			&& !homepage.getZbJbbm().equals("-")
+			&& !homepage.getZbJbbm().equals("─")
 			&& !diagnosisVerify(homepage.getZbJbbm(), homepage.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
@@ -1591,7 +1627,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					"#" + row + "." + col + ".[ZB_RYBQ:主病入院病情=" + homepage.getZbRybq() + "]未填写主病入院病情",
 					"Item"
 				));
-		} else if (!compareDic(rc027, RecordRangeType.code, homepage.getZbRybq())) {
+		} else if (!homepage.getZbRybq().equals("-") && !compareDic(rc027, RecordRangeType.code, homepage.getZbRybq())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -2800,7 +2836,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		boolean result = false;
 		initialize();
 		for (Dictionary d : dic) {
-			if (dic.equals(rc036) || dic.equals(rc035)) {
+			if (type.equals(RecordRangeType.name) && dic.equals(rc036)) {
+				if (keyword.length() < 2) return false;
 				result = d.getLabel().substring(0, 2).equals(keyword.substring(0, 2));
 			} else {
 				if (type == RecordRangeType.code) {
