@@ -15,7 +15,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -36,6 +38,13 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 	@Resource private HomepageDao homepageDao;
 	private List<InpatientHomepageAnaly> homepageList;
 	private int homepageIndex = 1;
+
+	private final String CHECK_TYPE_WARN = "WARN";
+	private final String CHECK_TYPE_ERROR = "ERROR";
+	private final String CHECK_TYPE_NONEMPTY = "NONEMPTY";
+	private final String CHECK_TYPE_CONDITIONAL_NONEMPTY = "CONDITIONAL_NONEMPTY";
+	private final String CHECK_TYPE_VALIDITY = "VALIDITY";
+	private final String CHECK_TYPE_LOGICAL = "LOGICAL";
 
 	private static boolean isInited = false;
 
@@ -201,8 +210,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					method.invoke(homepage, val);
 				}
 				catch(Exception ex) {
-					ex.printStackTrace();
-					checkRecord.add(new InpatientHomepageAnalyCheck(checkIndex ++, homepage.getId(), name, value, ex.getMessage(), "Item"));
+					checkRecord.add(new InpatientHomepageAnalyCheck(checkIndex ++, homepage.getId(), name, null, value, ex.getMessage(), CHECK_TYPE_WARN));
 				}
 			}
 			/***********************************/
@@ -216,9 +224,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					checkIndex ++,
 					homepage.getId(),
 					name,
+					null,
 					value,
-					"在处理第 " + record.getRecordNumber() + " 行" + (name != null ? "[" + name + "=" + (value == null ? "" : value) + "]" : "") + "时发生严重错误 [" + ex.getMessage() + "]",
-					"Entry"
+					"处理数据时发生错误 [" + ex.getMessage() + "]",
+					CHECK_TYPE_ERROR
 				)
 			);
 		}
@@ -289,8 +298,6 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		initialize();
 		List<InpatientHomepageAnalyCheck> checkRecord = homepage.getInpatientHomepageAnalyChecks();
 		int checkIndex = checkRecord.size() + 1;
-		int row = homepage.getId();
-		int col = 0;
 
 		boolean hasSs = false;
 		boolean hasMz = false;
@@ -301,365 +308,352 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		/*
 		 * 1. ZZJGDM	组织机构代码	字符	22	必填	指医疗机构执业许可证上面的机构代码。
 		 */
-		col ++;
 		if (homepage.getZzjgdm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZZJGDM",
+					"组织机构代码",
 					homepage.getZzjgdm(),
-					"#" + row + "." + col + ".[ZZJGDM:组织机构代码=" + homepage.getZzjgdm() + "]未填写组织机构代码",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (homepage.getZzjgdm().length() != 18) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZZJGDM",
+					"组织机构代码",
 					homepage.getZzjgdm(),
-					"#" + row + "." + col + ".[ZZJGDM:组织机构代码=" + homepage.getZzjgdm() + "]组织机构代码应为18位",
-					"Item"
+					"位数不正确(" + homepage.getZzjgdm().length() + ")，应为18位",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 2. JGMC	医疗机构名称	字符	80	必填
 		 */
-		col ++;
 		if (homepage.getJgmc().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JGMC",
+					"组织机构名称",
 					homepage.getZzjgdm(),
-					"#" + row + "." + col + ".[JGMC:组织机构名称=" + homepage.getJgmc() + "]未填写组织机构名称",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 3. USERNAME	对应的系统登录用户名	字符	10	必填	医院名称或者编码
 		 */
-		col ++;
 		if (homepage.getUsername().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"USERNAME",
+					"系统登录用户名",
 					homepage.getUsername(),
-					"#" + row + "." + col + ".[USERNAME:系统登录用户名=" + homepage.getUsername() + "]未填写系统登录用户名",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 4. YLFKFS	医疗付款方式	字符	3	必填	《值域范围参考RC032-医疗付费方式代码》
 		 */
-		col ++;
 		if (homepage.getYlfkfs().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YLFKFS",
+					"医疗付款方式",
 					homepage.getYlfkfs(),
-					"#" + row + "." + col + ".[YLFKFS:医疗付款方式=" + homepage.getYlfkfs() + "]未填写医疗付款方式",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc032, RecordRangeType.code, homepage.getYlfkfs())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YLFKFS",
+					"医疗付款方式",
 					homepage.getYlfkfs(),
-					"#" + row + "." + col + ".[YLFKFS:医疗付款方式=" + homepage.getYlfkfs() + "]代码填写不正确，《值域范围参考RC032-医疗付费方式代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC032-医疗付费方式代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 5. JKKH	健康卡号	字符	50		在已统一发放“中华人民共和国居民健康卡”的地区填写健康卡号码，尚未发放“健康卡”的地区填写“-”
 		 */
-		col ++;
 		if (homepage.getJkkh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JKKH",
+					"医疗付款方式",
 					homepage.getJkkh(),
-					"#" + row + "." + col + ".[JKKH:医疗付款方式=" + homepage.getJkkh() + "]未填写健康卡号，尚未发放“健康卡”的地区填写“-”",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 6. ZYCS	住院次数	数字	4	必填	大于0的整数
 		 */
-		col ++;
 		if (homepage.getZycs().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYCS",
+					"住院次数",
 					homepage.getZycs(),
-					"#" + row + "." + col + ".[ZYCS:住院次数=" + homepage.getZycs() + "]未填写住院次数",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!isInteger(homepage.getZycs())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYCS",
+					"住院次数",
 					homepage.getZycs(),
-					"#" + row + "." + col + ".[ZYCS:住院次数=" + homepage.getZycs() + "]填写不正确，必须是大于0的整数",
-					"Item"
+					"必须是大于0的整数",
+					CHECK_TYPE_VALIDITY
 				));
 		} else if (getInteger(homepage.getZycs()) <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYCS",
+					"住院次数",
 					homepage.getZycs(),
-					"#" + row + "." + col + ".[ZYCS:住院次数=" + homepage.getZycs() + "]住院次数必须大于0",
-					"Item"
+					"必须大于0",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 7. BAH	病案号	字符	50	必填
 		 */
-		col ++;
 		if (homepage.getBah().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BAH",
+					"病案号",
 					homepage.getBah(),
-					"#" + row + "." + col + ".[BAH:病案号=" + homepage.getBah() + "]未填写病案号",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 8. XM	姓名	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getXm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XM",
+					"姓名",
 					homepage.getXm(),
-					"#" + row + "." + col + ".[XM:姓名=" + homepage.getXm() + "]未填写患者姓名",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 9. XB	性别	数字	1	必填	《值域范围参考RC001-性别代码》
 		 */
-		col ++;
 		if (homepage.getXb().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XB",
+					"性别",
 					homepage.getXb(),
-					"#" + row + "." + col + ".[XB:性别=" + homepage.getXb() + "]未填写性别",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc001, RecordRangeType.code, homepage.getXb())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XB",
+					"性别",
 					homepage.getXb(),
-					"#" + row + "." + col + ".[XB:性别=" + homepage.getXb() + "]代码填写不正确，《值域范围参考RC001-性别代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC001-性别代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 10. CSRQ	出生日期	日期	10	必填	yyyy-mm-dd
 		 */
-		col ++;
 		if (homepage.getCsrq().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CSRQ",
+					"出生日期",
 					homepage.getCsrq(),
-					"#" + row + "." + col + ".[CSRQ:出生日期=" + homepage.getCsrq() + "]未填写出生日期",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!isDate(homepage.getCsrq())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CSRQ",
+					"出生日期",
 					homepage.getCsrq(),
-					"#" + row + "." + col + ".[CSRQ:出生日期=" + homepage.getCsrq() + "]格式不正确，格式 yyyy-MM-dd",
-					"Item"
+					"格式不正确，yyyy-MM-dd",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 11. NL	年龄（岁）	数字	3	必填	患者入院年龄，指患者入院时按照日历计算的历法年龄，应以实足年龄的相应整数填写。大于或等于0的整数
 		 */
-		col ++;
 		Integer _age = getInteger(homepage.getNl());
 		if (homepage.getNl().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"NL",
+					"年龄（岁）",
 					homepage.getNl(),
-					"#" + row + "." + col + ".[NL:年龄（岁）=" + homepage.getNl() + "]未填写",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!isInteger(homepage.getNl())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"NL",
+					"年龄（岁）",
 					homepage.getNl(),
-					"#" + row + "." + col + ".[NL:年龄（岁）=" + homepage.getNl() + "]不是数字(整数)",
-					"Item"
+					"不是数字",
+					CHECK_TYPE_VALIDITY
 				));
 		} else if (_age < 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"NL",
+					"年龄（岁）",
 					homepage.getNl(),
-					"#" + row + "." + col + ".[NL:年龄（岁）=" + homepage.getNl() + "]必须是大于或等于0的整数",
-					"Item"
+					"必须是大于或等于0的整数",
+					CHECK_TYPE_VALIDITY
 				));
 		} else if (isDatetime(homepage.getRysj()) && isDate(homepage.getCsrq())) {
+			/*
+			 * 以年计
+			 */
 			Calendar rysj = Calendar.getInstance();
 			Calendar csrq = Calendar.getInstance();
 			rysj.setTime(FormatUtil.parseDateTime(homepage.getRysj()));
 			csrq.setTime(FormatUtil.parseDate(homepage.getCsrq()));
 			int age = rysj.get(Calendar.YEAR) - csrq.get(Calendar.YEAR);
+			/*
+			 * 以实际年、月、日计
+			 */
+			/*
+			Calendar ageCal = Calendar.getInstance();
+			ageCal.setTime(new Date(FormatUtil.parseDateTime(homepage.getRysj()).getTime() - FormatUtil.parseDate(homepage.getCsrq()).getTime()));
+//			(FormatUtil.parseDate(homepage.getRysj().substring(0, 10)).getTime() - FormatUtil.parseDate(homepage.getCsrq()).getTime())/86400000/30/12
+			int age = ageCal.get(Calendar.YEAR);
+			*/
 			if (age != _age) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"NL",
+						"年龄（岁）",
 						homepage.getNl(),
-						"#" + row + "." + col + ".[NL:年龄（岁）=" + homepage.getNl() + "]逻辑验证未通过，年龄与实际年龄（" + age + "）不符",
-						"Item"
+						"与实际年龄（" + age + "）不符",
+						CHECK_TYPE_LOGICAL
 					));
 			}
 		}
 		/*
 		 * 12. GJ	国籍	字符	40	必填	《值域范围参考RC038-国籍字典》
 		 */
-		col ++;
 		if (homepage.getGj().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GJ",
+					"国籍",
 					homepage.getGj(),
-					"#" + row + "." + col + ".[GJ:国籍=" + homepage.getGj() + "]未填写国籍",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc038, RecordRangeType.code, homepage.getGj())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GJ",
+					"国籍",
 					homepage.getGj(),
-					"#" + row + "." + col + ".[GJ:国籍=" + homepage.getGj() + "]代码填写不正确，《值域范围参考RC038-国籍字典》",
-					"Item"
+					"代码不正确，《值域范围参考RC038-国籍字典》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 13. BZYZS_NL	年龄不足1周岁的年龄（天）	数字	3	条件必填	新生儿病例
 		 */
-		col ++;
-		if (_age != null && _age == 0) {
+		if (_age == 0) {
 			if (homepage.getBzyzsNl().isEmpty()) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"BZYZS_NL",
+						"年龄不足1周岁的年龄（天）",
 						homepage.getBzyzsNl(),
-						"#" + row + "." + col + ".[BZYZS_NL:年龄不足1周岁的年龄（天）=" + homepage.getBzyzsNl() + "]年龄不足1周岁的未填写",
-						"Item"
+						"不能为空",
+						CHECK_TYPE_CONDITIONAL_NONEMPTY
 					));
 			} else if(!isFloat(homepage.getBzyzsNl())) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"BZYZS_NL",
+						"年龄不足1周岁的年龄（天）",
 						homepage.getBzyzsNl(),
-						"#" + row + "." + col + ".[BZYZS_NL:年龄不足1周岁的年龄（天）=" + homepage.getBzyzsNl() + "]必须为数字",
-						"Item"
+						"必须为数字",
+						CHECK_TYPE_VALIDITY
 					));
 			}
 		}
 		/*
 		 * 14. XSETZ	新生儿出生体重(克)	数字	6	条件必填	测量新生儿体重要求精确到10克；应在活产后一小时内称取重量。
 		 * 1、产妇和新生儿病案填写，从出生到28天为新生儿期，双胎及以上不同胎儿体重则继续填写下面的新生儿出生体重。
-		 * 2、新生儿体重范围：100克-9999克，产妇的主要诊断或其他诊断编码中含有Z37.0,Z37.2, Z37.3, Z37.5, Z37.6编码时，未填写新生儿出生体重
+		 * 2、新生儿体重范围：100克-9999克，产妇的主要诊断或其他诊断编码中含有Z37.0,Z37.2, Z37.3, Z37.5, Z37.6编码时，不能为空新生儿出生体重
 		 */
-		col ++;
 //		TODO 新生儿体重
 //		if () {
 //			
 //		}
 		/*
 		 * 15. XSETZ2	新生儿出生体重(克)2	数字	6		新生儿体重范围：100克-9999克
-		 */
-		col ++;
-		if (!homepage.getXsetz2().isEmpty() && !isFloat(homepage.getXsetz2())) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"XSETZ2",
-					homepage.getXsetz2(),
-					"#" + row + "." + col + ".[XSETZ2:新生儿出生体重(克)2=" + homepage.getXsetz2() + "]必须为数字",
-					"Item"
-				));
-		}
-		/*
 		 * 16. XSETZ3	新生儿出生体重(克)3	数字	6		新生儿体重范围：100克-9999克
-		 */
-		col ++;
-		if (!homepage.getXsetz3().isEmpty() && !isFloat(homepage.getXsetz3())) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"XSETZ3",
-					homepage.getXsetz3(),
-					"#" + row + "." + col + ".[XSETZ3:新生儿出生体重(克)3=" + homepage.getXsetz3() + "]必须为数字",
-					"Item"
-				));
-		}
-		/*
 		 * 17. XSETZ4	新生儿出生体重(克)4	数字	6		新生儿体重范围：100克-9999克
-		 */
-		col ++;
-		if (!homepage.getXsetz4().isEmpty() && !isFloat(homepage.getXsetz4())) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"XSETZ4",
-					homepage.getXsetz4(),
-					"#" + row + "." + col + ".[XSETZ4:新生儿出生体重(克)4=" + homepage.getXsetz4() + "]必须为数字",
-					"Item"
-				));
-		}
-		/*
 		 * 18. XSETZ5	新生儿出生体重(克)5	数字	6		新生儿体重范围：100克-9999克
 		 */
-		col ++;
-		if (!homepage.getXsetz5().isEmpty() && !isFloat(homepage.getXsetz5())) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"XSETZ5",
-					homepage.getXsetz5(),
-					"#" + row + "." + col + ".[XSETZ5:新生儿出生体重(克)5=" + homepage.getXsetz5() + "]必须为数字",
-					"Item"
-				));
+		if (_age == 0) {
+			for (int i = 2; i <= 5; i ++) {
+				String value = homepage.getClass().getMethod("getXsetz" + i, new Class[0]).invoke(homepage, new Object[0]).toString();
+				if (!value.isEmpty() && !isFloat(value)) {
+					checkRecord.add(new InpatientHomepageAnalyCheck(
+							checkIndex ++,
+							homepage.getId(),
+							"XSETZ" + i,
+							"新生儿出生体重(克)" + i,
+							value,
+							"必须为数字",
+							CHECK_TYPE_VALIDITY
+						));
+				}
+			}
 		}
 		/*
 		 * 19. XSERYTZ	新生儿入院体重（克）	数字	6	条件必填	100克-9999克，精确到10克；新生儿入院当日的体重；
-		 * 小于等于28天的新生儿必填，填写了新生儿入出院体重的，未填写年龄不足1周岁的年龄（天），且必须小于等于28天。
+		 * 小于等于28天的新生儿必填，填写了新生儿入出院体重的，不能为空年龄不足1周岁的年龄（天），且必须小于等于28天。
 		 */
-		col ++;
 		// TODO 新生儿入院体重
 //		if () {
 //			
@@ -667,435 +661,483 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		/*
 		 * 20. CSD	出生地	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
-		col ++;
 		if (homepage.getCsd().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CSD",
+					"出生地",
 					homepage.getCsd(),
-					"#" + row + "." + col + ".[CSD:出生地=" + homepage.getCsd() + "]未填写出生地",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getCsd())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CSD",
+					"不能为空",
 					homepage.getCsd(),
-					"#" + row + "." + col + ".[CSD:出生地=" + homepage.getCsd() + "]必须以省或自治区开始",
-					"Item"
+					"必须以省或自治区开始",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 21. GG	籍贯	字符	50	必填	《值域范围参考RC036-籍贯》
 		 */
-		col ++;
 		if (homepage.getGg().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GG",
+					"籍贯",
 					homepage.getGg(),
-					"#" + row + "." + col + ".[GG:籍贯=" + homepage.getGg() + "]未填写籍贯",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc036, RecordRangeType.code, homepage.getGg())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GG",
+					"籍贯",
 					homepage.getGg(),
-					"#" + row + "." + col + ".[GG:籍贯=" + homepage.getGg() + "]填写不正确，《值域范围参考RC036-籍贯》",
-					"Item"
+					"代码不正确，《值域范围参考RC036-籍贯》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 22. MZ	民族	字符	2	必填	《值域范围参考RC035-民族代码》
 		 */
-		col ++;
 		if (homepage.getMz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"MZ",
+					"民族",
 					homepage.getMz(),
-					"#" + row + "." + col + ".[MZ:民族=" + homepage.getMz() + "]未填写民族",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
-		} else if (!compareDic(rc036, RecordRangeType.code, homepage.getMz())) {
+		} else if (!compareDic(rc035, RecordRangeType.code, homepage.getMz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"MZ",
+					"民族",
 					homepage.getMz(),
-					"#" + row + "." + col + ".[MZ:民族=" + homepage.getMz() + "]填写不正确，《值域范围参考RC035-民族代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC035-民族代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 23. SFZH	身份证号	字符	18	必填	住院患者入院时要如实填写15位或18位身份证号码
 		 */
-		col ++;
 		if (homepage.getSfzh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SFZH",
+					"身份证号",
 					homepage.getSfzh(),
-					"#" + row + "." + col + ".[SFZH:身份证号=" + homepage.getSfzh() + "]未填写身份证号",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (isInteger(homepage.getSfzh()) && homepage.getSfzh().length() != 15 && homepage.getSfzh().length() != 18) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SFZH",
+					"身份证号",
 					homepage.getSfzh(),
-					"#" + row + "." + col + ".[SFZH:身份证号=" + homepage.getSfzh() + "]填写不正确，必须是15位或18位",
-					"Item"
+					"代码不正确，必须是15位或18位",
+					CHECK_TYPE_VALIDITY
 				));
+		} else if (homepage.getSfzh().length() == 18 && isDate(homepage.getCsrq())) {
+			//逻辑校验 - 身份证号出生日期与登记出生日期校验
+			DateFormat df = new SimpleDateFormat("yyyyMMdd");
+			Date birthDay = df.parse(homepage.getSfzh().substring(6, 14));
+			if (birthDay.getTime() != FormatUtil.parseDate(homepage.getCsrq()).getTime()) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+					checkIndex ++,
+					homepage.getId(),
+					"SFZH",
+					"身份证号",
+					homepage.getSfzh(),
+					"身份证出生日期与出生日期(CSRQ)不符(" + FormatUtil.DATE_FORMAT.format(birthDay) + "≠" + homepage.getCsrq() + ")",
+					CHECK_TYPE_LOGICAL
+				));
+			}
 		}
 		/*
 		 * 24. ZY	职业	字符	2	必填	《值域范围参考RC003-职业代码》
 		 */
-		col ++;
 		if (homepage.getZy().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZY",
+					"职业",
 					homepage.getZy(),
-					"#" + row + "." + col + ".[ZY:职业=" + homepage.getZy() + "]未填写职业",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc003, RecordRangeType.code, homepage.getZy())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZY",
+					"职业",
 					homepage.getZy(),
-					"#" + row + "." + col + ".[ZY:职业=" + homepage.getZy() + "]填写不正确，《值域范围参考RC003-职业代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC003-职业代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 25. HY	婚姻	字符	1	必填	《值域范围参考RC002-婚姻代码》
 		 */
-		col ++;
 		if (homepage.getHy().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"HY",
+					"婚姻",
 					homepage.getHy(),
-					"#" + row + "." + col + ".[HY:婚姻=" + homepage.getHy() + "]未填写婚姻",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc002, RecordRangeType.code, homepage.getHy())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"HY",
+					"婚姻",
 					homepage.getHy(),
-					"#" + row + "." + col + ".[HY:婚姻=" + homepage.getHy() + "]填写不正确，《值域范围参考RC002-婚姻代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC002-婚姻代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 26. XZZ	现住址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
-		col ++;
-		if (homepage.getXzz().isEmpty() || homepage.getXzz().length() <= 2) {
+		if (homepage.getXzz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XZZ",
+					"现住址",
 					homepage.getXzz(),
-					"#" + row + "." + col + ".[XZZ:现住址=" + homepage.getXzz() + "]未填写现住址",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getXzz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XZZ",
+					"现住址",
 					homepage.getXzz(),
-					"#" + row + "." + col + ".[XZZ:现住址=" + homepage.getXzz() + "]必须以省或自治区开始",
-					"Item"
+					"必须以省或自治区开始",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 27. DH	现住址电话	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getDh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"DH",
+					"现住址电话",
 					homepage.getDh(),
-					"#" + row + "." + col + ".[DH:现住址电话=" + homepage.getDh() + "]未填写现住址电话",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 28. YB1	现住址邮政编码	字符	6	必填	6位数字
 		 */
-		col ++;
 		if (homepage.getYb1().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YB1",
+					"现住址邮政编码",
 					homepage.getYb1(),
-					"#" + row + "." + col + ".[YB1:现住址邮政编码=" + homepage.getYb1() + "]未填写现住址邮政编码",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 29. HKDZ	户口地址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
-		col ++;
 		if (homepage.getHkdz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"HKDZ",
+					"户口地址",
 					homepage.getHkdz(),
-					"#" + row + "." + col + ".[HKDZ:户口地址=" + homepage.getHkdz() + "]未填写户口地址",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc036, RecordRangeType.name, homepage.getHkdz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"HKDZ",
+					"户口地址",
 					homepage.getHkdz(),
-					"#" + row + "." + col + ".[HKDZ:户口地址=" + homepage.getHkdz() + "]必须以省或自治区开始",
-					"Item"
+					"必须以省或自治区开始",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 30. YB2	户口地址邮政编码	字符	6	必填	6位数字
 		 */
-		col ++;
 		if (homepage.getYb2().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YB2",
+					"户口地址邮政编码",
 					homepage.getYb2(),
-					"#" + row + "." + col + ".[YB2:户口地址邮政编码=" + homepage.getYb2() + "]未填写户口地址邮政编码",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 31. GZDWJDZ	工作单位及地址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
-		col ++;
 		if (homepage.getGzdwjdz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GZDWJDZ",
+					"工作单位及地址",
 					homepage.getGzdwjdz(),
-					"#" + row + "." + col + ".[GZDWJDZ:工作单位及地址=" + homepage.getGzdwjdz() + "]未填写工作单位及地址",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
-		} else if (!homepage.getGzdwjdz().equals("-") && !homepage.getGzdwjdz().equals("─") && !compareDic(rc036, RecordRangeType.name, homepage.getGzdwjdz())) {
+		} else if ((homepage.getZy().equals("11")//国家公务员
+				|| homepage.getZy().equals("13")//专业技术人员
+				|| homepage.getZy().equals("17")//职员
+				|| homepage.getZy().equals("21")//企业管理人员
+				|| homepage.getZy().equals("24")//工人
+				|| homepage.getZy().equals("37"))//现役军人
+				&& !compareDic(rc036, RecordRangeType.name, homepage.getGzdwjdz())) {
+			//逻辑校验 - 根据职业验证工作单位
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GZDWJDZ",
+					"工作单位及地址",
 					homepage.getGzdwjdz(),
-					"#" + row + "." + col + ".[GZDWJDZ:工作单位=" + homepage.getGzdwjdz() + "]必须以省或自治区开始",
-					"Item"
+					"职业(ZY)为“11(国家公务员)、13(专业技术人员)、17(职员)、21(企业管理人员)、24(工人)、37(现役军人)”时，必须登记工作单位及地址(GZDWJDZ)，且以省或自治区开始",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 32. DWDH	工作单位电话	字符	20	必填
 		 */
-		col ++;
 		if (homepage.getDwdh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"DWDH",
+					"工作单位电话",
 					homepage.getDwdh(),
-					"#" + row + "." + col + ".[DWDH:工作单位电话=" + homepage.getDwdh() + "]未填写工作单位电话",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 33. YB3	工作单位邮政编码	字符	6	必填	6位数字
 		 */
-		col ++;
 		if (homepage.getYb3().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YB3",
+					"工作单位邮政编码",
 					homepage.getYb3(),
-					"#" + row + "." + col + ".[YB3:工作单位邮政编码=" + homepage.getYb3() + "]未填写工作单位邮政编码",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 34. LXRXM	联系人姓名	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getLxrxm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"LXRXM",
+					"联系人姓名",
 					homepage.getLxrxm(),
-					"#" + row + "." + col + ".[LXRXM:联系人姓名=" + homepage.getLxrxm() + "]未填写联系人姓名",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 35. GX	联系人关系	字符	1	必填	《值域范围参考RC033-联系人关系代码》
 		 */
-		col ++;
 		if (homepage.getGx().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GX",
+					"联系人关系",
 					homepage.getGx(),
-					"#" + row + "." + col + ".[GX:联系人关系=" + homepage.getGx() + "]未填写联系人关系",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc033, RecordRangeType.code, homepage.getGx())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GX",
+					"联系人关系",
 					homepage.getGx(),
-					"#" + row + "." + col + ".[GX:联系人关系=" + homepage.getGx() + "]填写不正确，《值域范围参考RC033-联系人关系代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC033-联系人关系代码》",
+					CHECK_TYPE_VALIDITY
+				));
+		} else if (homepage.getGx().equals("1")//配偶
+					&& !homepage.getHy().equals("2")/*已婚*/) {
+			//逻辑校验 - 联系人关系为“配偶”时，婚姻状况应该是“已婚”
+			checkRecord.add(new InpatientHomepageAnalyCheck(
+					checkIndex ++,
+					homepage.getId(),
+					"GX",
+					"联系人关系",
+					homepage.getGx(),
+					"为“配偶”时，婚姻状况(HY)应该是“已婚”",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 36. DZ	联系人地址	字符	200	必填	例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。
 		 */
-		col ++;
 		if (homepage.getDz().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"DZ",
+					"联系人地址",
 					homepage.getDz(),
-					"#" + row + "." + col + ".[DZ:联系人地址=" + homepage.getDz() + "]未填写联系人地址",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
-		} else if (!homepage.getGzdwjdz().equals("-") && !homepage.getGzdwjdz().equals("─") && !compareDic(rc036, RecordRangeType.name, homepage.getDz())) {
+		} else if (!isEmpty(homepage.getGzdwjdz()) && !compareDic(rc036, RecordRangeType.name, homepage.getDz())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"DZ",
+					"联系人地址",
 					homepage.getDz(),
-					"#" + row + "." + col + ".[DZ:联系人地址=" + homepage.getDz() + "]必须以省或自治区开始",
-					"Item"
+					"必须以省或自治区开始",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 37. DH1	联系人电话	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getDh1().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"DH1",
+					"联系人电话",
 					homepage.getDh1(),
-					"#" + row + "." + col + ".[DH1:联系人电话=" + homepage.getDh1() + "]未填写工作单位电话",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 38. RYTJ	入院途径	字符	1	必填	《值域范围参考RC026-入院途径代码》
 		 */
-		col ++;
 		if (homepage.getRytj().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYTJ",
+					"入院途径",
 					homepage.getRytj(),
-					"#" + row + "." + col + ".[RYTJ:入院途径=" + homepage.getRytj() + "]未填写入院途径",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc026, RecordRangeType.code, homepage.getRytj())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYTJ",
+					"入院途径",
 					homepage.getRytj(),
-					"#" + row + "." + col + ".[RYTJ:入院途径=" + homepage.getRytj() + "]填写不正确，《值域范围参考RC026-入院途径代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC026-入院途径代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 39. ZLLB	治疗类别	字符	3		《值域范围参考RC039-治疗类别字典》
 		 */
-		col ++;
-		if (!homepage.getZllb().isEmpty() && !homepage.getZllb().equals("-") && !homepage.getZllb().equals("─") && !compareDic(rc039, RecordRangeType.code, homepage.getZllb())) {
+		if (!homepage.getZllb().isEmpty() && !isEmpty(homepage.getZllb()) && !compareDic(rc039, RecordRangeType.code, homepage.getZllb())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZLLB",
+					"治疗类别",
 					homepage.getZllb(),
-					"#" + row + "." + col + ".[ZLLB:治疗类别=" + homepage.getZllb() + "]填写不正确，《值域范围参考RC039-治疗类别字典》",
-					"Item"
+					"代码不正确，《值域范围参考RC039-治疗类别字典》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 40. RYSJ	入院时间	日期		必填	格式 yyyy-MM-dd HH:mm:ss；入院时间不能晚于出院时间
 		 */
-		col ++;
 		if (homepage.getRysj().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYSJ",
+					"入院时间",
 					homepage.getRysj(),
-					"#" + row + "." + col + ".[RYSJ:入院时间=" + homepage.getRysj() + "]未填写入院时间",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 					));
 		} else if (!isDatetime(homepage.getRysj())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYSJ",
+					"入院时间",
 					homepage.getRysj(),
-					"#" + row + "." + col + ".[RYSJ:入院时间=" + homepage.getRysj() + "]填写不正确，格式 yyyy-MM-dd HH:mm:ss",
-					"Item"
+					"格式不正确，yyyy-MM-dd HH:mm:ss",
+					CHECK_TYPE_VALIDITY
 					));
 		}
 		/*
 		 * 41. RYSJ_S	时			必填	24小时制
 		 */
-		col ++;
 		if (homepage.getRysjS().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYSJ_S",
+					"入院时间（时）",
 					homepage.getRysjS(),
-					"#" + row + "." + col + ".[RYSJ_S:入院时间（时）=" + homepage.getRysjS() + "]未填写入院时间（时）",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 					));
 		} else if (!isInteger(homepage.getRysjS())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYSJ_S",
+					"入院时间（时）",
 					homepage.getRysjS(),
-					"#" + row + "." + col + ".[RYSJ_S:入院时间（时）=" + homepage.getRysjS() + "]填写不正确，小时数（24小时制）",
-					"Item"
+					"格式不正确，小时数（24小时制）",
+					CHECK_TYPE_VALIDITY
 					));
 		} else {
 			if (isDatetime(homepage.getRysj())) {
@@ -1107,9 +1149,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"RYSJ_S",
+							"入院时间（时）",
 							homepage.getRysjS(),
-							"#" + row + "." + col + ".[RYSJ:入院时间=" + homepage.getRysj() + "；RYSJ_S:入院时间（时）=" + homepage.getRysjS() + "]逻辑验证未通过，入院时间不匹配",
-							"Item"
+							"与入院时间(RYSJ)不匹配",
+							CHECK_TYPE_LOGICAL
 							));
 				}
 			}
@@ -1117,52 +1160,53 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		/*
 		 * 42. RYKB	入院科别	字符	6	必填	《值域范围参考RC023-科室代码》
 		 */
-		col ++;
 		if (homepage.getRykb().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYKB",
+					"入院科别",
 					homepage.getRykb(),
-					"#" + row + "." + col + ".[RYKB:入院科别=" + homepage.getRykb() + "]未填写入院科别",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc023, RecordRangeType.code, homepage.getRykb())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYKB",
+					"入院科别",
 					homepage.getRykb(),
-					"#" + row + "." + col + ".[RYKB:入院科别=" + homepage.getRykb() + "]填写不正确，《值域范围参考RC023-科室代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC023-科室代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 43. RYBF	入院病房	字符	30	必填
 		 */
-		col ++;
 		if (homepage.getRybf().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RYBF",
+					"入院病房",
 					homepage.getRybf(),
-					"#" + row + "." + col + ".[RYBF:入院病房=" + homepage.getRybf() + "]未填写入院病房",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 44. ZKKB	转科科别	集合	可以多选		《值域范围参考RC023-科室代码》
 		 */
-		col ++;
 		if (homepage.getZkkb().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZKKB",
+					"转科科别",
 					homepage.getZkkb(),
-					"#" + row + "." + col + ".[ZKKB:转科科别=" + homepage.getZkkb() + "]未填写转科科别",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (homepage.getZkkb().length() > 1) {
 			String[] _zkkbs = homepage.getZkkb().split("\\Q,\\E");
@@ -1172,9 +1216,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"ZKKB",
+							"转科科别",
 							homepage.getZkkb(),
-							"#" + row + "." + col + ".[ZKKB:转科科别=" + homepage.getZkkb() + "]" + _zkkb + "填写不正确，《值域范围参考RC023-科室代码》",
-							"Item"
+							"代码不正确，《值域范围参考RC023-科室代码》",
+							CHECK_TYPE_NONEMPTY
 						));
 				}
 			}
@@ -1182,24 +1227,25 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		/*
 		 * 45. CYSJ	出院时间	日期		必填	格式 yyyy-MM-dd HH:mm:ss；入院时间不能晚于出院时间
 		 */
-		col ++;
 		if (homepage.getCysj().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYSJ",
+					"出院时间",
 					homepage.getCysj(),
-					"#" + row + "." + col + ".[CYSJ:出院时间=" + homepage.getCysj() + "]未填写出院时间",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 					));
 		} else if (!isDatetime(homepage.getCysj())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYSJ",
+					"出院时间",
 					homepage.getCysj(),
-					"#" + row + "." + col + ".[CYSJ:出院时间=" + homepage.getCysj() + "]填写不正确，格式 yyyy-MM-dd HH:mm:ss",
-					"Item"
+					"格式不正确，yyyy-MM-dd HH:mm:ss",
+					CHECK_TYPE_VALIDITY
 					));
 		}
 		// 出入院时间逻辑校验
@@ -1211,32 +1257,34 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					checkIndex ++,
 					homepage.getId(),
 					"CYSJ",
+					"出院时间",
 					homepage.getCysj(),
-					"#" + row + "." + col + ".[CYSJ:出院时间=" + homepage.getCysj() + "；RYSJ:入院时间=" + homepage.getRysj() + "]逻辑验证未通过，出院时间小于入院时间",
-					"Item"
+					"小于入院时间(RYSJ)",
+					CHECK_TYPE_LOGICAL
 					));
 		}
 		/*
 		 * 46. CYSJ_S	时			必填
 		 */
-		col ++;
 		if (homepage.getCysjS().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYSJ_S",
+					"出院时间（时）",
 					homepage.getCysjS(),
-					"#" + row + "." + col + ".[CYSJ_S:出院时间（时）=" + homepage.getCysjS() + "]未填写出院时间（时）",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 					));
 		} else if (!isInteger(homepage.getCysjS())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYSJ_S",
+					"出院时间（时）",
 					homepage.getCysjS(),
-					"#" + row + "." + col + ".[CYSJ_S:出院时间（时）=" + homepage.getCysjS() + "]填写不正确，小时数（24小时制）",
-					"Item"
+					"格式不正确，小时数（24小时制）",
+					CHECK_TYPE_VALIDITY
 					));
 		} else {
 			if (isDatetime(homepage.getCysj())) {
@@ -1248,9 +1296,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"CYSJ_S",
+							"出院时间（时）",
 							homepage.getCysjS(),
-							"#" + row + "." + col + ".[CYSJ:出院时间=" + homepage.getCysj() + "；CYSJ_S:出院时间（时）=" + homepage.getCysjS() + "]逻辑验证未通过，出院时间不匹配",
-							"Item"
+							"与出院时间(CYSJ)不匹配",
+							CHECK_TYPE_LOGICAL
 							));
 				}
 			}
@@ -1258,226 +1307,225 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		/*
 		 * 47. CYKB	出院科别	字符	6	必填	《值域范围参考RC023-科室代码》；国家重点专科科室必须有数据。
 		 */
-		col ++;
 		if (homepage.getCykb().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYKB",
+					"出院科别",
 					homepage.getCykb(),
-					"#" + row + "." + col + ".[CYKB:出院科别=" + homepage.getCykb() + "]未填写出院科别",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc023, RecordRangeType.code, homepage.getCykb())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYKB",
+					"出院科别",
 					homepage.getCykb(),
-					"#" + row + "." + col + ".[CYKB:出院科别=" + homepage.getCykb() + "]填写不正确，《值域范围参考RC023-科室代码》",
-					"Item"
+					"代码不正确，《值域范围参考RC023-科室代码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 48. CYBF	出院病房	字符	30	必填
 		 */
-		col ++;
 		if (homepage.getCybf().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"CYBF",
+					"出院病房",
 					homepage.getCybf(),
-					"#" + row + "." + col + ".[CYBF:出院病房=" + homepage.getCybf() + "]未填写出院病房",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 49. SJZY	实际住院(天)	数字	6	必填	大于0整数。入院时间与出院时间只计算一天，例如：2018年6月12日入院，2018年6月15日出院，计住院天数为3天
 		 */
-		col ++;
 		if (homepage.getSjzy().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SJZY",
+					"实际住院(天)",
 					homepage.getSjzy(),
-					"#" + row + "." + col + ".[SJZY:实际住院(天)=" + homepage.getSjzy() + "]未填写实际住院(天)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!isInteger(homepage.getSjzy()) || getInteger(homepage.getSjzy()) <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SJZY",
+					"实际住院(天)",
 					homepage.getSjzy(),
-					"#" + row + "." + col + ".[SJZY:实际住院(天)=" + homepage.getSjzy() + "]填写不正确，必填大于0整数",
-					"Item"
+					"格式或天数不正确，必需大于0的整数",
+					CHECK_TYPE_VALIDITY
 				));
 		} else if (isDatetime(homepage.getCysj()) && isDatetime(homepage.getRysj())) {
 			long _cysj = FormatUtil.parseDateTime(homepage.getCysj()).getTime();
 			long _rysj = FormatUtil.parseDateTime(homepage.getRysj()).getTime();
-			int _sjzy = (int) (_cysj - _rysj)/86400000;
+			int _sjzy = Integer.parseInt(((_cysj - _rysj)/86400000 + 1)+"");
 			_sjzy = _sjzy == 0 ? 1 : _sjzy;
 			if (_sjzy != getInteger(homepage.getSjzy())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"SJZY",
+						"实际住院(天)",
 						homepage.getSjzy(),
-						"#" + row + "." + col + ".[SJZY:实际住院(天)=" + homepage.getSjzy() + "]逻辑验证未通过，与出入院时间不符[" + _sjzy + "]",
-						"Item"
+						"与实际出、入院时间计算不符(" + _sjzy + ")",
+						CHECK_TYPE_LOGICAL
 					));
 			}
 		}
 		/*
 		 * 50. MZD_ZYZD	门(急)诊诊断(中医诊断)	字符	100	必填	采用中医病症分类代码国标版95（TCM95）与编码对应的病诊断名称
 		 */
-		col ++;
 		if (homepage.getMzdZyzd().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"MZD_ZYZD",
+					"门(急)诊诊断(中医诊断)",
 					homepage.getMzdZyzd(),
-					"#" + row + "." + col + ".[MZD_ZYZD:门(急)诊诊断(中医诊断)=" + homepage.getMzdZyzd() + "]未填写门(急)诊诊断(中医诊断)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 51. JBDM	门(急)诊诊断疾病代码(中医诊断)	字符	20	必填	采用中医病症分类代码国标版95（TCM95）
 		 */
-		col ++;
 		if (homepage.getJbdm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBDM",
+					"门(急)诊诊断疾病代码(中医诊断)",
 					homepage.getJbdm(),
-					"#" + row + "." + col + ".[JBDM:门(急)诊诊断疾病代码(中医诊断)=" + homepage.getJbdm() + "]未填写门(急)诊诊断疾病代码(中医诊断)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
-		// 诊断逻辑校验
 		if (!homepage.getJbdm().isEmpty()
-			&& !homepage.getMzdZyzd().isEmpty()
-			&& !homepage.getJbdm().equals("-")
-			&& !homepage.getJbdm().equals("─")
-			&& !homepage.getMzdZyzd().equals("-")
-			&& !homepage.getMzdZyzd().equals("─")
+			&& !isEmpty(homepage.getJbdm())
 			&& !diagnosisVerify(homepage.getJbdm(), homepage.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBDM",
+					"门(急)诊诊断疾病代码(中医诊断)",
 					homepage.getJbdm(),
-					"#" + row + "." + col + ".[MZD_ZYZD:门(急)诊诊断(中医诊断)=" + homepage.getMzdZyzd() + "；JBDM:门(急)诊诊断疾病代码(中医诊断)=" + homepage.getJbdm() + "]逻辑验证未通过，与《中医病症分类代码国标版95（TCM95）》不匹配",
-					"Item"
+					"与《中医病症分类代码国标版95（TCM95）》不匹配",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 52. MZZD_XYZD	门（急）诊诊断名称(西医诊断)	字符	100	必填	采用疾病分类代码国家临床版2.0(ICD-10)与编码对应的诊断名称
 		 */
-		col ++;
 		if (homepage.getMzzdXyzd().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"MZZD_XYZD",
+					"门（急）诊诊断名称(西医诊断)",
 					homepage.getMzzdXyzd(),
-					"#" + row + "." + col + ".[MZZD_XYZD:门（急）诊诊断名称(西医诊断)=" + homepage.getMzzdXyzd() + "]未填写门（急）诊诊断名称(西医诊断)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 53. JBBM	门（急）诊诊断编码(西医诊断)	字符	20	必填	采用疾病分类代码国家临床版2.0编码（ICD-10）
 		 */
-		col ++;
 		if (homepage.getJbbm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBBM",
+					"门（急）诊诊断编码(西医诊断)",
 					homepage.getJbbm(),
-					"#" + row + "." + col + ".[JBBM:门（急）诊诊断编码(西医诊断)=" + homepage.getJbbm() + "]未填写门（急）诊诊断编码(西医诊断)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
-		// 诊断逻辑校验
 		if (!homepage.getJbbm().isEmpty()
-			&& !homepage.getMzzdXyzd().isEmpty()
-			&& !homepage.getJbbm().equals("-")
-			&& !homepage.getJbbm().equals("─")
-			&& !homepage.getMzzdXyzd().equals("-")
-			&& !homepage.getMzzdXyzd().equals("─")
+			&& !isEmpty(homepage.getJbbm())
 			&& !diagnosisVerify(homepage.getJbbm(), homepage.getMzzdXyzd(), RecordRangeType.DIAGNOSIS_WESTERN)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBBM",
+					"门（急）诊诊断编码(西医诊断)",
 					homepage.getJbbm(),
-					"#" + row + "." + col + ".[JBDM:门(急)诊诊断疾病代码(中医诊断)=" + homepage.getJbdm() + "；JBBM:门（急）诊诊断编码(西医诊断)=" + homepage.getJbbm() + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配",
-					"Item"
+					"与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		//门（急）诊逻辑校验
 		if (!homepage.getRytj().isEmpty()
-			&& (homepage.getRytj().equals("1") || homepage.getRytj().equals("2"))
-			&& (homepage.getJbbm().isEmpty() || homepage.getJbbm().equals("-") || homepage.getJbbm().equals("─"))
-			&& (homepage.getJbdm().isEmpty() || homepage.getJbdm().equals("-") || homepage.getJbdm().equals("─"))) {
+			&& (homepage.getRytj().equals("1")//门诊
+				|| homepage.getRytj().equals("2"))//急诊
+			&& (homepage.getJbbm().isEmpty() || isEmpty(homepage.getJbbm()))
+			&& (homepage.getJbdm().isEmpty() || isEmpty(homepage.getJbdm()))) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBBM",
+					"门（急）诊诊断编码(西医诊断)",
 					homepage.getJbbm(),
-					"#" + row + "." + col + ".[JBDM:门（急）诊诊断名称(西医诊断)=" + homepage.getMzzdXyzd() + "；JBBM:门（急）诊诊断编码(西医诊断)=" + homepage.getJbbm() + "]逻辑验证未通过，入院途径为门急诊时，门（急）诊诊断必填",
-					"Item"
+					"入院途径为门（急）诊(RYTJ)时，门（急）诊中医(JBDM)或西医诊断(JBBM)至少一项不能为空",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 54. SSLCLJ	实施临床路径	字符	1	必填	《值域范围参考RC040-实施临床路径字典》
 		 */
-		col ++;
 		if (homepage.getSslclj().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SSLCLJ",
+					"实施临床路径",
 					homepage.getSslclj(),
-					"#" + row + "." + col + ".[SSLCLJ:实施临床路径=" + homepage.getSslclj() + "]未填写实施临床路径",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc040, RecordRangeType.code, homepage.getSslclj())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SSLCLJ",
+					"实施临床路径",
 					homepage.getSslclj(),
-					"#" + row + "." + col + ".[SSLCLJ:实施临床路径=" + homepage.getSslclj() + "]填写不正确，《值域范围参考RC040-实施临床路径字典》",
-					"Item"
+					"代码不正确，《值域范围参考RC040-实施临床路径字典》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 55. ZYYJ	使用医疗机构中药制剂	字符	1	必填	《值域范围参考RC016》；参照卫统4-2病案首页值域；当值为"是"时，医疗机构中药制剂费>0
 		 */
-		col ++;
 		if (homepage.getZyyj().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYJ",
+					"使用医疗机构中药制剂",
 					homepage.getZyyj(),
-					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "]未填写使用医疗机构中药制剂",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc016, RecordRangeType.code, homepage.getZyyj())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYJ",
+					"使用医疗机构中药制剂",
 					homepage.getZyyj(),
-					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "]填写不正确，《值域范围参考RC016》",
-					"Item"
+					"代码不正确，《值域范围参考RC016》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		// 诊断逻辑校验
@@ -1487,218 +1535,220 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYJ",
+					"使用医疗机构中药制剂",
 					homepage.getZyyj(),
-					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "；ZYZJF:中药制剂费=" + homepage.getZyzjf() + "]逻辑验证未通过，当值为\"是\"时，医疗机构中药制剂费>0",
-					"Item"
+					"当值为“是”时，医疗机构中药制剂费(ZYZJF)>0",
+					CHECK_TYPE_LOGICAL
 				));
 			} else if (homepage.getZyzjf() > 0 && !homepage.getZyyj().equals("1")) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYJ",
+					"使用医疗机构中药制剂",
 					homepage.getZyyj(),
-					"#" + row + "." + col + ".[ZYYJ:使用医疗机构中药制剂=" + homepage.getZyyj() + "；ZYZJF:中药制剂费=" + homepage.getZyzjf() + "]逻辑验证未通过，医疗机构中药制剂费>0，值应为\"是\"",
-					"Item"
+					"医疗机构中药制剂费(ZYZJF)>0，值应为“是”",
+					CHECK_TYPE_LOGICAL
 				));
 			}
 		}
 		/*
 		 * 56. ZYZLSB	使用中医诊疗设备	字符	1	必填	《值域范围参考RC016》；参照卫统4-2病案首页值域
 		 */
-		col ++;
 		if (homepage.getZyzlsb().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZLSB",
+					"使用中医诊疗设备",
 					homepage.getZyzlsb(),
-					"#" + row + "." + col + ".[ZYZLSB:使用中医诊疗设备=" + homepage.getZyzlsb() + "]未填写使用中医诊疗设备",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc016, RecordRangeType.code, homepage.getZyzlsb())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZLSB",
+					"使用中医诊疗设备",
 					homepage.getZyzlsb(),
-					"#" + row + "." + col + ".[ZYZLSB:使用中医诊疗设备=" + homepage.getZyzlsb() + "]填写不正确，《值域范围参考RC016》",
-					"Item"
+					"代码不正确，《值域范围参考RC016》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 57. ZYZLJS	使用中医诊疗技术	字符	1	必填	《值域范围参考RC016》；参照卫统4-2病案首页值域；中医类（中医和民族医医疗服务）费>0
 		 */
-		col ++;
 		if (homepage.getZyzljs().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZLJS",
+					"使用中医诊疗技术",
 					homepage.getZyzljs(),
-					"#" + row + "." + col + ".[ZYZLJS:使用中医诊疗技术=" + homepage.getZyzljs() + "]未填写使用中医诊疗技术",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc016, RecordRangeType.code, homepage.getZyzljs())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZLJS",
+					"使用中医诊疗技术",
 					homepage.getZyzljs(),
-					"#" + row + "." + col + ".[ZYZLJS:使用中医诊疗技术=" + homepage.getZyzljs() + "]填写不正确，《值域范围参考RC016》",
-					"Item"
+					"代码不正确，《值域范围参考RC016》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 58. BZSH	辩证施护	字符	1	必填	《值域范围参考RC016》；参照卫统4-2病案首页值域
 		 */
-		col ++;
 		if (homepage.getBzsh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BZSH",
+					"辩证施护",
 					homepage.getBzsh(),
-					"#" + row + "." + col + ".[BZSH:辩证施护=" + homepage.getBzsh() + "]未填写辩证施护",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc016, RecordRangeType.code, homepage.getBzsh())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BZSH",
+					"辩证施护",
 					homepage.getBzsh(),
-					"#" + row + "." + col + ".[BZSH:辩证施护=" + homepage.getBzsh() + "]填写不正确，《值域范围参考RC016》",
-					"Item"
+					"代码不正确，《值域范围参考RC016》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 59. ZB	主病出院中医诊断	字符	100	必填	采用中医病症分类代码国标版95（TCM95）与编码对应的病诊断名称
 		 */
-		col ++;
 		if (homepage.getZb().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZB",
+					"主病出院中医诊断",
 					homepage.getZb(),
-					"#" + row + "." + col + ".[ZB:主病出院中医诊断=" + homepage.getZb() + "]未填写主病出院中医诊断",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 60. ZB_JBBM	主病疾病编码	字符	20	必填	采用中医病症分类代码国标版95（TCM95）
 		 */
-		col ++;
 		if (homepage.getZbJbbm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZB_JBBM",
+					"主病疾病编码",
 					homepage.getZbJbbm(),
-					"#" + row + "." + col + ".[ZB_JBBM:主病疾病编码=" + homepage.getZbJbbm() + "]未填写主病疾病编码",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
-		// 诊断逻辑校验
 		if (!homepage.getZbJbbm().isEmpty()
-			&& !homepage.getZb().isEmpty()
-			&& !homepage.getZbJbbm().equals("-")
-			&& !homepage.getZbJbbm().equals("─")
+			&& !isEmpty(homepage.getZbJbbm())
 			&& !diagnosisVerify(homepage.getZbJbbm(), homepage.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZB_JBBM",
+					"主病疾病编码",
 					homepage.getZbJbbm(),
-					"#" + row + "." + col + ".[ZB:主病出院中医诊断=" + homepage.getZb() + "；ZB_JBBM:主病疾病编码=" + homepage.getZbJbbm() + "]逻辑验证未通过，与《中医病症分类代码国标版95（TCM95）》不匹配",
-					"Item"
+					"与《中医病症分类代码国标版95（TCM95）》不匹配",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 61. ZB_RYBQ	主病入院病情	字符	1	必填	《值域范围参考RC027-入院病情》
 		 */
-		col ++;
 		if (homepage.getZbRybq().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZB_RYBQ",
+					"主病入院病情",
 					homepage.getZbRybq(),
-					"#" + row + "." + col + ".[ZB_RYBQ:主病入院病情=" + homepage.getZbRybq() + "]未填写主病入院病情",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!homepage.getZbRybq().equals("-") && !compareDic(rc027, RecordRangeType.code, homepage.getZbRybq())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZB_RYBQ",
+					"主病入院病情",
 					homepage.getZbRybq(),
-					"#" + row + "." + col + ".[ZB_RYBQ:主病入院病情=" + homepage.getZbRybq() + "]填写不正确，《值域范围参考RC027-入院病情》",
-					"Item"
+					"代码不正确，《值域范围参考RC027-入院病情》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 62. ZYZD	出院主要诊断名称(西医)	字符	100	必填	采用疾病分类代码国家临床版2.0(ICD-10)与编码对应的诊断名称
 		 */
-		col ++;
 		if (homepage.getZyzd().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZD",
+					"出院主要诊断名称(西医)",
 					homepage.getZyzd(),
-					"#" + row + "." + col + ".[ZYZD:出院主要诊断名称(西医)=" + homepage.getZyzd() + "]未填写出院主要诊断名称(西医)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 63. ZYZD_JBBM	出院主要诊断编码(西医)	字符	20	必填	采用疾病分类代码国家临床版2.0编码（ICD-10）
 		 */
-		col ++;
 		if (homepage.getZyzdJbbm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZD_JBBM",
+					"出院主要诊断编码(西医)",
 					homepage.getZyzdJbbm(),
-					"#" + row + "." + col + ".[ZYZD_JBBM:出院主要诊断编码(西医)=" + homepage.getZyzdJbbm() + "]未填写出院主要诊断编码(西医)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
-		}
-		// 诊断逻辑校验
-		if (!homepage.getZyzdJbbm().isEmpty()
-			&& !homepage.getZyzd().isEmpty()
-			&& !diagnosisVerify(homepage.getZyzdJbbm(), homepage.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE)) {
+		} else if (!diagnosisVerify(homepage.getZyzdJbbm(), homepage.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZD_JBBM",
+					"出院主要诊断编码(西医)",
 					homepage.getZyzdJbbm(),
-					"#" + row + "." + col + ".[ZYZD:出院主要诊断名称(西医)=" + homepage.getZyzd() + "；ZYZD_JBBM:出院主要诊断编码(西医)=" + homepage.getZyzdJbbm() + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配",
-					"Item"
+					"与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 64. XY_RYBQ	出院主要诊断入院病情(西医)	字符	1	必填	《值域范围参考RC027-入院病情》
 		 */
-		col ++;
 		if (homepage.getXyRybq().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XY_RYBQ",
+					"出院主要诊断入院病情(西医)",
 					homepage.getXyRybq(),
-					"#" + row + "." + col + ".[XY_RYBQ:出院主要诊断入院病情(西医)=" + homepage.getXyRybq() + "]未填写出院主要诊断入院病情(西医)",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc027, RecordRangeType.code, homepage.getXyRybq())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XY_RYBQ",
+					"出院主要诊断入院病情(西医)",
 					homepage.getXyRybq(),
-					"#" + row + "." + col + ".[XY_RYBQ:出院主要诊断入院病情(西医)=" + homepage.getXyRybq() + "]填写不正确，《值域范围参考RC027-入院病情》",
-					"Item"
+					"代码不正确，《值域范围参考RC027-入院病情》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
@@ -1706,9 +1756,6 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 66. ZZ_JBBM1-ZZ_JBBM7	主证疾病编码	字符	20	必填	最多采集7条；采用中医病症分类代码国标版95（TCM95）
 		 * 67. ZZ_RYBQ1-ZZ_RYBQ7	主证住入院病情	字符	1	必填	最多采集7条；《值域范围参考RC027-入院病情》
 		 */
-		col ++;
-		col ++;
-		col ++;
 		for (int i = 1; i <= 7; i ++) {
 			String zzValue = homepage.getClass().getMethod("getZz" + i, new Class[0])
 							 .invoke(homepage, new Object[0]).toString();
@@ -1716,15 +1763,16 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							   .invoke(homepage, new Object[0]).toString();
 			String rybqValue = homepage.getClass().getMethod("getZzRybq" + i, new Class[0])
 							   .invoke(homepage, new Object[0]).toString();
-			if (!zzValue.isEmpty() || !jbbmValue.isEmpty() || !rybqValue.isEmpty()) {
+			if (!jbbmValue.isEmpty() && !isEmpty(jbbmValue)) {
 				if (!diagnosisVerify(jbbmValue, zzValue, RecordRangeType.DIAGNOSIS_CHINESE)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"ZZ_JBBM" + i,
+							"主证疾病编码" + i,
 							jbbmValue,
-							"#" + row + "." + col + ".[ZZ_JBBM" + i + ":主证疾病编码" + i + "=" + jbbmValue + "；ZZ" + i + ":主证出院中医诊断" + i + "=" + zzValue + "]逻辑验证未通过，与《中医病症分类代码国标版95（TCM95）》不匹配",
-							"Item"
+							"与《中医病症分类代码国标版95（TCM95）》不匹配",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 				if (rybqValue.isEmpty()) {
@@ -1732,18 +1780,20 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"ZZ_RYBQ" + i,
+							"主证住入院病情" + i,
 							rybqValue,
-							"#" + row + "." + col + ".[ZZ_RYBQ" + i + ":主证住入院病情" + i + "=" + rybqValue + "]未填写主证住入院病情" + i,
-							"Item"
+							"不能为空" + i,
+							CHECK_TYPE_NONEMPTY
 						));
 				} else if (!compareDic(rc027, RecordRangeType.code, rybqValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"ZZ_RYBQ" + i,
+							"主证住入院病情" + i,
 							rybqValue,
-							"#" + row + "." + col + ".[ZZ_RYBQ" + i + ":主证住入院病情" + i + "=" + rybqValue + "]填写不正确，《值域范围参考RC027-入院病情》",
-							"Item"
+							"代码不正确，《值域范围参考RC027-入院病情》",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 			}
@@ -1753,9 +1803,6 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 69. ZYZD_JBBM1-ZYZD_JBBM40	出院其他诊断编码(西医)	字符	20		最多收集40条；采用疾病分类代码国家临床版2.0编码（ICD-10）
 		 * 70. RYBQ1-RYBQ40	出院其他诊断入院病情(西医)	字符	1		《值域范围参考RC027-入院病情》
 		 */
-		col ++;
-		col ++;
-		col ++;
 		for (int i = 1; i <= 40; i ++) {
 			String qtzdValue = homepage.getClass().getMethod("getQtzd" + i, new Class[0])
 							 .invoke(homepage, new Object[0]).toString();
@@ -1763,15 +1810,16 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							   .invoke(homepage, new Object[0]).toString();
 			String rybqValue = homepage.getClass().getMethod("getRybq" + i, new Class[0])
 							   .invoke(homepage, new Object[0]).toString();
-			if (!qtzdValue.isEmpty() || !jbbmValue.isEmpty() || !rybqValue.isEmpty()) {
-				if (!diagnosisVerify(jbbmValue, qtzdValue, RecordRangeType.DIAGNOSIS_CHINESE)) {
+			if (!jbbmValue.isEmpty() || !isEmpty(jbbmValue)) {
+				if (!diagnosisVerify(jbbmValue, qtzdValue, RecordRangeType.DIAGNOSIS_WESTERN)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"ZYZD_JBBM" + i,
+							"出院其他诊断编码(西医)" + i,
 							jbbmValue,
-							"#" + row + "." + col + ".[ZYZD_JBBM" + i + ":出院其他诊断编码(西医)" + i + "=" + jbbmValue + "；QTZD" + i + ":出院其他诊断名称(西医)" + i + "=" + qtzdValue + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0(ICD-10)》不匹配",
-							"Item"
+							"与《疾病分类代码国家临床版2.0(ICD-10)》不匹配",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 				if (rybqValue.isEmpty()) {
@@ -1779,18 +1827,20 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"RYBQ" + i,
+							"出院其他诊断入院病情(西医)" + i,
 							rybqValue,
-							"#" + row + "." + col + ".[RYBQ" + i + ":出院其他诊断入院病情(西医)" + i + "=" + rybqValue + "]未填写出院其他诊断入院病情(西医)" + i,
-							"Item"
+							"不能为空" + i,
+							CHECK_TYPE_NONEMPTY
 						));
 				} else if (!compareDic(rc027, RecordRangeType.code, rybqValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"RYBQ" + i,
+							"出院其他诊断入院病情(西医)" + i,
 							rybqValue,
-							"#" + row + "." + col + ".[RYBQ" + i + ":出院其他诊断入院病情(西医)" + i + "=" + rybqValue + "]填写不正确，《值域范围参考RC027-入院病情》",
-							"Item"
+							"代码不正确，《值域范围参考RC027-入院病情》",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 			}
@@ -1799,305 +1849,310 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 71. WBYY	损伤、中毒外部原因名称	字符	100	条件必填	采用疾病分类代码国家临床版2.0(ICD-10)编码对应的外部原因名称；主要诊断ICD编码首字母为S或T时必填
 		 * 72. JBBM1	损伤、中毒外部原因编码	字符	20	条件必填	采用疾病分类代码国家临床版2.0的编码(ICD-10)，主要诊断ICD编码首字母为S或T时必填
 		 */
-		col ++;
-		col ++;
-		if ((!homepage.getWbyy().isEmpty() || !homepage.getJbbm1().isEmpty()) && !diagnosisVerify(homepage.getJbbm1(), homepage.getWbyy(), RecordRangeType.DIAGNOSIS_WESTERN)) {
-			if (homepage.getWbyy().isEmpty()) {
-				checkRecord.add(new InpatientHomepageAnalyCheck(
-						checkIndex ++,
-						homepage.getId(),
-						"JBBM1",
-						homepage.getJbbm1(),
-						"#" + row + "." + col + ".[JBBM1:损伤、中毒外部原因编码=" + homepage.getJbbm1() + "；WBYY:损伤、中毒外部原因名称=" + homepage.getWbyy() + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0(ICD-10)》不匹配",
-						"Item"
-					));
-			}
-		}
-		if (!homepage.getZyzdJbbm().isEmpty()
-			&& (homepage.getZyzdJbbm().charAt(0) == 'S' || homepage.getZyzdJbbm().charAt(0) == 'T')
-			&& (homepage.getWbyy().isEmpty() || homepage.getJbbm1().isEmpty())) {
+		if (!homepage.getJbbm1().isEmpty() && !isEmpty(homepage.getJbbm1()) && !diagnosisVerify(homepage.getJbbm1(), homepage.getWbyy(), RecordRangeType.DIAGNOSIS_WESTERN)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBBM1",
+					"损伤、中毒外部原因编码",
 					homepage.getJbbm1(),
-					"#" + row + "." + col + ".[JBBM1:损伤、中毒外部原因编码=" + homepage.getJbbm1() + "；WBYY:损伤、中毒外部原因名称=" + homepage.getWbyy() + "]逻辑验证未通过，主要诊断(" + homepage.getZyzdJbbm() + ")ICD编码首字母为S或T时必填",
-					"Item"
+					"与《疾病分类代码国家临床版2.0(ICD-10)》不匹配",
+					CHECK_TYPE_VALIDITY
+				));
+		}
+		//逻辑校验
+		if (!homepage.getZyzdJbbm().isEmpty()
+			&& (homepage.getZyzdJbbm().charAt(0) == 'S' || homepage.getZyzdJbbm().charAt(0) == 'T')
+			&& (homepage.getJbbm1().isEmpty() || isEmpty(homepage.getJbbm1()))) {
+			checkRecord.add(new InpatientHomepageAnalyCheck(
+					checkIndex ++,
+					homepage.getId(),
+					"JBBM1",
+					"损伤、中毒外部原因编码",
+					homepage.getJbbm1(),
+					"主要诊断(ZYZD_JBBM)ICD编码首字母为S或T时必填",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 73. BLZD	病理诊断名称	字符	100	条件必填	采用疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)与编码对应的病理名称；主要诊断ICD编码首字母为C或D00-D48时必填
 		 * 74. JBBM2	病理诊断编码	字符	20	条件必填	采用疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)；主要诊断ICD编码首字母为C或D00-D48时必填
 		 */
-		col ++;
-		col ++;
-		if ((!homepage.getBlzd().isEmpty() || !homepage.getJbbm2().isEmpty()) && !diagnosisVerify(homepage.getJbbm2(), homepage.getBlzd(), RecordRangeType.DIAGNOSIS_PATHOLOGY)) {
+		if (!homepage.getJbbm2().isEmpty() && !isEmpty(homepage.getJbbm2()) && !diagnosisVerify(homepage.getJbbm2(), homepage.getBlzd(), RecordRangeType.DIAGNOSIS_PATHOLOGY)) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JBBM2",
+					"病理诊断编码",
 					homepage.getJbbm2(),
-					"#" + row + "." + col + ".[JBBM2:病理诊断编码=" + homepage.getJbbm2() + "；BLZD:病理诊断名称=" + homepage.getBlzd() + "]逻辑验证未通过，与《疾病分类代码国家临床版2.0(ICD-10)》不匹配",
-					"Item"
+					"与《疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)》与编码对应的病理名称不匹配",
+					CHECK_TYPE_VALIDITY
 				));
 		}
+		//逻辑校验
 		if (!homepage.getZyzdJbbm().isEmpty() && homepage.getZyzdJbbm().length() >= 3) {
 			int diagnoCode = getInteger(homepage.getZyzdJbbm().substring(1, 3));
 			if ((homepage.getZyzdJbbm().charAt(0) == 'C' || (diagnoCode >= 0 && diagnoCode <= 48))
-				&& homepage.getJbbm2().isEmpty()) {
+				&& (homepage.getJbbm2().isEmpty() || isEmpty(homepage.getJbbm2()))) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"JBBM2",
+						"病理诊断编码",
 						homepage.getJbbm2(),
-						"#" + row + "." + col + ".[JBBM2:病理诊断编码=" + homepage.getJbbm2() + "；BLZD:病理诊断名称=" + homepage.getBlzd() + "]逻辑验证未通过，主要诊断(" + homepage.getZyzdJbbm() + ")ICD编码首字母为C或D00-D48时必填",
-						"Item"
+						"主要诊断(ZYZD_JBBM)ICD编码首字母为C或D00-D48时必填",
+						CHECK_TYPE_LOGICAL
 					));
 			}
 		}
 		/*
 		 * 75. BLH	病理号	字符	50	条件必填	有病理诊断编码时必填
 		 */
-		col ++;
+		//逻辑校验
 		if (!homepage.getJbbm2().isEmpty() && homepage.getBlh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BLH",
+					"病理号",
 					homepage.getBlh(),
-					"#" + row + "." + col + ".[BLH:病理号=" + homepage.getBlh() + "]逻辑验证未通过，有病理诊断编码(" + homepage.getJbbm2() + ")时必填",
-					"Item"
+					"有病理诊断编码(JBBM2)时必填",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 76. YWGM	有无药物过敏	字符	1	必填	《值域范围参考RC028-药物过敏》
 		 */
-		col ++;
 		if (homepage.getYwgm().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YWGM",
+					"有无药物过敏",
 					homepage.getYwgm(),
-					"#" + row + "." + col + ".[YWGM:有无药物过敏=" + homepage.getYwgm() + "]未填写有无药物过敏",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc028, RecordRangeType.code, homepage.getYwgm())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YWGM",
+					"有无药物过敏",
 					homepage.getYwgm(),
-					"#" + row + "." + col + ".[YWGM:有无药物过敏=" + homepage.getYwgm() + "]填写不正确，《值域范围参考RC028-药物过敏》",
-					"Item"
+					"代码不正确，《值域范围参考RC028-药物过敏》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 77. GMYW	过敏药物名称	字符	200	条件必填	“有无药物过敏”为“有”时必填；多种药物用英文逗号进行分隔
 		 */
-		col ++;
-		if (!homepage.getYwgm().isEmpty() && homepage.getYwgm().equals("2") && homepage.getGmyw().isEmpty()) {
+		//逻辑校验
+		if (homepage.getYwgm().equals("2") && homepage.getGmyw().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"GMYW",
+					"过敏药物名称",
 					homepage.getGmyw(),
-					"#" + row + "." + col + ".[GMYW:过敏药物名称=" + homepage.getGmyw() + "；YWGM:有无药物过敏=" + homepage.getYwgm() + "]逻辑验证未通过，“有无药物过敏”为“有”时必填；多种药物用英文逗号进行分隔",
-					"Item"
+					"“有无药物过敏(YWGM)”为“有”时必填；多种药物用英文逗号进行分隔",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 78. SJ	死亡患者尸检	字符	1	条件必填	《值域范围参考RC016-是否》；当离院方式为5死亡时，尸检为“1”或“2”。
 		 */
-		col ++;
-		if (!homepage.getLyfs().isEmpty() && homepage.getLyfs().equals("5") && (homepage.getSj().isEmpty() || !compareDic(rc016, RecordRangeType.code, homepage.getSj()))) {
+		//逻辑校验
+		if (homepage.getLyfs().equals("5")
+				&& (homepage.getSj().isEmpty() || !compareDic(rc016, RecordRangeType.code, homepage.getSj()))) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SJ",
+					"死亡患者尸检",
 					homepage.getSj(),
-					"#" + row + "." + col + ".[SJ:死亡患者尸检=" + homepage.getSj() + "]逻辑验证未通过，当离院方式为5死亡时，尸检为“1”或“2”",
-					"Item"
+					"当离院方式(LYFS)为5死亡时，尸检为“1”或“2”",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 79. XX	ABO血型	字符	1	必填	《值域范围参考RC030-血型编码》
 		 */
-		col ++;
 		if (homepage.getXx().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XX",
+					"ABO血型",
 					homepage.getXx(),
-					"#" + row + "." + col + ".[XX:ABO血型=" + homepage.getXx() + "]未填写ABO血型",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc030, RecordRangeType.code, homepage.getXx())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XX",
+					"ABO血型",
 					homepage.getXx(),
-					"#" + row + "." + col + ".[XX:ABO血型=" + homepage.getXx() + "]填写不正确，《值域范围参考RC030-血型编码》",
-					"Item"
+					"代码不正确，《值域范围参考RC030-血型编码》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
 		 * 80. RH	Rh血型	字符	1	必填	《值域范围参考RC031-Rh血型》；当血费>0时，RH血型值为字典值。
 		 */
-		col ++;
 		if (homepage.getRh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RH",
+					"Rh血型",
 					homepage.getRh(),
-					"#" + row + "." + col + ".[RH:Rh血型=" + homepage.getRh() + "]未填写Rh血型",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc031, RecordRangeType.code, homepage.getRh())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RH",
+					"Rh血型",
 					homepage.getRh(),
-					"#" + row + "." + col + ".[RH:Rh血型=" + homepage.getRh() + "]填写不正确，《值域范围参考RC031-Rh血型》",
-					"Item"
+					"代码不正确，《值域范围参考RC031-Rh血型》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
-		if (homepage.getXf() != null && homepage.getXf() > 0 && !homepage.getRh().equals("1") && !homepage.getRh().equals("2")) {
+		//逻辑校验
+		if (homepage.getXf() > 0 && !homepage.getRh().equals("1") && !homepage.getRh().equals("2")) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"RH",
+					"Rh血型",
 					homepage.getRh(),
-					"#" + row + "." + col + ".[RH:Rh血型=" + homepage.getRh() + "]逻辑验证未通过，当血费>0时，RH血型值为“1”或“2”",
-					"Item"
+					"当血费(XF)>0时，RH血型(RH)值为“1”或“2”",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 81. KZR	科主任	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getKzr().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"KZR",
+					"科主任",
 					homepage.getKzr(),
-					"#" + row + "." + col + ".[KZR:科主任=" + homepage.getKzr() + "]未填写科主任",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 82. ZRYS	主任（副主任）医师	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getZrys().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZRYS",
+					"主任（副主任）医师",
 					homepage.getZrys(),
-					"#" + row + "." + col + ".[ZRYS:主任（副主任）医师=" + homepage.getZrys() + "]未填写主任（副主任）医师",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 83. ZZYS	主治医师	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getZzys().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZZYS",
+					"主治医师",
 					homepage.getZzys(),
-					"#" + row + "." + col + ".[ZZYS:主治医师=" + homepage.getZzys() + "]未填写主治医师",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 84. ZYYS	住院医师	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getZyys().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYYS",
+					"住院医师",
 					homepage.getZyys(),
-					"#" + row + "." + col + ".[ZYYS:住院医师=" + homepage.getZyys() + "]未填写住院医师",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 85. ZRHS	责任护士	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getZrhs().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZRHS",
+					"责任护士",
 					homepage.getZrhs(),
-					"#" + row + "." + col + ".[ZRHS:责任护士=" + homepage.getZrhs() + "]未填写责任护士",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/********* 不验证 **********
 		 * 86. JXYS	进修医师	字符	40
 		 * 87. SXYS	实习医师	字符	40
 		 **************************/
-		col ++;
-		col ++;
 		/*
 		 * 88. BMY	编码员	字符	40	必填
 		 */
-		col ++;
 		if (homepage.getBmy().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BMY",
+					"编码员",
 					homepage.getBmy(),
-					"#" + row + "." + col + ".[BMY:编码员=" + homepage.getBmy() + "]未填写编码员",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		}
 		/*
 		 * 89. BAZL	病案质量	字符	1		《值域范围参考RC011-病案质量》
 		 */
-		col ++;
 		if (!homepage.getBazl().isEmpty() && !compareDic(rc011, RecordRangeType.code, homepage.getBazl())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BAZL",
+					"病案质量",
 					homepage.getBazl(),
-					"#" + row + "." + col + ".[BAZL:病案质量=" + homepage.getBazl() + "]填写不正确，《值域范围参考RC011-病案质量》",
-					"Item"
+					"代码不正确，《值域范围参考RC011-病案质量》",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/********* 不验证 **********
 		 * 90. ZKYS	质控医师	字符	40
 		 * 91. ZKHS	质控护士	字符	40
 		 **************************/
-		col ++;
-		col ++;
 		/*
 		 * 92. ZKRQ	质控日期	日期			格式 yyyy-MM-dd
 		 */
-		col ++;
 		if (!homepage.getZkrq().isEmpty() && !isDate(homepage.getZkrq())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZKRQ",
+					"质控日期",
 					homepage.getZkrq(),
-					"#" + row + "." + col + ".[ZKRQ:质控日期=" + homepage.getZkrq() + "]填写不正确，格式yyyy-MM-dd",
-					"Item"
+					"格式不正确，yyyy-MM-dd",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/*
@@ -2126,32 +2181,35 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 114. MZYS2-MZYS41	其他手术操作麻醉医师	字符	40		最多收集40条，手术及操作编码属性为手术时必填
 		 */
 		for (int i = 1; i <= 41; i ++) {
-			col = col + 22;
 			String preText = i == 1 ? "主要" : "其他";
-			String ssjczbmValue = homepage.getClass().getMethod("getSsjczbm" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String ssjczmcValue = homepage.getClass().getMethod("getSsjczmc" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String ssjczrqValue = homepage.getClass().getMethod("getSsjczrq" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String shjbValue = homepage.getClass().getMethod("getShjb" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String szValue = homepage.getClass().getMethod("getSz" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String yzValue = homepage.getClass().getMethod("getYz" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String qkdjValue = homepage.getClass().getMethod("getQkdj" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String qkylbValue = homepage.getClass().getMethod("getQkylb" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String mzfsValue = homepage.getClass().getMethod("getMzfs" + i, new Class<?>[0]).invoke(new Object[0]).toString();
-			String mzysValue = homepage.getClass().getMethod("getMzys" + i, new Class<?>[0]).invoke(new Object[0]).toString();
+			String ssjczbmValue = homepage.getClass().getMethod("getSsjczbm" + i, new Class<?>[0]).invoke(homepage).toString();
+			String ssjczmcValue = homepage.getClass().getMethod("getSsjczmc" + i, new Class<?>[0]).invoke(homepage).toString();
+			String ssjczrqValue = homepage.getClass().getMethod("getSsjczrq" + i, new Class<?>[0]).invoke(homepage).toString();
+			String shjbValue = homepage.getClass().getMethod("getShjb" + i, new Class<?>[0]).invoke(homepage).toString();
+			String szValue = homepage.getClass().getMethod("getSz" + i, new Class<?>[0]).invoke(homepage).toString();
+			String yzValue = homepage.getClass().getMethod("getYz" + i, new Class<?>[0]).invoke(homepage).toString();
+			String qkdjValue = homepage.getClass().getMethod("getQkdj" + i, new Class<?>[0]).invoke(homepage).toString();
+			String qkylbValue = homepage.getClass().getMethod("getQkylb" + i, new Class<?>[0]).invoke(homepage).toString();
+			String mzfsValue = homepage.getClass().getMethod("getMzfs" + i, new Class<?>[0]).invoke(homepage).toString();
+			String mzysValue = homepage.getClass().getMethod("getMzys" + i, new Class<?>[0]).invoke(homepage).toString();
+			/*
+			 * 为费用逻辑判断用
+			 */
+			hasSs = !hasSs ? !ssjczbmValue.isEmpty() && !isEmpty(ssjczbmValue) : hasSs;
+			hasMz = !hasMz ? !mzfsValue.isEmpty() && !isEmpty(mzfsValue) : hasMz;
 
-			if (!ssjczbmValue.isEmpty()) {
+			if (!ssjczbmValue.isEmpty() && !isEmpty(ssjczbmValue)) {
 				//手术诊断
 				if (!diagnosisVerify(ssjczbmValue, ssjczmcValue, RecordRangeType.DIAGNOSIS_OPERATION)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"SSJCZBM" + i,
+							preText + "手术操作编码" + i,
 							ssjczbmValue,
-							"#" + row + "." + col + ".[SSJCZBM" + i + ":" + preText + "手术操作编码=" + ssjczbmValue + "；SSJCZMC" + i + ":" + preText + "手术操作名称=" + ssjczmcValue + "]诊断验证未通过，与《手术操作分类代码国家临床版2.0编码（ICD-9-CM3）》不匹配",
-							"Item"
+							"与《手术操作分类代码国家临床版2.0编码（ICD-9-CM3）》不匹配",
+							CHECK_TYPE_VALIDITY
 						));
-				} else {
-					hasSs = true;
 				}
 				//手术时间
 				if (ssjczrqValue.isEmpty()) {
@@ -2159,18 +2217,20 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"SSJCZRQ" + i,
+							preText + "手术操作日期" + i,
 							ssjczrqValue,
-							"#" + row + "." + col + ".[SSJCZRQ" + i + ":" + preText + "手术操作日期=" + ssjczrqValue + "]未填写" + preText + "手术操作日期",
-							"Item"
+							"当有手术(SSJCZBM" + i + ")时，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				} else if (!isDatetime(ssjczrqValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"SSJCZRQ" + i,
+							preText + "手术操作日期" + i,
 							ssjczrqValue,
-							"#" + row + "." + col + ".[SSJCZRQ" + i + ":" + preText + "手术操作日期=" + ssjczrqValue + "]填写不正确，格式yyyy-MM-dd HH:mm:ss",
-							"Item"
+							"格式不正确，yyyy-MM-dd HH:mm:ss",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 				//手术级别
@@ -2179,18 +2239,20 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"SHJB" + i,
+							preText + "手术操作级别" + i,
 							shjbValue,
-							"#" + row + "." + col + ".[SHJB" + i + ":" + preText + "手术操作级别=" + shjbValue + "]未填写" + preText + "手术操作级别",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				} else if (!compareDic(rc029, RecordRangeType.code, shjbValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"SHJB" + i,
+							preText + "手术操作级别" + i,
 							shjbValue,
-							"#" + row + "." + col + ".[SHJB" + i + ":" + preText + "手术操作级别=" + shjbValue + "]填写不正确，《值域范围参考RC029》",
-							"Item"
+							"代码不正确，《值域范围参考RC029》",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 				//术者
@@ -2199,9 +2261,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"SZ" + i,
+							preText + "手术操作术者" + i,
 							szValue,
-							"#" + row + "." + col + ".[SZ" + i + ":" + preText + "手术操作术者=" + szValue + "]未填写" + preText + "手术操作术者",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				}
 				//Ⅰ助
@@ -2210,9 +2273,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"YZ" + i,
+							preText + "手术操作Ⅰ助" + i,
 							yzValue,
-							"#" + row + "." + col + ".[YZ" + i + ":" + preText + "手术操作Ⅰ助=" + yzValue + "]未填写" + preText + "手术操作Ⅰ助",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				}
 				//切口愈合等级
@@ -2221,18 +2285,20 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"QKDJ" + i,
+							preText + "切口愈合等级" + i,
 							qkdjValue,
-							"#" + row + "." + col + ".[QKDJ" + i + ":" + preText + "手术操作切口愈合等级=" + qkdjValue + "]未填写" + preText + "手术操作切口愈合等级",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				} else if (!compareDic(rc014_1, RecordRangeType.code, qkdjValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"QKDJ" + i,
+							preText + "切口愈合等级" + i,
 							qkdjValue,
-							"#" + row + "." + col + ".[QKDJ" + i + ":" + preText + "手术操作切口愈合等级=" + qkdjValue + "]填写不正确，《值域范围参考RC014-切开愈合等级》",
-							"Item"
+							"代码不正确，《值域范围参考RC014-切开愈合等级》",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 				//切口愈合类别
@@ -2241,18 +2307,20 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"QKYLB" + i,
+							preText + "切口愈合类别" + i,
 							qkylbValue,
-							"#" + row + "." + col + ".[QKYLB" + i + ":" + preText + "手术操作切口愈合类别=" + qkylbValue + "]未填写" + preText + "手术操作切口愈合类别",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				} else if (!compareDic(rc014_2, RecordRangeType.code, qkylbValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"QKYLB" + i,
+							preText + "切口愈合类别" + i,
 							qkylbValue,
-							"#" + row + "." + col + ".[QKYLB" + i + ":" + preText + "手术操作切口愈合类别=" + qkylbValue + "]填写不正确，《值域范围参考RC014-切开愈合等级》",
-							"Item"
+							"代码不正确，《值域范围参考RC014-切开愈合等级》",
+							CHECK_TYPE_VALIDITY
 						));
 				}
 				//麻醉方式
@@ -2261,21 +2329,21 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"MZFS" + i,
+							preText + "麻醉方式" + i,
 							mzfsValue,
-							"#" + row + "." + col + ".[MZFS" + i + ":" + preText + "手术操作麻醉方式=" + mzfsValue + "]未填写" + preText + "手术操作麻醉方式",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				} else if (!compareDic(rc013, RecordRangeType.code, mzfsValue)) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
 							"MZFS" + i,
+							preText + "麻醉方式" + i,
 							mzfsValue,
-							"#" + row + "." + col + ".[MZFS" + i + ":" + preText + "手术操作麻醉方式=" + mzfsValue + "]填写不正确，《值域范围参考RC013-麻醉方式》",
-							"Item"
+							"代码不正确，《值域范围参考RC013-麻醉方式》",
+							CHECK_TYPE_VALIDITY
 						));
-				} else {
-					hasMz = true;
 				}
 				//麻醉医师
 				if (mzysValue.isEmpty()) {
@@ -2283,9 +2351,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 							checkIndex ++,
 							homepage.getId(),
 							"MZYS" + i,
+							preText + "麻醉医师" + i,
 							mzysValue,
-							"#" + row + "." + col + ".[MZYS" + i + ":" + preText + "手术操作麻醉医师=" + mzysValue + "]未填写" + preText + "手术操作麻醉医师",
-							"Item"
+							"当有手术时(SSJCZBM" + i + ")，不能为空",
+							CHECK_TYPE_LOGICAL
 						));
 				}
 			}
@@ -2295,80 +2364,82 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 116. YZZY_JGMC	医嘱转院，拟接收医疗机构名称	字符	100	条件必填	离院方式为医嘱转院患者必填
 		 * 117. WSY_JGMC	医嘱转社区卫生服务机构/乡镇卫生院，拟接收医疗机构名称	字符	100	条件必填	离院方式为医嘱转社区患者必填
 		 */
-		col ++;
-		col ++;
-		col ++;
 		if (homepage.getLyfs().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"LYFS",
+					"离院方式",
 					homepage.getLyfs(),
-					"#" + row + "." + col + ".[LYFS:离院方式=" + homepage.getLyfs() + "]未填写离院方式",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc019, RecordRangeType.code, homepage.getLyfs())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"LYFS",
+					"离院方式",
 					homepage.getLyfs(),
-					"#" + row + "." + col + ".[LYFS:离院方式=" + homepage.getLyfs() + "]填写不正确，《值域范围参考RC019》",
-					"Item"
+					"代码不正确，《值域范围参考RC019》",
+					CHECK_TYPE_VALIDITY
 				));
 		} else if (homepage.getLyfs().equals("2") && homepage.getYzzyJgmc().isEmpty()) {
-			//医嘱转院
+			//逻辑校验 - 医嘱转院
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YZZY_JGMC",
+					"拟接收医疗机构名称",
 					homepage.getYzzyJgmc(),
-					"#" + row + "." + col + ".[YZZY_JGMC:医嘱转院=" + homepage.getYzzyJgmc() + "]未填写，离院方式为医嘱转院患者必填",
-					"Item"
+					"离院方式(LYFS)为“2(医嘱转院)”时，不能为空",
+					CHECK_TYPE_LOGICAL
 				));
 		} else if (homepage.getLyfs().equals("3") && homepage.getWsyJgmc().isEmpty()) {
-			//医嘱转社区卫生服务机构/乡镇卫生院
+			//逻辑校验 - 医嘱转社区卫生服务机构/乡镇卫生院
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"WSY_JGMC",
+					"拟接收医疗机构名称",
 					homepage.getWsyJgmc(),
-					"#" + row + "." + col + ".[WSY_JGMC:医嘱转社区卫生服务机构/乡镇卫生院=" + homepage.getWsyJgmc() + "]未填写，离院方式为医嘱转社区患者必填",
-					"Item"
+					"离院方式(LYFS)为“3(医嘱转社区卫生服务机构/乡镇卫生院)”时，不能为空",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
 		 * 118. ZZYJH	是否有出院31天内再住院计划	数字	1	必填	《值域范围参考RC016》，指患者本次住院出院后31天内是否有诊疗需要的再住院安排。如果有再住院计划，则需要填写目的，如：进行二次手术
 		 * 119. MD	目的	字符	100	条件必填	是否有出院31日内再住院计划填“有”时必填
 		 */
-		col ++;
-		col ++;
 		if (homepage.getZzyjh().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZZYJH",
+					"是否有出院31天内再住院计划",
 					homepage.getZzyjh(),
-					"#" + row + "." + col + ".[ZZYJH:是否有出院31天内再住院计划=" + homepage.getZzyjh() + "]未填写是否有出院31天内再住院计划",
-					"Item"
+					"不能为空",
+					CHECK_TYPE_NONEMPTY
 				));
 		} else if (!compareDic(rc037, RecordRangeType.code, homepage.getZzyjh())) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZZYJH",
+					"是否有出院31天内再住院计划",
 					homepage.getZzyjh(),
-					"#" + row + "." + col + ".[ZZYJH:是否有出院31天内再住院计划=" + homepage.getZzyjh() + "]填写不正确，《值域范围参考RC037》",
-					"Item"
+					"代码不正确，《值域范围参考RC037》",
+					CHECK_TYPE_VALIDITY
 				));
 		} else if (homepage.getZzyjh().equals("2") && homepage.getMd().isEmpty()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"MD",
+					"目的",
 					homepage.getMd(),
-					"#" + row + "." + col + ".[MD:目的=" + homepage.getMd() + "]未填写目的，是否有出院31日内再住院计划填“有”时必填",
-					"Item"
+					"是否有出院31日内再住院计划(ZZYJH)填“有”时必填",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/*
@@ -2376,69 +2447,73 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 121. RYQ_XS	小时	数字	2	必填	大于等于0，小于24整数。
 		 * 122. RYQ_FZ	分钟	数字	2	必填	大于等于0，小于60整数。
 		 */
-		col ++;
-		col ++;
-		col ++;
-		if (homepage.getRyqT().isEmpty()) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"RYQ_T",
-					homepage.getRyqT(),
-					"#" + row + "." + col + ".[RYQ_T:颅脑损伤患者昏迷入院前时间（天)=" + homepage.getRyqT() + "]未填写颅脑损伤患者昏迷入院前时间（天)",
-					"Item"
-				));
-		}
-		if (homepage.getRyqXs().isEmpty()) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"RYQ_XS",
-					homepage.getRyqXs(),
-					"#" + row + "." + col + ".[RYQ_XS:颅脑损伤患者昏迷入院前时间（小时)=" + homepage.getRyqXs() + "]未填写颅脑损伤患者昏迷入院前时间（小时)",
-					"Item"
-				));
-		}
-		if (homepage.getRyqFz().isEmpty()) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"RYQ_FZ",
-					homepage.getRyqFz(),
-					"#" + row + "." + col + ".[RYQ_FZ:颅脑损伤患者昏迷入院前时间（分钟)=" + homepage.getRyqFz() + "]未填写颅脑损伤患者昏迷入院前时间（分钟)",
-					"Item"
-				));
-		}
-		//逻辑校验
-		if (!homepage.getRyqT().isEmpty() && isInteger(homepage.getRyqT())) {
-			if (getInteger(homepage.getRyqT()) < 0) {
+		/*
+		 * TODO
+		 * 限定为颅脑损伤的患者
+		 * 暂停验证，待确定诊断范围
+		 */
+		if (homepage.getZyzdJbbm().equals("颅脑损伤")) {
+			if (homepage.getRyqT().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"RYQ_T",
+						"颅脑损伤患者昏迷入院前时间（天)",
 						homepage.getRyqT(),
-						"#" + row + "." + col + ".[RYQ_T:颅脑损伤患者昏迷入院前时间（天)=" + homepage.getRyqT() + "]填写不正确，大于等于0的整数",
-						"Item"
+						"不能为空",
+						CHECK_TYPE_NONEMPTY
+					));
+			} else if (!isInteger(homepage.getRyqT())) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"RYQ_T",
+						"颅脑损伤患者昏迷入院前时间（天)",
+						homepage.getRyqT(),
+						"数值不正确，大于等于0整数",
+						CHECK_TYPE_VALIDITY
 					));
 			}
-			if (!isInteger(homepage.getRyqXs()) || getInteger(homepage.getRyqXs()) < 0) {
+			if (homepage.getRyqXs().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"RYQ_XS",
+						"颅脑损伤患者昏迷入院前时间（小时)",
 						homepage.getRyqXs(),
-						"#" + row + "." + col + ".[RYQ_XS:小时=" + homepage.getRyqXs() + "]填写不正确，大于等于0，小于24整数",
-						"Item"
+						"不能为空",
+						CHECK_TYPE_NONEMPTY
+					));
+			} else if (!isInteger(homepage.getRyqXs()) || getInteger(homepage.getRyqXs()) < 0) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"RYQ_XS",
+						"颅脑损伤患者昏迷入院前时间（小时)",
+						homepage.getRyqXs(),
+						"数值不正确，大于等于0，小于24整数",
+						CHECK_TYPE_VALIDITY
 					));
 			}
-			if (!isInteger(homepage.getRyqXs()) || getInteger(homepage.getRyqXs()) < 0) {
+			if (homepage.getRyqFz().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"RYQ_FZ",
-						homepage.getRyqXs(),
-						"#" + row + "." + col + ".[RYQ_FZ:分钟=" + homepage.getRyqXs() + "]填写不正确，大于等于0，小于60整数",
-						"Item"
+						"颅脑损伤患者昏迷入院前时间（分钟)",
+						homepage.getRyqFz(),
+						"不能为空",
+						CHECK_TYPE_NONEMPTY
+					));
+			} else if (!isInteger(homepage.getRyqFz()) || getInteger(homepage.getRyqFz()) < 0) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"RYQ_FZ",
+						"颅脑损伤患者昏迷入院前时间（分钟)",
+						homepage.getRyqFz(),
+						"数值不正确，大于等于0，小于60整数",
+						CHECK_TYPE_VALIDITY
 					));
 			}
 		}
@@ -2447,76 +2522,79 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 124. RYH_XS	小时	数字	2	必填	大于等于0，小于24整数。
 		 * 125. RYH_FZ	分钟	数字	2	必填	大于等于0，小于60整数。
 		 */
-		col ++;
-		col ++;
-		col ++;
-		if (homepage.getRyhT().isEmpty()) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"RYH_T",
-					homepage.getRyhT(),
-					"#" + row + "." + col + ".[RYH_T:颅脑损伤患者昏迷时间（天)=" + homepage.getRyhT() + "]未填写颅脑损伤患者昏迷时间（天)",
-					"Item"
-				));
-		}
-		if (homepage.getRyhXs().isEmpty()) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"RYH_XS",
-					homepage.getRyhXs(),
-					"#" + row + "." + col + ".[RYH_XS:颅脑损伤患者昏迷时间（小时)=" + homepage.getRyhXs() + "]未填写颅脑损伤患者昏迷时间（小时)",
-					"Item"
-				));
-		}
-		if (homepage.getRyhFz().isEmpty()) {
-			checkRecord.add(new InpatientHomepageAnalyCheck(
-					checkIndex ++,
-					homepage.getId(),
-					"RYH_FZ",
-					homepage.getRyhFz(),
-					"#" + row + "." + col + ".[RYH_FZ:颅脑损伤患者昏迷时间（分钟)=" + homepage.getRyhFz() + "]未填写颅脑损伤患者昏迷时间（分钟)",
-					"Item"
-				));
-		}
-		//逻辑校验
-		if (!homepage.getRyhT().isEmpty() && isInteger(homepage.getRyhT())) {
-			if (getInteger(homepage.getRyhT()) < 0) {
+		/*
+		 * TODO
+		 * 限定为颅脑损伤的患者
+		 * 暂停验证，待确定诊断范围
+		 */
+		if (homepage.getZyzdJbbm().equals("颅脑损伤")) {
+			if (homepage.getRyhT().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"RYH_T",
+						"颅脑损伤患者昏迷时间（天)",
 						homepage.getRyhT(),
-						"#" + row + "." + col + ".[RYH_T:颅脑损伤患者昏迷时间（天)=" + homepage.getRyhT() + "]填写不正确，大于等于0的整数",
-						"Item"
+						"不能为空",
+						CHECK_TYPE_NONEMPTY
+					));
+			} else if (!isInteger(homepage.getRyhT())) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"RYH_T",
+						"颅脑损伤患者昏迷时间（天)",
+						homepage.getRyhT(),
+						"数值不正确，大于等于0整数",
+						CHECK_TYPE_VALIDITY
 					));
 			}
-			if (!isInteger(homepage.getRyhXs()) || getInteger(homepage.getRyhXs()) < 0) {
+			if (homepage.getRyhXs().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"RYH_XS",
+						"颅脑损伤患者昏迷时间（小时)",
 						homepage.getRyhXs(),
-						"#" + row + "." + col + ".[RYH_XS:小时=" + homepage.getRyhXs() + "]填写不正确，大于等于0，小于24整数",
-						"Item"
+						"不能为空",
+						CHECK_TYPE_NONEMPTY
+					));
+			} else if (!isInteger(homepage.getRyhXs()) || getInteger(homepage.getRyhXs()) < 0) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"RYH_XS",
+						"颅脑损伤患者昏迷时间（小时)",
+						homepage.getRyhXs(),
+						"数值不正确，大于等于0，小于24整数",
+						CHECK_TYPE_VALIDITY
 					));
 			}
-			if (!isInteger(homepage.getRyhXs()) || getInteger(homepage.getRyhXs()) < 0) {
+			if (homepage.getRyhFz().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
 						"RYH_FZ",
-						homepage.getRyhXs(),
-						"#" + row + "." + col + ".[RYH_FZ:分钟=" + homepage.getRyhXs() + "]填写不正确，大于等于0，小于60整数",
-						"Item"
+						"颅脑损伤患者昏迷时间（分钟)",
+						homepage.getRyhFz(),
+						"不能为空",
+						CHECK_TYPE_NONEMPTY
+					));
+			} else if (!isInteger(homepage.getRyhFz()) || getInteger(homepage.getRyhFz()) < 0) {
+				checkRecord.add(new InpatientHomepageAnalyCheck(
+						checkIndex ++,
+						homepage.getId(),
+						"RYH_FZ",
+						"颅脑损伤患者昏迷时间（分钟)",
+						homepage.getRyhFz(),
+						"数值不正确，大于等于0，小于60整数",
+						CHECK_TYPE_VALIDITY
 					));
 			}
 		}
 		/*
 		 * 126. ZFY	总费用	数字	(10,2)	必填	住院总费用必填且大于0；总费用大于或等于分项费用之和；
 		 */
-		col ++;
 		double _zfy = homepage.getYlfwf()//综合医疗服务类(1)一般医疗服务费
 				+ homepage.getZlczf()//(2)一般治疗操作费
 				+ homepage.getHlf()//(3)护理费
@@ -2549,37 +2627,39 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					checkIndex ++,
 					homepage.getId(),
 					"ZFY",
+					"总费用",
 					homepage.getZfy().toString(),
-					"#" + row + "." + col + ".[ZFY:总费用=" + homepage.getZfy() + "]逻辑验证未通过，总费用≠费用合计(" + _zfy + ")",
-					"Item"
+					"总费用(ZFY)与费用合计(" + _zfy + ")不符",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 127. ZFJE	自付金额	数字	(10,2)	必填	小于等于总费用
 		 */
-		col ++;
-		if (homepage.getZfje() < homepage.getZfy()) {
+		if (homepage.getZfje() > homepage.getZfy()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZFJE",
+					"自付金额",
 					homepage.getZfje().toString(),
-					"#" + row + "." + col + ".[ZFJE:自付金额=" + homepage.getZfje() + "]逻辑验证未通过，小于等于总费用(" + homepage.getZfy() + ")",
-					"Item"
+					"应小于等于总费用(ZFY)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 128. YLFWF	综合医疗服务类(1)一般医疗服务费	数字	(10,2)	必填	住院天数>1时，(1)一般医疗服务费>0。
 		 */
-		col ++;
-		if (isInteger(homepage.getSjzy()) && getInteger(homepage.getSjzy()) > 1 && homepage.getYlfwf() <= 0) {
+		//逻辑校验
+		if (getInteger(homepage.getSjzy()) > 1 && homepage.getYlfwf() <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"YLFWF",
+					"(1)一般医疗服务费",
 					homepage.getYlfwf().toString(),
-					"#" + row + "." + col + ".[YLFWF:(1)一般医疗服务费=" + homepage.getYlfwf() + "]逻辑验证未通过，住院天数>1时(" + homepage.getSjzy() + ")，(1)一般医疗服务费>0",
-					"Item"
+					"住院天数(SJZY)>1时，(1)一般医疗服务费(YLFWF)>0",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		//验证(1)一般医疗服务费是否小于中医辨证论治费+中医辨证论治会诊费
@@ -2588,55 +2668,55 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					checkIndex ++,
 					homepage.getId(),
 					"YLFWF",
+					"(1)一般医疗服务费",
 					homepage.getYlfwf().toString(),
-					"#" + row + "." + col + ".[YLFWF:(1)一般医疗服务费=" + homepage.getYlfwf() + "]逻辑验证未通过，(1)一般医疗服务费应≥中医辨证论治费( " + homepage.getBzlzf() + " )+中医辨证论治会诊费(" + homepage.getZyblzhzf() + ")",
-					"Item"
+					"应大于等于中医辨证论治费(BZLZF)+中医辨证论治会诊费(ZYBLZHZF)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 129. BZLZF	中医辨证论治费	数字	(10,2)	条件必填	发生辨证论治费时，必填。小于总费用。
 		 */
-		col ++;
 		if (homepage.getBzlzf() >= homepage.getZfy()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"BZLZF",
+					"中医辨证论治费",
 					homepage.getBzlzf().toString(),
-					"#" + row + "." + col + ".[BZLZF:中医辨证论治费=" + homepage.getBzlzf() + "]逻辑验证未通过，发生辨证论治费时，必填。小于总费用(" + homepage.getZfy() + ")",
-					"Item"
+					"应小于总费用(ZFY)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 130. ZYBLZHZF	中医辨证论治会诊费	数字	(10,2)	条件必填	发生辨证论治会诊费时，必填。小于总费用。
 		 */
-		col ++;
 		if (homepage.getZyblzhzf() >= homepage.getZfy()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYBLZHZF",
+					"中医辨证论治会诊费",
 					homepage.getZyblzhzf().toString(),
-					"#" + row + "." + col + ".[ZYBLZHZF:中医辨证论治会诊费=" + homepage.getZyblzhzf() + "]逻辑验证未通过，发生辨证论治会诊费时，必填。小于总费用(" + homepage.getZfy() + ")",
-					"Item"
+					"应小于总费用(ZFY)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 131. ZLCZF	(2)一般治疗操作费	数字	(10,2)
 		 */
-		col ++;
 		/* 
 		 * 132. HLF	(3)护理费	数字	(10,2)		住院天数>1时，(3)护理费>0。
 		 */
-		col ++;
-		if (isInteger(homepage.getSjzy()) && getInteger(homepage.getSjzy()) > 1 && homepage.getHlf() <= 0) {
+		if (getInteger(homepage.getSjzy()) > 1 && homepage.getHlf() <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"HLF",
+					"(3)护理费",
 					homepage.getHlf().toString(),
-					"#" + row + "." + col + ".[HLF:(3)护理费=" + homepage.getHlf() + "]逻辑验证未通过，住院天数>1时(" + homepage.getSjzy() + ")，(3)护理费>0",
-					"Item"
+					"住院天数(SJZY)>1时，(3)护理费(HLF)>0",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/* 
@@ -2646,72 +2726,72 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 136. YXXZDF	(7)影像学诊断费	数字	(10,2)
 		 * 137. LCZDXMF	(8)临床诊断项目费	数字	(10,2)
 		 */
-		col = col + 5;
 		/* 
 		 * 138. FSSZLXMF	治疗类(9)非手术治疗项目费	数字	(10,2)
 		 * 139. ZLF	临床物理治疗费	数字	(10,2)
 		 */
-		col = col + 2;
 		if (homepage.getFsszlxmf() < homepage.getZlf()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"FSSZLXMF",
+					"(9)非手术治疗项目费",
 					homepage.getFsszlxmf().toString(),
-					"#" + row + "." + col + ".[FSSZLXMF:(9)非手术治疗项目费=" + homepage.getFsszlxmf() + "]逻辑验证未通过，(9)非手术治疗项目费≥临床物理治疗费(" + homepage.getZlf() + ")",
-					"Item"
+					"应大于等于临床物理治疗费(ZLF)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 140. SSZLF	(10)手术治疗费	数字	(10,2)		手术治疗费>=麻醉费+手术费。
 		 */
-		col ++;
 		if (homepage.getSszlf() < homepage.getMzf()+homepage.getSsf()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SSZLF",
+					"(10)手术治疗费",
 					homepage.getSszlf().toString(),
-					"#" + row + "." + col + ".[SSZLF:(10)手术治疗费=" + homepage.getSszlf() + "]逻辑验证未通过，手术治疗费>=麻醉费(" + homepage.getMzf() + ")+手术费(" + homepage.getSsf() + ")",
-					"Item"
+					"应大于等于麻醉费(MZF)+手术费(SSF)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 141. MZF	麻醉费	数字	(10,2)		麻醉方式有值时，麻醉费>0。
 		 */
-		col ++;
+		//逻辑校验
 		if (hasMz && homepage.getMzf() <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"MZF",
+					"麻醉费",
 					homepage.getMzf().toString(),
-					"#" + row + "." + col + ".[MZF:麻醉费=" + homepage.getMzf() + "]逻辑验证未通过，麻醉方式有值时，麻醉费>0",
-					"Item"
+					"麻醉方式(MZFS1-41)有值时，麻醉费(MZF)>0",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/* 
 		 * 142. SSF	手术费	数字	(10,2)		发生手术时，手术费用>0。
 		 */
-		col ++;
+		//逻辑校验
 		if (hasSs && homepage.getSsf() <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"SSF",
+					"手术费",
 					homepage.getSsf().toString(),
-					"#" + row + "." + col + ".[SSF:手术费=" + homepage.getSsf() + "]逻辑验证未通过，发生手术时，手术费用>0",
-					"Item"
+					"发生手术时，手术费用(SSF)>0",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/* 
 		 * 143. KFF	康复类(11)康复费	数字	(10,2)
 		 */
-		col ++;
 		/* 
 		 * 144. ZYL_ZYZD	中医类(中医和名族医医疗服务)（12）中医诊断	数字	(10,2)	条件必填	发生中医诊断费时，必填；小于总费用；治疗类别为"1或2"且住院天数>1时，（12）中医诊断+(13)中医治疗+(14)中医其他>0；
 		 */
-		col ++;
+		//逻辑校验
 		if ((homepage.getZllb().equals("1") || homepage.getZllb().equals("2"))
 			&& getInteger(homepage.getSjzy()) > 1
 			&& homepage.getZylZyzd()+homepage.getZyzl()+homepage.getZyqt() <= 0) {
@@ -2719,30 +2799,43 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					checkIndex ++,
 					homepage.getId(),
 					"ZYL_ZYZD",
+					"（12）中医诊断",
 					homepage.getZylZyzd().toString(),
-					"#" + row + "." + col + ".[ZYL_ZYZD:（12）中医诊断=" + homepage.getZylZyzd() + "]逻辑验证未通过，治疗类别为“1或2”且住院天数>1时，（12）中医诊断+(13)中医治疗+(14)中医其他>0",
-					"Item"
+					"治疗类别为“1或2”且住院天数>1时，（12）中医诊断(ZYL_ZYZD)+(13)中医治疗(ZYZL)+(14)中医其他(ZYQT)>0",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/* 
 		 * 145. ZYZL	(13)中医治疗	数字	(10,2)	条件必填	发生中医治疗费时，必填；小于总费用；中医治疗费>=中医外治+中医骨伤+针刺与灸法+中医推拿治疗+中医肛肠治疗+中医特殊治疗；治疗类别为"1或2"且住院天数>1时，(13)中医治疗+(16)中成药费+(17)中草药费>0。
 		 */
-		col ++;
 		//中医治疗费>=中医外治+中医骨伤+针刺与灸法+中医推拿治疗+中医肛肠治疗+中医特殊治疗；
-		//治疗类别为"1或2"且住院天数>1时，(13)中医治疗+(16)中成药费+(17)中草药费>0
 		Double zyzl = homepage.getZywz()+homepage.getZygs()+homepage.getZcyjf()+homepage.getZytnzl()+homepage.getZygczl()+homepage.getZytszl();
-		if (homepage.getZyzl() < homepage.getZywz()+homepage.getZygs()+homepage.getZcyjf()+homepage.getZytnzl()+homepage.getZygczl()+homepage.getZytszl()) {
+		if (homepage.getZyzl() < zyzl) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZL",
+					"(13)中医治疗",
 					homepage.getZyzl().toString(),
-					"#" + row + "." + col + ".[ZYZL:(13)中医治疗=" + homepage.getZyzl() + "]逻辑验证未通过，中医治疗费>=(" + zyzl + ")中医外治(" + homepage.getZywz() + ")+中医骨伤(" + homepage.getZygs() + ")+针刺与灸法(" + homepage.getZcyjf() + ")+中医推拿治疗(" + homepage.getZytnzl() + ")+中医肛肠治疗(" + homepage.getZygczl() + ")+中医特殊治疗(" + homepage.getZytszl() + ")",
-					"Item"
+					"应大于等于中医外治(ZYWZ)+中医骨伤(ZYGS)+针刺与灸法(ZCYJF)+中医推拿治疗(ZYTNZL)+中医肛肠治疗(ZYGCZL)+中医特殊治疗(ZYTSZL)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
+		//治疗类别为"1或2"且住院天数>1时，(13)中医治疗+(16)中成药费+(17)中草药费>0
+		//逻辑校验
 		if ((homepage.getZllb().equals("1") || homepage.getZllb().equals("2"))
-			&& homepage.getZyzl()+homepage.getZcyf()+homepage.getZcyf1() <= 0)
+			&& getInteger(homepage.getSjzy()) > 1
+			&& homepage.getZyzl()+homepage.getZcyf()+homepage.getZcyf1() <= 0) {
+			checkRecord.add(new InpatientHomepageAnalyCheck(
+					checkIndex ++,
+					homepage.getId(),
+					"ZYZL",
+					"(13)中医治疗",
+					homepage.getZyzl().toString(),
+					"治疗类别为“1或2”且住院天数>1时，(13)中医治疗(ZYZL)+(16)中成药费(ZCYF)+(17)中草药费(ZCYF1)>0",
+					CHECK_TYPE_LOGICAL
+				));
+		}
 		/* 
 		 * 146. ZYWZ	中医外治	数字	(10,2)	条件必填	发生中医外治费时，必填。小于总费用。
 		 * 147. ZYGS	中医骨伤	数字	(10,2)	条件必填	发生中医骨伤费时，必填。小于总费用。
@@ -2754,49 +2847,48 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 153. ZYTSTPJG	中医特殊调配加工	数字	(10,2)	条件必填	发生中医特殊调配加工费时，必填。小于总费用。
 		 * 154. BZSS	辨证施膳	数字	(10,2)	条件必填	发生辨证施膳费时，必填。小于总费用。
 		 */
-		col = col + 9;
 		/* 155. XYF	西药类(15)西药费	数字	(10,2)
 		 */
-		col ++;
 		if (homepage.getXyf() < homepage.getKjywf()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"XYF",
+					"(15)西药费",
 					homepage.getXyf().toString(),
-					"#" + row + "." + col + ".[XYF:(15)西药费=" + homepage.getXyf() + "]逻辑验证未通过，(15)西药费≥抗菌药物费(" + homepage.getKjywf() + ")",
-					"Item"
+					"应大于等于抗菌药物费(KJYWF)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 156. KJYWF	抗菌药物费	数字	(10,2)
 		 */
-		col ++;
 		/* 
 		 * 157. ZCYF	中药类(16)中成药费	数字	(10,2)	条件必填	发生中成药费时，必填；中成药费>=医疗机构中药制剂费。
 		 */
-		col ++;
 		if (homepage.getZcyf() < homepage.getZyzjf()) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZCYF",
+					"(16)中成药费",
 					homepage.getZcyf().toString(),
-					"#" + row + "." + col + ".[ZCYF:(16)中成药费=" + homepage.getZcyf() + "]逻辑验证未通过，中成药费>=医疗机构中药制剂费(" + homepage.getZyzjf() + ")",
-					"Item"
+					"应大于等于医疗机构中药制剂费(ZYZJF)",
+					CHECK_TYPE_VALIDITY
 				));
 		}
 		/* 
 		 * 158. ZYZJF	医疗机构中药制剂费	数字	(10,2)	条件必填	使用医疗机构中药制剂值为"是"时，必填，且值大于0，小于总费用。
 		 */
-		col ++;
+		//逻辑校验
 		if (homepage.getZyyj().equals("1") && homepage.getZyzjf() <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"ZYZJF",
+					"医疗机构中药制剂费",
 					homepage.getZyzjf().toString(),
-					"#" + row + "." + col + ".[ZYZJF:医疗机构中药制剂费=" + homepage.getZyzjf() + "]逻辑验证未通过，使用医疗机构中药制剂值为“是”时，必填，且值大于0，小于总费用",
-					"Item"
+					"使用医疗机构中药制剂(ZYYJ)值为“是”时，必填，且值大于0，小于总费用",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/* 
@@ -2807,19 +2899,19 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 163. NXYZLZPF	(21)凝血因子类制品费	数字	(10,2)
 		 * 164. XBYZLZPF	(22)细胞因子类制品费	数字	(10,2)
 		 */
-		col = col + 6;
 		/* 
 		 * 165. JCYYCLF	耗材类(23)检查用一次性医用材料费	数字	(10,2)		住院天数>1时，(23)检查用一次性医用材料费+(24)治疗用一次性医用材料费+(25)手术用一次性医用材料费>0
 		 */
-		col ++;
+		//逻辑校验
 		if (getInteger(homepage.getSjzy()) > 1 && homepage.getJcyyclf()+homepage.getYyclf()+homepage.getSsycxclf() <= 0) {
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
 					"JCYYCLF",
+					"(23)检查用一次性医用材料费",
 					homepage.getJcyyclf().toString(),
-					"#" + row + "." + col + ".[JCYYCLF:(23)检查用一次性医用材料费=" + homepage.getJcyyclf() + "]逻辑验证未通过，住院天数>1时(" + homepage.getSjzy() + ")，(23)检查用一次性医用材料费(" + homepage.getJcyyclf() + ")+(24)治疗用一次性医用材料费(" + homepage.getYyclf() + ")+(25)手术用一次性医用材料费(" + homepage.getSsycxclf() + ")>0",
-					"Item"
+					"住院天数>1时，(23)检查用一次性医用材料费(JCYYCLF)+(24)治疗用一次性医用材料费(YYCLF)+(25)手术用一次性医用材料费(SSYCXCLF)>0",
+					CHECK_TYPE_LOGICAL
 				));
 		}
 		/* 
@@ -2827,7 +2919,6 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		 * 167. SSYCXCLF	(25)手术用一次性医用材料费	数字	(10,2)
 		 * 168. QTF	其他类(26)其他费	数字	(10,2)		住院天数>1时，（26）其他类<总费用
 		 */
-		col = col + 3;
 
 		homepage.setChecked(checkRecord.size());
 	}
@@ -2946,6 +3037,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		catch(Exception ex) {
 			return 0;
 		}
+	}
+
+	public boolean isEmpty(String value) {
+		return value.equals("-") || value.equals("─");
 	}
 
 	public HomepageDao getHomepageDao() {

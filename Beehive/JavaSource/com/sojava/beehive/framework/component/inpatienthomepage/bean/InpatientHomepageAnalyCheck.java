@@ -23,6 +23,8 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 	@Column(name="check_time")
 	private Date checkTime;
 
+	private String code;
+
 	private String name;
 
 	private String value;
@@ -45,10 +47,11 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 		this.message = message;
 	}
 
-	public InpatientHomepageAnalyCheck(int id, int pid, String name, String value, String message, String type) {
+	public InpatientHomepageAnalyCheck(int id, int pid, String code, String name, String value, String message, String type) {
 		this.id = id;
 		this.inpatientHomepageAnaly = new InpatientHomepageAnaly(pid);
 		this.checkTime = new Date();
+		this.code = code;
 		this.name = name;
 		this.value = value;
 		this.message = message;
@@ -69,6 +72,14 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 
 	public void setCheckTime(Date checkTime) {
 		this.checkTime = checkTime;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 	public String getName() {
