@@ -2,6 +2,7 @@ package com.sojava.beehive.framework.component.inpatienthomepage.bean;
 
 import java.io.Serializable;
 import javax.persistence.*;
+
 import java.util.Date;
 
 
@@ -13,56 +14,43 @@ import java.util.Date;
 @Table(name="inpatient_homepage_analy_check", schema="data_transform")
 @NamedQuery(name="InpatientHomepageAnalyCheck.findAll", query="SELECT i FROM InpatientHomepageAnalyCheck i")
 public class InpatientHomepageAnalyCheck implements Serializable {
-	private static final long serialVersionUID = -477490732679336027L;
+	private static final long serialVersionUID = 8073299895163196562L;
 
-	@Id
-	@SequenceGenerator(name="INPATIENT_HOMEPAGE_ANALY_CHECK_ID_GENERATOR", sequenceName="DATA_TRANSFORM.INPATIENT_HOMEPAGE_ANALY_CHECK_ID")
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="INPATIENT_HOMEPAGE_ANALY_CHECK_ID_GENERATOR")
-	private Integer id;
+	@EmbeddedId
+	private InpatientHomepageAnalyCheckPK id;
 
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name="check_time")
 	private Date checkTime;
 
 	private String code;
 
-	private String name;
-
-	private String value;
-
 	private String message;
+
+	private String name;
 
 	private String type;
 
-	//bi-directional many-to-one association to InpatientHomepageAnaly
-	@ManyToOne
-	@JoinColumn(name="pid")
-	private InpatientHomepageAnaly inpatientHomepageAnaly;
+	private String value;
 
 	public InpatientHomepageAnalyCheck() {
 	}
 
-	public InpatientHomepageAnalyCheck(int pid, String message) {
-		this.inpatientHomepageAnaly = new InpatientHomepageAnaly(pid);
-		this.checkTime = new Date();
-		this.message = message;
-	}
-
-	public InpatientHomepageAnalyCheck(int id, int pid, String code, String name, String value, String message, String type) {
-		this.id = id;
-		this.inpatientHomepageAnaly = new InpatientHomepageAnaly(pid);
-		this.checkTime = new Date();
+	public InpatientHomepageAnalyCheck(Integer id, InpatientHomepageAnalyPK pid, String code, String name, String value, String message, String type) {
+		this.id = new InpatientHomepageAnalyCheckPK(id, pid.getId(), pid.getKind(), pid.getType(), pid.getVersion());
 		this.code = code;
 		this.name = name;
 		this.value = value;
 		this.message = message;
 		this.type = type;
+		this.checkTime = new Date();
 	}
 
-	public Integer getId() {
+	public InpatientHomepageAnalyCheckPK getId() {
 		return this.id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(InpatientHomepageAnalyCheckPK id) {
 		this.id = id;
 	}
 
@@ -75,27 +63,11 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 	}
 
 	public String getCode() {
-		return code;
+		return this.code;
 	}
 
 	public void setCode(String code) {
 		this.code = code;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
 	}
 
 	public String getMessage() {
@@ -106,6 +78,14 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 		this.message = message;
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	public String getType() {
 		return this.type;
 	}
@@ -114,12 +94,12 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 		this.type = type;
 	}
 
-	public InpatientHomepageAnaly getInpatientHomepageAnaly() {
-		return this.inpatientHomepageAnaly;
+	public String getValue() {
+		return this.value;
 	}
 
-	public void setInpatientHomepageAnaly(InpatientHomepageAnaly inpatientHomepageAnaly) {
-		this.inpatientHomepageAnaly = inpatientHomepageAnaly;
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 }

@@ -176,9 +176,11 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			try {
 				parser = CSVParser.parse(new FileReader(file), CSVFormat.DEFAULT.withFirstRecordAsHeader());
 				parser.forEach(rec -> importHomepage(rec, kind, type, version));
+
+				homepageDao.importHomepagesAndChecks(homepageList.toArray(new InpatientHomepageAnaly[0]));
 			}
 			catch(Exception ex) {
-				ex.printStackTrace();
+				new ErrorException(getClass(), ex);
 			}
 			finally {
 				parser.close();

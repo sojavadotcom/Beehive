@@ -79,7 +79,9 @@
 		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTableDetail</class>
 		<class>com.sojava.beehive.framework.component.imp.bean.TertiaryAccountingTableItem</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnalyPK</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnalyCheck</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnalyCheckPK</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.VIcdTransform</class>

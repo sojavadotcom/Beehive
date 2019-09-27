@@ -15,16 +15,8 @@ import java.util.List;
 public class InpatientHomepageAnaly implements Serializable {
 	private static final long serialVersionUID = 910544509233282386L;
 
-	@Id
-	@SequenceGenerator(name="INPATIENT_HOMEPAGE_ANALY_ID_GENERATOR", sequenceName="DATA_TRANSFORM.INPATIENT_HOMEPAGE_ANALY_ID")
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="INPATIENT_HOMEPAGE_ANALY_ID_GENERATOR")
-	private Integer id;
-
-	private String kind;
-
-	private String type;
-
-	private Integer version;
+	@EmbeddedId
+	private InpatientHomepageAnalyPK id;
 
 	private Integer checked;
 
@@ -1564,54 +1556,30 @@ public class InpatientHomepageAnaly implements Serializable {
 
 	private String zzys;
 
-	//bi-directional many-to-one association to InpatientHomepageAnalyCheck
-	@OneToMany(mappedBy="inpatientHomepageAnaly")
+	@Transient
 	private List<InpatientHomepageAnalyCheck> inpatientHomepageAnalyChecks;
+
+	public List<InpatientHomepageAnalyCheck> getInpatientHomepageAnalyChecks() {
+		return inpatientHomepageAnalyChecks;
+	}
+
+	public void setInpatientHomepageAnalyChecks(List<InpatientHomepageAnalyCheck> inpatientHomepageAnalyChecks) {
+		this.inpatientHomepageAnalyChecks = inpatientHomepageAnalyChecks;
+	}
 
 	public InpatientHomepageAnaly() {
 	}
 
-	public InpatientHomepageAnaly(Integer id) {
-		this.setId(id);
-	}
-
 	public InpatientHomepageAnaly(int id, String kind, String type, int version) {
-		this.id = id;
-		this.kind = kind;
-		this.type = type;
-		this.version = version;
+		this.id = new InpatientHomepageAnalyPK(id, kind, type, version);
 	}
 
-	public Integer getId() {
+	public InpatientHomepageAnalyPK getId() {
 		return this.id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(InpatientHomepageAnalyPK id) {
 		this.id = id;
-	}
-
-	public String getKind() {
-		return this.kind;
-	}
-
-	public void setKind(String kind) {
-		this.kind = kind;
-	}
-
-	public String getType() {
-		return this.type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public Integer getVersion() {
-		return version;
-	}
-
-	public void setVersion(Integer version) {
-		this.version = version;
 	}
 
 	public Integer getChecked() {
@@ -1702,6 +1670,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.bzss = bzss;
 	}
 
+	@Column(name="bzyzs_nl")
 	public String getBzyzsNl() {
 		return this.bzyzsNl;
 	}
@@ -1751,6 +1720,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.cysj = cysj;
 	}
 
+	@Column(name="cysj_s")
 	public String getCysjS() {
 		return this.cysjS;
 	}
@@ -2320,6 +2290,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.mz = mz;
 	}
 
+	@Column(name="mzd_zyzd")
 	public String getMzdZyzd() {
 		return this.mzdZyzd;
 	}
@@ -2993,6 +2964,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.mzys9 = mzys9;
 	}
 
+	@Column(name="mzzd_xyzd")
 	public String getMzzdXyzd() {
 		return this.mzzdXyzd;
 	}
@@ -4354,6 +4326,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.rybq9 = rybq9;
 	}
 
+	@Column(name="ryh_fz")
 	public String getRyhFz() {
 		return this.ryhFz;
 	}
@@ -4363,6 +4336,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.ryhFz = ryhFz;
 	}
 
+	@Column(name="ryh_t")
 	public String getRyhT() {
 		return this.ryhT;
 	}
@@ -4372,6 +4346,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.ryhT = ryhT;
 	}
 
+	@Column(name="ryh_xs")
 	public String getRyhXs() {
 		return this.ryhXs;
 	}
@@ -4389,6 +4364,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.rykb = rykb;
 	}
 
+	@Column(name="ryq_fz")
 	public String getRyqFz() {
 		return this.ryqFz;
 	}
@@ -4398,6 +4374,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.ryqFz = ryqFz;
 	}
 
+	@Column(name="ryq_t")
 	public String getRyqT() {
 		return this.ryqT;
 	}
@@ -4407,6 +4384,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.ryqT = ryqT;
 	}
 
+	@Column(name="ryq_xs")
 	public String getRyqXs() {
 		return this.ryqXs;
 	}
@@ -4424,6 +4402,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.rysj = rysj;
 	}
 
+	@Column(name="rysj_s")
 	public String getRysjS() {
 		return this.rysjS;
 	}
@@ -6161,6 +6140,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.wbyy = wbyy;
 	}
 
+	@Column(name="wsy_jgmc")
 	public String getWsyJgmc() {
 		return this.wsyJgmc;
 	}
@@ -6258,6 +6238,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.xx = xx;
 	}
 
+	@Column(name="xy_rybq")
 	public String getXyRybq() {
 		return this.xyRybq;
 	}
@@ -6675,6 +6656,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.yz9 = yz9;
 	}
 
+	@Column(name="yzzy_jgmc")
 	public String getYzzyJgmc() {
 		return this.yzzyJgmc;
 	}
@@ -6692,6 +6674,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zb = zb;
 	}
 
+	@Column(name="zb_jbbm")
 	public String getZbJbbm() {
 		return this.zbJbbm;
 	}
@@ -6701,6 +6684,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zbJbbm = zbJbbm;
 	}
 
+	@Column(name="zb_rybq")
 	public String getZbRybq() {
 		return this.zbRybq;
 	}
@@ -6870,6 +6854,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zygs = zygs;
 	}
 
+	@Column(name="zyl_zyzd")
 	public Double getZylZyzd() {
 		return this.zylZyzd == null ? 0 : this.zylZyzd;
 	}
@@ -6943,6 +6928,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzd = zyzd;
 	}
 
+	@Column(name="zyzd_jbbm")
 	public String getZyzdJbbm() {
 		return this.zyzdJbbm;
 	}
@@ -6952,6 +6938,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm = zyzdJbbm;
 	}
 
+	@Column(name="zyzd_jbbm1")
 	public String getZyzdJbbm1() {
 		return this.zyzdJbbm1;
 	}
@@ -6961,6 +6948,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm1 = zyzdJbbm1;
 	}
 
+	@Column(name="zyzd_jbbm10")
 	public String getZyzdJbbm10() {
 		return this.zyzdJbbm10;
 	}
@@ -6970,6 +6958,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm10 = zyzdJbbm10;
 	}
 
+	@Column(name="zyzd_jbbm11")
 	public String getZyzdJbbm11() {
 		return this.zyzdJbbm11;
 	}
@@ -6979,6 +6968,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm11 = zyzdJbbm11;
 	}
 
+	@Column(name="zyzd_jbbm12")
 	public String getZyzdJbbm12() {
 		return this.zyzdJbbm12;
 	}
@@ -6988,6 +6978,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm12 = zyzdJbbm12;
 	}
 
+	@Column(name="zyzd_jbbm13")
 	public String getZyzdJbbm13() {
 		return this.zyzdJbbm13;
 	}
@@ -6997,6 +6988,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm13 = zyzdJbbm13;
 	}
 
+	@Column(name="zyzd_jbbm14")
 	public String getZyzdJbbm14() {
 		return this.zyzdJbbm14;
 	}
@@ -7006,6 +6998,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm14 = zyzdJbbm14;
 	}
 
+	@Column(name="zyzd_jbbm15")
 	public String getZyzdJbbm15() {
 		return this.zyzdJbbm15;
 	}
@@ -7015,6 +7008,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm15 = zyzdJbbm15;
 	}
 
+	@Column(name="zyzd_jbbm16")
 	public String getZyzdJbbm16() {
 		return this.zyzdJbbm16;
 	}
@@ -7024,6 +7018,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm16 = zyzdJbbm16;
 	}
 
+	@Column(name="zyzd_jbbm17")
 	public String getZyzdJbbm17() {
 		return this.zyzdJbbm17;
 	}
@@ -7033,6 +7028,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm17 = zyzdJbbm17;
 	}
 
+	@Column(name="zyzd_jbbm18")
 	public String getZyzdJbbm18() {
 		return this.zyzdJbbm18;
 	}
@@ -7042,6 +7038,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm18 = zyzdJbbm18;
 	}
 
+	@Column(name="zyzd_jbbm19")
 	public String getZyzdJbbm19() {
 		return this.zyzdJbbm19;
 	}
@@ -7051,6 +7048,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm19 = zyzdJbbm19;
 	}
 
+	@Column(name="zyzd_jbbm2")
 	public String getZyzdJbbm2() {
 		return this.zyzdJbbm2;
 	}
@@ -7060,6 +7058,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm2 = zyzdJbbm2;
 	}
 
+	@Column(name="zyzd_jbbm20")
 	public String getZyzdJbbm20() {
 		return this.zyzdJbbm20;
 	}
@@ -7069,6 +7068,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm20 = zyzdJbbm20;
 	}
 
+	@Column(name="zyzd_jbbm21")
 	public String getZyzdJbbm21() {
 		return this.zyzdJbbm21;
 	}
@@ -7078,6 +7078,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm21 = zyzdJbbm21;
 	}
 
+	@Column(name="zyzd_jbbm22")
 	public String getZyzdJbbm22() {
 		return this.zyzdJbbm22;
 	}
@@ -7087,6 +7088,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm22 = zyzdJbbm22;
 	}
 
+	@Column(name="zyzd_jbbm23")
 	public String getZyzdJbbm23() {
 		return this.zyzdJbbm23;
 	}
@@ -7096,6 +7098,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm23 = zyzdJbbm23;
 	}
 
+	@Column(name="zyzd_jbbm24")
 	public String getZyzdJbbm24() {
 		return this.zyzdJbbm24;
 	}
@@ -7105,6 +7108,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm24 = zyzdJbbm24;
 	}
 
+	@Column(name="zyzd_jbbm25")
 	public String getZyzdJbbm25() {
 		return this.zyzdJbbm25;
 	}
@@ -7114,6 +7118,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm25 = zyzdJbbm25;
 	}
 
+	@Column(name="zyzd_jbbm26")
 	public String getZyzdJbbm26() {
 		return this.zyzdJbbm26;
 	}
@@ -7123,6 +7128,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm26 = zyzdJbbm26;
 	}
 
+	@Column(name="zyzd_jbbm27")
 	public String getZyzdJbbm27() {
 		return this.zyzdJbbm27;
 	}
@@ -7132,6 +7138,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm27 = zyzdJbbm27;
 	}
 
+	@Column(name="zyzd_jbbm28")
 	public String getZyzdJbbm28() {
 		return this.zyzdJbbm28;
 	}
@@ -7141,6 +7148,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm28 = zyzdJbbm28;
 	}
 
+	@Column(name="zyzd_jbbm29")
 	public String getZyzdJbbm29() {
 		return this.zyzdJbbm29;
 	}
@@ -7150,6 +7158,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm29 = zyzdJbbm29;
 	}
 
+	@Column(name="zyzd_jbbm3")
 	public String getZyzdJbbm3() {
 		return this.zyzdJbbm3;
 	}
@@ -7159,6 +7168,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm3 = zyzdJbbm3;
 	}
 
+	@Column(name="zyzd_jbbm30")
 	public String getZyzdJbbm30() {
 		return this.zyzdJbbm30;
 	}
@@ -7168,6 +7178,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm30 = zyzdJbbm30;
 	}
 
+	@Column(name="zyzd_jbbm31")
 	public String getZyzdJbbm31() {
 		return this.zyzdJbbm31;
 	}
@@ -7177,6 +7188,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm31 = zyzdJbbm31;
 	}
 
+	@Column(name="zyzd_jbbm32")
 	public String getZyzdJbbm32() {
 		return this.zyzdJbbm32;
 	}
@@ -7186,6 +7198,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm32 = zyzdJbbm32;
 	}
 
+	@Column(name="zyzd_jbbm33")
 	public String getZyzdJbbm33() {
 		return this.zyzdJbbm33;
 	}
@@ -7195,6 +7208,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm33 = zyzdJbbm33;
 	}
 
+	@Column(name="zyzd_jbbm34")
 	public String getZyzdJbbm34() {
 		return this.zyzdJbbm34;
 	}
@@ -7204,6 +7218,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm34 = zyzdJbbm34;
 	}
 
+	@Column(name="zyzd_jbbm35")
 	public String getZyzdJbbm35() {
 		return this.zyzdJbbm35;
 	}
@@ -7213,6 +7228,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm35 = zyzdJbbm35;
 	}
 
+	@Column(name="zyzd_jbbm36")
 	public String getZyzdJbbm36() {
 		return this.zyzdJbbm36;
 	}
@@ -7222,6 +7238,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm36 = zyzdJbbm36;
 	}
 
+	@Column(name="zyzd_jbbm37")
 	public String getZyzdJbbm37() {
 		return this.zyzdJbbm37;
 	}
@@ -7231,6 +7248,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm37 = zyzdJbbm37;
 	}
 
+	@Column(name="zyzd_jbbm38")
 	public String getZyzdJbbm38() {
 		return this.zyzdJbbm38;
 	}
@@ -7240,6 +7258,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm38 = zyzdJbbm38;
 	}
 
+	@Column(name="zyzd_jbbm39")
 	public String getZyzdJbbm39() {
 		return this.zyzdJbbm39;
 	}
@@ -7249,6 +7268,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm39 = zyzdJbbm39;
 	}
 
+	@Column(name="zyzd_jbbm4")
 	public String getZyzdJbbm4() {
 		return this.zyzdJbbm4;
 	}
@@ -7258,6 +7278,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm4 = zyzdJbbm4;
 	}
 
+	@Column(name="zyzd_jbbm40")
 	public String getZyzdJbbm40() {
 		return this.zyzdJbbm40;
 	}
@@ -7267,6 +7288,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm40 = zyzdJbbm40;
 	}
 
+	@Column(name="zyzd_jbbm5")
 	public String getZyzdJbbm5() {
 		return this.zyzdJbbm5;
 	}
@@ -7276,6 +7298,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm5 = zyzdJbbm5;
 	}
 
+	@Column(name="zyzd_jbbm6")
 	public String getZyzdJbbm6() {
 		return this.zyzdJbbm6;
 	}
@@ -7285,6 +7308,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm6 = zyzdJbbm6;
 	}
 
+	@Column(name="zyzd_jbbm7")
 	public String getZyzdJbbm7() {
 		return this.zyzdJbbm7;
 	}
@@ -7294,6 +7318,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm7 = zyzdJbbm7;
 	}
 
+	@Column(name="zyzd_jbbm8")
 	public String getZyzdJbbm8() {
 		return this.zyzdJbbm8;
 	}
@@ -7303,6 +7328,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzdJbbm8 = zyzdJbbm8;
 	}
 
+	@Column(name="zyzd_jbbm9")
 	public String getZyzdJbbm9() {
 		return this.zyzdJbbm9;
 	}
@@ -7344,6 +7370,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zyzlsb = zyzlsb;
 	}
 
+	@Column(name="zz_jbbm1")
 	public String getZzJbbm1() {
 		return this.zzJbbm1;
 	}
@@ -7353,6 +7380,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm1 = zzJbbm1;
 	}
 
+	@Column(name="zz_jbbm2")
 	public String getZzJbbm2() {
 		return this.zzJbbm2;
 	}
@@ -7362,6 +7390,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm2 = zzJbbm2;
 	}
 
+	@Column(name="zz_jbbm3")
 	public String getZzJbbm3() {
 		return this.zzJbbm3;
 	}
@@ -7371,6 +7400,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm3 = zzJbbm3;
 	}
 
+	@Column(name="zz_jbbm4")
 	public String getZzJbbm4() {
 		return this.zzJbbm4;
 	}
@@ -7380,6 +7410,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm4 = zzJbbm4;
 	}
 
+	@Column(name="zz_jbbm5")
 	public String getZzJbbm5() {
 		return this.zzJbbm5;
 	}
@@ -7389,6 +7420,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm5 = zzJbbm5;
 	}
 
+	@Column(name="zz_jbbm6")
 	public String getZzJbbm6() {
 		return this.zzJbbm6;
 	}
@@ -7398,6 +7430,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm6 = zzJbbm6;
 	}
 
+	@Column(name="zz_jbbm7")
 	public String getZzJbbm7() {
 		return this.zzJbbm7;
 	}
@@ -7407,6 +7440,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzJbbm7 = zzJbbm7;
 	}
 
+	@Column(name="zz_rybq1")
 	public String getZzRybq1() {
 		return this.zzRybq1;
 	}
@@ -7416,6 +7450,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzRybq1 = zzRybq1;
 	}
 
+	@Column(name="zz_rybq2")
 	public String getZzRybq2() {
 		return this.zzRybq2;
 	}
@@ -7425,6 +7460,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzRybq2 = zzRybq2;
 	}
 
+	@Column(name="zz_rybq3")
 	public String getZzRybq3() {
 		return this.zzRybq3;
 	}
@@ -7434,6 +7470,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzRybq3 = zzRybq3;
 	}
 
+	@Column(name="zz_rybq4")
 	public String getZzRybq4() {
 		return this.zzRybq4;
 	}
@@ -7443,6 +7480,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzRybq4 = zzRybq4;
 	}
 
+	@Column(name="zz_rybq5")
 	public String getZzRybq5() {
 		return this.zzRybq5;
 	}
@@ -7452,6 +7490,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzRybq5 = zzRybq5;
 	}
 
+	@Column(name="zz_rybq6")
 	public String getZzRybq6() {
 		return this.zzRybq6;
 	}
@@ -7461,6 +7500,7 @@ public class InpatientHomepageAnaly implements Serializable {
 		this.zzRybq6 = zzRybq6;
 	}
 
+	@Column(name="zz_rybq7")
 	public String getZzRybq7() {
 		return this.zzRybq7;
 	}
@@ -7548,28 +7588,6 @@ public class InpatientHomepageAnaly implements Serializable {
 
 	public void setZzys(String zzys) {
 		this.zzys = zzys;
-	}
-
-	public List<InpatientHomepageAnalyCheck> getInpatientHomepageAnalyChecks() {
-		return this.inpatientHomepageAnalyChecks;
-	}
-
-	public void setInpatientHomepageAnalyChecks(List<InpatientHomepageAnalyCheck> inpatientHomepageAnalyChecks) {
-		this.inpatientHomepageAnalyChecks = inpatientHomepageAnalyChecks;
-	}
-
-	public InpatientHomepageAnalyCheck addInpatientHomepageAnalyCheck(InpatientHomepageAnalyCheck inpatientHomepageAnalyCheck) {
-		getInpatientHomepageAnalyChecks().add(inpatientHomepageAnalyCheck);
-		inpatientHomepageAnalyCheck.setInpatientHomepageAnaly(this);
-
-		return inpatientHomepageAnalyCheck;
-	}
-
-	public InpatientHomepageAnalyCheck removeInpatientHomepageAnalyCheck(InpatientHomepageAnalyCheck inpatientHomepageAnalyCheck) {
-		getInpatientHomepageAnalyChecks().remove(inpatientHomepageAnalyCheck);
-		inpatientHomepageAnalyCheck.setInpatientHomepageAnaly(null);
-
-		return inpatientHomepageAnalyCheck;
 	}
 
 }

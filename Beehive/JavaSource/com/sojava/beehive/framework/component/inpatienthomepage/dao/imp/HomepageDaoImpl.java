@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -14,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform;
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly;
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnalyCheck;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.RecordRangeType;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.VIcdTransform;
 import com.sojava.beehive.framework.component.inpatienthomepage.dao.HomepageDao;
@@ -122,6 +126,23 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 		Query stmt = getSession().createQuery("delete from InpatientHomepageAnalyCheck where inpatientHomepageAnaly.id=:pid");
 		stmt.setInteger("pid", pid);
 		return stmt.executeUpdate() > 0;
+	}
+
+	@Override
+	public void importHomepagesAndChecks(InpatientHomepageAnaly[] homepageList) throws Exception {
+		Session session = getSessionFactory().openSession();
+		Transaction trans = null;
+		try {
+			trans = session.beginTransaction();
+			for (InpatientHomepageAnaly homepage : homepageList) {
+				save(homepage);
+				save(homepage.getInpatientHomepageAnalyChecks().toArray(new InpatientHomepageAnalyCheck[0]));
+			}
+			trans.commit();
+		}
+		catch(Exception ex) {
+			trans.rollback();
+		}
 	}
 
 }
