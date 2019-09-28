@@ -168,7 +168,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		for(File file : csvFile) {
 			String fileName = file.getName();
 			String[] fileProperty = fileName.split("\\Q.\\E")[0].split("\\Q_\\E");
-			if (fileProperty.length != 3) throw new ErrorException(this.getClass(), "文件名格式错误[TCMMS_201901-08_1]");
+			if (fileProperty.length != 3) throw new ErrorException(this.getClass(), "病案首页质控模块在解析CSV文件名时发生错误：文件名格式错误[格式为“分类_注释_版本号或批次号”，例：TCMMS_201901-08_1]");
 			String kind = fileProperty[0];
 			String type = fileProperty[1];
 			int version = Integer.parseInt(fileProperty[2]);
@@ -180,7 +180,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				homepageDao.importHomepagesAndChecks(homepageList.toArray(new InpatientHomepageAnaly[0]));
 			}
 			catch(Exception ex) {
-				new ErrorException(getClass(), ex);
+				new ErrorException(getClass(), "病案首页质控模块在读取CSV文件时发生错误：" + ex.getMessage());
 			}
 			finally {
 				parser.close();
@@ -221,7 +221,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			dataVerify(homepage);
 		}
 		catch(Exception ex) {
-			new ErrorException(getClass(), ex.getMessage());
+			new ErrorException(getClass(), "病案首页质控模块在导入CSV文件信息时发生错误：" + ex.getMessage());
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
@@ -2959,18 +2959,15 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			}
 
 			if (age != null && ldate != null) 
-				if (_gcal.get(Calendar.YEAR) - _lcal.get(Calendar.YEAR) != age) throw new ErrorException(null, "年龄与出生日期不符");
+				if (_gcal.get(Calendar.YEAR) - _lcal.get(Calendar.YEAR) != age) throw new Exception("年龄与出生日期不符");
 
 			return true;
 		}
 		catch (ParseException ex) {
 			throw new Exception("格式错误(yyyy-MM-dd)");
 		}
-		catch (ErrorException ex) {
-			throw new Exception(ex.getMessage());
-		}
 		catch (Exception ex) {
-			throw new Exception("错误");
+			throw new Exception("发生错误：" + ex.getMessage());
 		}
 	}
 

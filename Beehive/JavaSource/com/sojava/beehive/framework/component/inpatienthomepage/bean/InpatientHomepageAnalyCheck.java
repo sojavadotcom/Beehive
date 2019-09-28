@@ -25,9 +25,9 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 
 	private String code;
 
-	private String message;
-
 	private String name;
+
+	private String message;
 
 	private String type;
 
