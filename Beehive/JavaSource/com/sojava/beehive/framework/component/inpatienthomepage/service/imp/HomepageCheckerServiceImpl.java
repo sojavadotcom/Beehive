@@ -32,6 +32,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 
+
 @Service
 public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 
@@ -173,14 +174,18 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			String type = fileProperty[1];
 			int version = Integer.parseInt(fileProperty[2]);
 			CSVParser parser = null;
+			String status = "";
 			try {
+				status = "解析CSV文件";
 				parser = CSVParser.parse(new FileReader(file), CSVFormat.DEFAULT.withFirstRecordAsHeader());
+				status = "处理数据";
 				parser.forEach(rec -> importHomepage(rec, kind, type, version));
 
+				status = "导入数据";
 				homepageDao.importHomepagesAndChecks(homepageList.toArray(new InpatientHomepageAnaly[0]));
 			}
 			catch(Exception ex) {
-				new ErrorException(getClass(), "病案首页质控模块在读取CSV文件时发生错误：" + ex.getMessage());
+				new ErrorException(getClass(), "病案首页质控模块" + status + "时发生错误：" + ex.getMessage());
 			}
 			finally {
 				parser.close();
@@ -196,6 +201,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		List<InpatientHomepageAnalyCheck> checkRecord = homepage.getInpatientHomepageAnalyChecks();
 		String name = null, value = null;
 		int checkIndex = checkRecord.size() + 1;
+		int itemIndex = 0;
 		try {
 			Map<String, Integer> headNames = record.getParser().getHeaderMap();
 			for (Method method : homepage.getClass().getMethods()) {
@@ -205,7 +211,9 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				if (name.equals("id") || name.equals("kind") || name.equals("type") || name.equals("checked") || name.equals("version") || name.startsWith("inpatienthomepageanalycheck")) continue;
 				Class<?> type = method.getParameterTypes()[0];
 				name = headNames.containsKey(name) ? name : name.toUpperCase();
-				value = record.get(name);
+				if (name.equalsIgnoreCase("ZZJGDM")) itemIndex = 0;
+				else itemIndex = headNames.get(name);
+				value = record.get(itemIndex);
 
 				try {
 					Object val = transValueType(name, value, type);
@@ -221,7 +229,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			dataVerify(homepage);
 		}
 		catch(Exception ex) {
-			new ErrorException(getClass(), "病案首页质控模块在导入CSV文件信息时发生错误：" + ex.getMessage());
+			new ErrorException(getClass(), "在处理第" + record.getRecordNumber() + "条第" + itemIndex + "项(" + name + ")数据时发生错误：" + ex.getMessage());
 			checkRecord.add(new InpatientHomepageAnalyCheck(
 					checkIndex ++,
 					homepage.getId(),
