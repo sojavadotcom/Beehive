@@ -24,7 +24,7 @@
 	<!-- <tx:annotation-driven /> -->
 
 	<import resource="ds-beehive.xml"/>
-	<import resource="ds-anyihis.xml"/>
+	<!-- <import resource="ds-anyihis.xml"/> -->
 	<!-- <import resource="cxf-webservice.xml"/> -->
 
 	<bean id="autoProxyCreator" class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">

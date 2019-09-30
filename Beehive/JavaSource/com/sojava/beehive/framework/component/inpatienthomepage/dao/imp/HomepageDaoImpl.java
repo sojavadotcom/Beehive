@@ -132,16 +132,20 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 	public void importHomepagesAndChecks(InpatientHomepageAnaly[] homepageList) throws Exception {
 		Session session = getSessionFactory().openSession();
 		Transaction trans = null;
+		String status = "";
 		try {
 			trans = session.beginTransaction();
+			status = "查验homepageList是否为空，(homepageList.length > 0)";
 			if (homepageList.length > 0) {
-				Query stmt = session.createQuery("delete from inpatientHomepageAnaly where kind=:kind and type=:type and version=:version");
+				status = "根据kind,type,version清空InpatientHomepageAnaly历时数据";
+				Query stmt = session.createQuery("delete from InpatientHomepageAnaly where kind=:kind and type=:type and version=:version");
 				stmt.setString("kind", homepageList[0].getId().getKind());
 				stmt.setString("type", homepageList[0].getId().getType());
 				stmt.setInteger("version", homepageList[0].getId().getVersion());
 				stmt.executeUpdate();
 			}
 			for (InpatientHomepageAnaly homepage : homepageList) {
+				status = "保存解析数据第" + homepage.getId() + "(bah:" + homepage.getBah() + ";zycs:" + homepage.getZycs() + ")";
 				session.save(homepage);
 				session.save(homepage.getInpatientHomepageAnalyChecks().toArray(new InpatientHomepageAnalyCheck[0]));
 			}
@@ -149,6 +153,7 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 		}
 		catch(Exception ex) {
 			trans.rollback();
+			throw new Exception(status + "发生[" + ex.getMessage() + "]");
 		}
 	}
 
