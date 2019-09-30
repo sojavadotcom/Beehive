@@ -32,6 +32,20 @@ public class BeehiveDaoImpl implements Serializable, BeehiveDao {
 	private UserInfo userInfo;
 
 	@Override
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+
+	@Override
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	public Session getSession() {
+		return sessionFactory.getCurrentSession();
+	}
+
+	@Override
 	public List<?> query(Class<?> entity, Criterion[] filters, Order[] orders, Page page, boolean usableData) throws Exception {
 		CriterionUtil criterionUtil = new CriterionUtil(getSession());
 		criterionUtil.addCriterion(filters);
@@ -39,6 +53,7 @@ public class BeehiveDaoImpl implements Serializable, BeehiveDao {
 		return criterionUtil.createCriteria(entity, page, usableData).list();
 	}
 
+	@Override
 	public Object get(Class<?> entity, Serializable id) throws Exception {
 		return getSession().get(entity, id);
 	}
@@ -51,20 +66,6 @@ public class BeehiveDaoImpl implements Serializable, BeehiveDao {
 	@Override
 	public void save(Object entity) throws Exception {
 		getSession().saveOrUpdate(entity);
-	}
-
-	public Session getSession() {
-		return sessionFactory.getCurrentSession();
-	}
-
-	@Override
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-
-	@Override
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
 	}
 
 	@Override
