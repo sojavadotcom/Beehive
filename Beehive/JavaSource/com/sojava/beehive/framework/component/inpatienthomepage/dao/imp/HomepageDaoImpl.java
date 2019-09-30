@@ -145,9 +145,11 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 				stmt.executeUpdate();
 			}
 			for (InpatientHomepageAnaly homepage : homepageList) {
-				status = "保存解析数据第" + homepage.getId() + "(bah:" + homepage.getBah() + ";zycs:" + homepage.getZycs() + ")";
+				status = "保存解析数据第" + homepage.getId().getId() + "条(bah:" + homepage.getBah() + ";zycs:" + homepage.getZycs() + ")";
 				session.save(homepage);
-				session.save(homepage.getInpatientHomepageAnalyChecks().toArray(new InpatientHomepageAnalyCheck[0]));
+				for (InpatientHomepageAnalyCheck check : homepage.getInpatientHomepageAnalyChecks()) {
+					session.save(check);
+				}
 			}
 			trans.commit();
 		}

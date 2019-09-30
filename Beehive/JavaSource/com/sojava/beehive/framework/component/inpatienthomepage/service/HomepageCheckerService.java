@@ -12,4 +12,5 @@ public interface HomepageCheckerService {
 	void importHomepage(CSVRecord record, String kind, String type, int version) throws Exception;
 	Object transValueType(String name, String value, Class<?> type) throws Exception;
 	void dataVerify(InpatientHomepageAnaly homepage) throws Exception;
+	void saveHomepage(InpatientHomepageAnaly[] homepageList) throws Exception;
 }

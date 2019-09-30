@@ -2933,6 +2933,11 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		homepage.setChecked(checkRecord.size());
 	}
 
+	@Override
+	public void saveHomepage(InpatientHomepageAnaly[] homepageList) throws Exception {
+		homepageDao.importHomepagesAndChecks(homepageList);
+	}
+
 	public boolean compareDic(Dictionary[] dic, RecordRangeType type, String keyword) {
 		boolean result = false;
 		initialize();
