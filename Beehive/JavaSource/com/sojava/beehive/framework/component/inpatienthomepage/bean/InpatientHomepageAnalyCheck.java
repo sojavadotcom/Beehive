@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 @Table(name="inpatient_homepage_analy_check", schema="data_transform")
 @NamedQuery(name="InpatientHomepageAnalyCheck.findAll", query="SELECT i FROM InpatientHomepageAnalyCheck i")
-public class InpatientHomepageAnalyCheck implements Serializable {
+public class InpatientHomepageAnalyCheck implements Serializable, Cloneable {
 	private static final long serialVersionUID = 8073299895163196562L;
 
 	@EmbeddedId
@@ -44,6 +44,11 @@ public class InpatientHomepageAnalyCheck implements Serializable {
 		this.message = message;
 		this.type = type;
 		this.checkTime = new Date();
+	}
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
 	public InpatientHomepageAnalyCheckPK getId() {

@@ -2,6 +2,8 @@ package com.sojava.beehive.framework.component.inpatienthomepage.bean;
 
 import java.io.Serializable;
 import javax.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -12,13 +14,15 @@ import java.util.List;
 @Entity
 @Table(name="inpatient_homepage_analy", schema="data_transform")
 @NamedQuery(name="InpatientHomepageAnaly.findAll", query="SELECT i FROM InpatientHomepageAnaly i")
-public class InpatientHomepageAnaly implements Serializable {
+public class InpatientHomepageAnaly implements Serializable, Cloneable {
 	private static final long serialVersionUID = 910544509233282386L;
 
 	@EmbeddedId
 	private InpatientHomepageAnalyPK id;
 
 	private Integer checked;
+
+	private String flag;
 
 	private String bah;
 
@@ -1570,6 +1574,15 @@ public class InpatientHomepageAnaly implements Serializable {
 	public InpatientHomepageAnaly() {
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		InpatientHomepageAnaly self = (InpatientHomepageAnaly) super.clone();
+		self.setInpatientHomepageAnalyChecks((List<InpatientHomepageAnalyCheck>) ((ArrayList<InpatientHomepageAnalyCheck>) this.getInpatientHomepageAnalyChecks()).clone());
+
+		return self;
+	}
+
 	public InpatientHomepageAnaly(int id, String kind, String type, int version) {
 		this.id = new InpatientHomepageAnalyPK(id, kind, type, version);
 	}
@@ -1588,6 +1601,14 @@ public class InpatientHomepageAnaly implements Serializable {
 
 	public void setChecked(Integer checked) {
 		this.checked = checked;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
 	}
 
 	public String getBah() {
