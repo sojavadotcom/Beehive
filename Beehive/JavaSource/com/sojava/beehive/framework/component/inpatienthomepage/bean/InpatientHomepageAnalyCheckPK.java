@@ -19,14 +19,14 @@ public class InpatientHomepageAnalyCheckPK implements Serializable {
 
 	private String kind;
 
-	private Integer version;
+	private Float version;
 
 	private String ptype;
 
 	public InpatientHomepageAnalyCheckPK() {
 	}
 
-	public InpatientHomepageAnalyCheckPK(Integer id, Integer pid, String kind, String ptype, Integer version) {
+	public InpatientHomepageAnalyCheckPK(Integer id, Integer pid, String kind, String ptype, Float version) {
 		this.id = id;
 		this.pid = pid;
 		this.kind = kind;
@@ -58,11 +58,11 @@ public class InpatientHomepageAnalyCheckPK implements Serializable {
 		this.kind = kind;
 	}
 
-	public Integer getVersion() {
+	public Float getVersion() {
 		return this.version;
 	}
 
-	public void setVersion(Integer version) {
+	public void setVersion(Float version) {
 		this.version = version;
 	}
 

@@ -3,7 +3,7 @@ package com.sojava.beehive.framework.component.inpatienthomepage.bean;
 public enum RecordRangeType {
 	rysj, cysj, code, name,
 	DIAGNOSIS_CHINESE, DIAGNOSIS_WESTERN, DIAGNOSIS_OPERATION, DIAGNOSIS_PATHOLOGY,
-	HIS, ICD20;
+	HIS, ICD2;
 
 	public static final String rc001 = "性别代码";
 	public static final String rc002 = "婚姻状况";

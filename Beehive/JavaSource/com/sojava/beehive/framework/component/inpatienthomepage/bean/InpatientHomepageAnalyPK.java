@@ -15,7 +15,7 @@ public class InpatientHomepageAnalyPK implements Serializable {
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="INPATIENT_HOMEPAGE_ANALY_ID_GENERATOR")
 	private Integer id;
 
-	private Integer version;
+	private Float version;
 
 	private String kind;
 
@@ -24,7 +24,7 @@ public class InpatientHomepageAnalyPK implements Serializable {
 	public InpatientHomepageAnalyPK() {
 	}
 
-	public InpatientHomepageAnalyPK(Integer id, String kind, String type, Integer version) {
+	public InpatientHomepageAnalyPK(Integer id, String kind, String type, Float version) {
 		this.id = id;
 		this.kind = kind;
 		this.type = type;
@@ -39,11 +39,11 @@ public class InpatientHomepageAnalyPK implements Serializable {
 		this.id = id;
 	}
 
-	public Integer getVersion() {
+	public Float getVersion() {
 		return this.version;
 	}
 
-	public void setVersion(Integer version) {
+	public void setVersion(Float version) {
 		this.version = version;
 	}
 

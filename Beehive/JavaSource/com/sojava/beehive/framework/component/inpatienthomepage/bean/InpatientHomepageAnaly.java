@@ -1583,7 +1583,7 @@ public class InpatientHomepageAnaly implements Serializable, Cloneable {
 		return self;
 	}
 
-	public InpatientHomepageAnaly(int id, String kind, String type, int version) {
+	public InpatientHomepageAnaly(int id, String kind, String type, float version) {
 		this.id = new InpatientHomepageAnalyPK(id, kind, type, version);
 	}
 

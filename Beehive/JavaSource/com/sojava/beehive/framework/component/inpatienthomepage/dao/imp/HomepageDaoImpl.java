@@ -141,14 +141,14 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 				Query stmt = session.createQuery("delete from InpatientHomepageAnaly where kind=:kind and type=:type and version=:version");
 				stmt.setString("kind", homepageList[0].getId().getKind());
 				stmt.setString("type", homepageList[0].getId().getType());
-				stmt.setInteger("version", homepageList[0].getId().getVersion());
+				stmt.setFloat("version", homepageList[0].getId().getVersion());
 				stmt.executeUpdate();
 			}
 			for (InpatientHomepageAnaly homepage : homepageList) {
 				status = "保存解析数据第" + homepage.getId().getId() + "条(bah:" + homepage.getBah() + ";zycs:" + homepage.getZycs() + ")";
 				session.save(homepage);
 				for (InpatientHomepageAnalyCheck check : homepage.getInpatientHomepageAnalyChecks()) {
-					session.save(check);
+					session.saveOrUpdate(check);
 				}
 			}
 			trans.commit();

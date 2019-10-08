@@ -1,6 +1,7 @@
 package com.sojava.beehive.framework.component.inpatienthomepage.service;
 
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly;
+import com.sojava.beehive.framework.component.inpatienthomepage.dao.HomepageDao;
 
 import java.io.File;
 import java.util.List;
@@ -15,4 +16,5 @@ public interface HomepageCheckerService {
 	void dataVerify(InpatientHomepageAnaly homepage) throws Exception;
 	void saveHomepage(InpatientHomepageAnaly[] homepageList) throws Exception;
 	List<InpatientHomepageAnaly> homepagePatch(InpatientHomepageAnaly[] homepageList) throws Exception;
+	HomepageDao getHomepageDao();
 }
