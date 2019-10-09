@@ -86,5 +86,6 @@
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.VIcdTransform</class>
 		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.VIcdTransformPK</class>
+		<class>com.sojava.beehive.framework.component.inpatienthomepage.bean.DicAdministrativeDivision</class>
 	</persistence-unit>
 </persistence>

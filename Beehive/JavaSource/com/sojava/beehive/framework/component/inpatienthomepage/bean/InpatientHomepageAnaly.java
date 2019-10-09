@@ -1571,14 +1571,19 @@ public class InpatientHomepageAnaly implements Serializable, Cloneable {
 		this.inpatientHomepageAnalyChecks = inpatientHomepageAnalyChecks;
 	}
 
+	public void addCheck(InpatientHomepageAnalyCheck check) {
+		if (this.inpatientHomepageAnalyChecks == null) this.inpatientHomepageAnalyChecks = new ArrayList<InpatientHomepageAnalyCheck>();
+		this.inpatientHomepageAnalyChecks.add(check);
+	}
+
 	public InpatientHomepageAnaly() {
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public InpatientHomepageAnaly clone() throws CloneNotSupportedException {
 		InpatientHomepageAnaly self = (InpatientHomepageAnaly) super.clone();
-		self.setInpatientHomepageAnalyChecks((List<InpatientHomepageAnalyCheck>) ((ArrayList<InpatientHomepageAnalyCheck>) this.getInpatientHomepageAnalyChecks()).clone());
+		self.setId(this.id.clone());
+//		self.setInpatientHomepageAnalyChecks((List<InpatientHomepageAnalyCheck>) ((ArrayList<InpatientHomepageAnalyCheck>) this.getInpatientHomepageAnalyChecks()).clone());
 
 		return self;
 	}

@@ -33,6 +33,8 @@ public class InpatientHomepageAnalyCheck implements Serializable, Cloneable {
 
 	private String value;
 
+	private String flag;
+
 	public InpatientHomepageAnalyCheck() {
 	}
 
@@ -47,8 +49,12 @@ public class InpatientHomepageAnalyCheck implements Serializable, Cloneable {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	public InpatientHomepageAnalyCheck clone() throws CloneNotSupportedException {
+		InpatientHomepageAnalyCheck self = (InpatientHomepageAnalyCheck) super.clone();
+		self.setId(this.id.clone());
+		self.setCheckTime((Date) this.checkTime.clone());
+
+		return self;
 	}
 
 	public InpatientHomepageAnalyCheckPK getId() {
@@ -105,6 +111,14 @@ public class InpatientHomepageAnalyCheck implements Serializable, Cloneable {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public String getFlag() {
+		return this.flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
 	}
 
 }

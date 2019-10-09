@@ -8,7 +8,7 @@ import javax.persistence.*;
  * 
  */
 @Embeddable
-public class InpatientHomepageAnalyCheckPK implements Serializable {
+public class InpatientHomepageAnalyCheckPK implements Serializable, Cloneable {
 	private static final long serialVersionUID = -8721529292604221827L;
 
 	@SequenceGenerator(name="INPATIENT_HOMEPAGE_ANALY_ID_GENERATOR", sequenceName="DATA_TRANSFORM.INPATIENT_HOMEPAGE_ANALY_CHECK_ID")
@@ -32,6 +32,11 @@ public class InpatientHomepageAnalyCheckPK implements Serializable {
 		this.kind = kind;
 		this.ptype = ptype;
 		this.version = version;
+	}
+
+	@Override
+	public InpatientHomepageAnalyCheckPK clone() throws CloneNotSupportedException {
+		return (InpatientHomepageAnalyCheckPK) super.clone();
 	}
 
 	public Integer getId() {

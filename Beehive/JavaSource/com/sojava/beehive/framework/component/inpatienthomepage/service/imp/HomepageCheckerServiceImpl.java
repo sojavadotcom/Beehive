@@ -1,5 +1,6 @@
 package com.sojava.beehive.framework.component.inpatienthomepage.service.imp;
 
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.DicAdministrativeDivision;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly;
@@ -46,6 +47,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 	private final String CHECK_TYPE_CONDITIONAL_NONEMPTY = "CONDITIONAL_NONEMPTY";
 	private final String CHECK_TYPE_VALIDITY = "VALIDITY";
 	private final String CHECK_TYPE_LOGICAL = "LOGICAL";
+	private final float NIGHT_TIME = 16.4f;
+	private final String DEFAULT_CITY = "黑龙江省鸡西市";
 
 	private static boolean isInited = false;
 
@@ -73,6 +76,11 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 	private static Dictionary[] rc038 = null; //国籍字典
 	private static Dictionary[] rc039 = null; //治疗类别
 	private static Dictionary[] rc040 = null; //实施临床路径
+	/*
+	 *	行政区划
+	 */
+	private static DicAdministrativeDivision[] administrativeDivisionProv = null; //省
+	private static DicAdministrativeDivision[] administrativeDivisionCity = null; //地级市
 	//HIS对照
 	private static VIcdTransform[] hisDiagnosisChinese = null;
 	private static VIcdTransform[] hisDiagnosisWestern = null;
@@ -138,6 +146,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			rc039 = homepageDao.getDictionary(RecordRangeType.rc039).toArray(new Dictionary[0]);
 			_status = "RC040";
 			rc040 = homepageDao.getDictionary(RecordRangeType.rc040).toArray(new Dictionary[0]);
+
+			_status = "行政区划";
+			administrativeDivisionProv = homepageDao.getAdministrativeDivision(RecordRangeType.ADMINISTRATIVE_DIVISION_PROV).toArray(new DicAdministrativeDivision[0]);
+			administrativeDivisionCity = homepageDao.getAdministrativeDivision(RecordRangeType.ADMINISTRATIVE_DIVISION_CITY).toArray(new DicAdministrativeDivision[0]);
 
 			_status = "HIS诊断对照 - 中医诊断";
 			hisDiagnosisChinese = homepageDao.getHISDiagnosis(RecordRangeType.DIAGNOSIS_CHINESE).toArray(new VIcdTransform[0]);
@@ -505,7 +517,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			}
 			status = "11. NL 年龄（岁） 数字 3 必填 患者入院年龄，指患者入院时按照日历计算的历法年龄，应以实足年龄的相应整数填写。大于或等于0的整数";
 			Integer _age = getInteger(homepage.getNl());
-			if (homepage.getNl().isEmpty()) {
+			if (homepage.getNl().isEmpty() || isEmpty(homepage.getNl())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -536,23 +548,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						CHECK_TYPE_VALIDITY
 					));
 			} else if (isDatetime(homepage.getRysj()) && isDate(homepage.getCsrq())) {
-				/*
-				 * 以年计
-				 */
-				Calendar rysj = Calendar.getInstance();
-				Calendar csrq = Calendar.getInstance();
-				rysj.setTime(FormatUtil.parseDateTime(homepage.getRysj()));
-				csrq.setTime(FormatUtil.parseDate(homepage.getCsrq()));
-				int age = rysj.get(Calendar.YEAR) - csrq.get(Calendar.YEAR);
-				/*
-				 * 以实际年、月、日计
-				 */
-				/*
-				Calendar ageCal = Calendar.getInstance();
-				ageCal.setTime(new Date(FormatUtil.parseDateTime(homepage.getRysj()).getTime() - FormatUtil.parseDate(homepage.getCsrq()).getTime()));
-	//			(FormatUtil.parseDate(homepage.getRysj().substring(0, 10)).getTime() - FormatUtil.parseDate(homepage.getCsrq()).getTime())/86400000/30/12
-				int age = ageCal.get(Calendar.YEAR);
-				*/
+				int age = getAge(homepage.getRysj(), homepage.getCsrq(), homepage.getSfzh(), 0);
 				if (age != _age) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
@@ -799,7 +795,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"不能为空",
 						CHECK_TYPE_NONEMPTY
 					));
-			} else if (!compareDic(rc036, RecordRangeType.name, homepage.getXzz())) {
+			} else if (!isEmpty(homepage.getXzz()) && !compareDic(rc036, RecordRangeType.name, homepage.getXzz())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -845,7 +841,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"不能为空",
 						CHECK_TYPE_NONEMPTY
 					));
-			} else if (!compareDic(rc036, RecordRangeType.name, homepage.getHkdz())) {
+			} else if (!isEmpty(homepage.getHkdz()) && !compareDic(rc036, RecordRangeType.name, homepage.getHkdz())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1305,19 +1301,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						));
 				}
 			}
-			status = "50. MZD_ZYZD 门(急)诊诊断(中医诊断) 字符 100 必填 采用中医病症分类代码国标版95（TCM95）与编码对应的病诊断名称";
-			if (homepage.getMzdZyzd().isEmpty()) {
-				checkRecord.add(new InpatientHomepageAnalyCheck(
-						checkIndex ++,
-						homepage.getId(),
-						"MZD_ZYZD",
-						"门(急)诊诊断(中医诊断)",
-						homepage.getMzdZyzd(),
-						"不能为空",
-						CHECK_TYPE_NONEMPTY
-					));
-			}
-			status = "51. JBDM 门(急)诊诊断疾病代码(中医诊断) 字符 20 必填 采用中医病症分类代码国标版95（TCM95）";
+			status = "50. MZD_ZYZD 门(急)诊诊断(中医诊断) 字符 100 必填 采用中医病症分类代码国标版95（TCM95）与编码对应的病诊断名称；"
+						+ "51. JBDM 门(急)诊诊断疾病代码(中医诊断) 字符 20 必填 采用中医病症分类代码国标版95（TCM95）";
 			if (homepage.getJbdm().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
@@ -1339,19 +1324,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						CHECK_TYPE_VALIDITY
 					));
 			}
-			status = "52. MZZD_XYZD 门（急）诊诊断名称(西医诊断) 字符 100 必填 采用疾病分类代码国家临床版2.0(ICD-10)与编码对应的诊断名称";
-			if (homepage.getMzzdXyzd().isEmpty()) {
-				checkRecord.add(new InpatientHomepageAnalyCheck(
-						checkIndex ++,
-						homepage.getId(),
-						"MZZD_XYZD",
-						"门（急）诊诊断名称(西医诊断)",
-						homepage.getMzzdXyzd(),
-						"不能为空",
-						CHECK_TYPE_NONEMPTY
-					));
-			}
-			status = "53. JBBM 门（急）诊诊断编码(西医诊断) 字符 20 必填 采用疾病分类代码国家临床版2.0编码（ICD-10）";
+			status = "52. MZZD_XYZD 门（急）诊诊断名称(西医诊断) 字符 100 必填 采用疾病分类代码国家临床版2.0(ICD-10)与编码对应的诊断名称；"
+						+ "53. JBBM 门（急）诊诊断编码(西医诊断) 字符 20 必填 采用疾病分类代码国家临床版2.0编码（ICD-10）";
 			if (homepage.getJbbm().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
@@ -1373,7 +1347,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						CHECK_TYPE_VALIDITY
 					));
 			}
-			//门（急）诊逻辑校验
+			//门（急）诊断逻辑校验
 			if (!homepage.getRytj().isEmpty()
 				&& (homepage.getRytj().equals("1")//门诊
 					|| homepage.getRytj().equals("2"))//急诊
@@ -1533,19 +1507,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						CHECK_TYPE_VALIDITY
 					));
 			}
-			status = "59. ZB 主病出院中医诊断 字符 100 必填 采用中医病症分类代码国标版95（TCM95）与编码对应的病诊断名称";
-			if (homepage.getZb().isEmpty()) {
-				checkRecord.add(new InpatientHomepageAnalyCheck(
-						checkIndex ++,
-						homepage.getId(),
-						"ZB",
-						"主病出院中医诊断",
-						homepage.getZb(),
-						"不能为空",
-						CHECK_TYPE_NONEMPTY
-					));
-			}
-			status = "60. ZB_JBBM 主病疾病编码 字符 20 必填 采用中医病症分类代码国标版95（TCM95）";
+			status = "59. ZB 主病出院中医诊断 字符 100 必填 采用中医病症分类代码国标版95（TCM95）与编码对应的病诊断名称；"
+						+ "60. ZB_JBBM 主病疾病编码 字符 20 必填 采用中医病症分类代码国标版95（TCM95）";
 			if (homepage.getZbJbbm().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
@@ -1556,10 +1519,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"不能为空",
 						CHECK_TYPE_NONEMPTY
 					));
-			}
-			if (!homepage.getZbJbbm().isEmpty()
-				&& !isEmpty(homepage.getZbJbbm())
-				&& !diagnosisVerify(homepage.getZbJbbm(), homepage.getMzdZyzd(), RecordRangeType.ICD2, RecordRangeType.DIAGNOSIS_CHINESE)) {
+			} else if (!diagnosisVerify(homepage.getZbJbbm(), homepage.getMzdZyzd(), RecordRangeType.ICD2, RecordRangeType.DIAGNOSIS_CHINESE)) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1592,19 +1552,8 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						CHECK_TYPE_VALIDITY
 					));
 			}
-			status = "62. ZYZD 出院主要诊断名称(西医) 字符 100 必填 采用疾病分类代码国家临床版2.0(ICD-10)与编码对应的诊断名称";
-			if (homepage.getZyzd().isEmpty()) {
-				checkRecord.add(new InpatientHomepageAnalyCheck(
-						checkIndex ++,
-						homepage.getId(),
-						"ZYZD",
-						"出院主要诊断名称(西医)",
-						homepage.getZyzd(),
-						"不能为空",
-						CHECK_TYPE_NONEMPTY
-					));
-			}
-			status = "63. ZYZD_JBBM 出院主要诊断编码(西医) 字符 20 必填 采用疾病分类代码国家临床版2.0编码（ICD-10）";
+			status = "62. ZYZD 出院主要诊断名称(西医) 字符 100 必填 采用疾病分类代码国家临床版2.0(ICD-10)与编码对应的诊断名称；"
+						+ "63. ZYZD_JBBM 出院主要诊断编码(西医) 字符 20 必填 采用疾病分类代码国家临床版2.0编码（ICD-10）";
 			if (homepage.getZyzdJbbm().isEmpty()) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
@@ -1750,11 +1699,10 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"与《疾病分类代码国家临床版2.0(ICD-10)》不匹配",
 						CHECK_TYPE_VALIDITY
 					));
-			}
-			//逻辑校验
-			if (!homepage.getZyzdJbbm().isEmpty()
+			} else if (!isEmpty(homepage.getZyzdJbbm())
 				&& (homepage.getZyzdJbbm().charAt(0) == 'S' || homepage.getZyzdJbbm().charAt(0) == 'T')
 				&& (homepage.getJbbm1().isEmpty() || isEmpty(homepage.getJbbm1()))) {
+				//逻辑校验
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1774,14 +1722,13 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"JBBM2",
 						"病理诊断编码",
 						homepage.getJbbm2(),
-						"与《疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)》与编码对应的病理名称不匹配",
+						"与《疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)》不匹配",
 						CHECK_TYPE_VALIDITY
 					));
-			}
-			//逻辑校验
-			if (!homepage.getZyzdJbbm().isEmpty() && homepage.getZyzdJbbm().length() >= 3) {
+			} else if (!homepage.getZyzdJbbm().isEmpty() && homepage.getZyzdJbbm().length() >= 3) {
+				//逻辑校验
 				int diagnoCode = getInteger(homepage.getZyzdJbbm().substring(1, 3));
-				if ((homepage.getZyzdJbbm().charAt(0) == 'C' || (diagnoCode >= 0 && diagnoCode <= 48))
+				if ((homepage.getZyzdJbbm().charAt(0) == 'C' || (homepage.getZyzdJbbm().charAt(0) == 'D' && diagnoCode >= 0 && diagnoCode <= 48))
 					&& (homepage.getJbbm2().isEmpty() || isEmpty(homepage.getJbbm2()))) {
 					checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
@@ -1989,7 +1936,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "89. BAZL 病案质量 字符 1 《值域范围参考RC011-病案质量》";
-			if (!homepage.getBazl().isEmpty() && !compareDic(rc011, RecordRangeType.code, homepage.getBazl())) {
+			if (!homepage.getBazl().isEmpty() && !isEmpty(homepage.getBazl()) && !compareDic(rc011, RecordRangeType.code, homepage.getBazl())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -2285,7 +2232,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"ZZYJH",
 						"是否有出院31天内再住院计划",
 						homepage.getZzyjh(),
-						"代码不正确，《值域范围参考RC037》",
+						"代码不正确，《值域范围参考RC016》",
 						CHECK_TYPE_VALIDITY
 					));
 			} else if (homepage.getZzyjh().equals("2") && homepage.getMd().isEmpty()) {
@@ -2758,169 +2705,353 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		initialize();
 		String status = "";
 		try {
-			List<InpatientHomepageAnaly> homepagePatchedList = new ArrayList<InpatientHomepageAnaly>();
+			List<InpatientHomepageAnaly> patchedList = new ArrayList<InpatientHomepageAnaly>();
 			for (InpatientHomepageAnaly homepage : homepageList) {
 				InpatientHomepageAnalyCheck[] checkList = homepage.getInpatientHomepageAnalyChecks().toArray(new InpatientHomepageAnalyCheck[0]);
-				InpatientHomepageAnaly homepagePatched = (InpatientHomepageAnaly) homepage.clone();
+				InpatientHomepageAnaly homepagePatched = homepage.clone();
+				InpatientHomepageAnalyCheck checkRecord = null;
 				homepagePatched.getId().setVersion(homepagePatched.getId().getVersion() + .1f);
 				homepagePatched.setFlag("PATCHED");
 				homepagePatched.setInpatientHomepageAnalyChecks(null);
 				boolean isPatched = false;
 				status = "医疗付款方式";
-				if (checkedIsError(checkList, "YLFKFS", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "YLFKFS", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setYlfkfs("9");//其他
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "性别";
-				if (checkedIsError(checkList, "", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "XB", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setXb("9");//未说明的性别
-				} else if (compareDic(rc001, RecordRangeType.name, homepagePatched.getXb())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "XB", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC001-性别代码》")) != null
+						&& compareDic(rc001, RecordRangeType.name, homepagePatched.getXb())) {
 					isPatched = true;
 					homepagePatched.setXb(getDic(rc001, RecordRangeType.name, homepagePatched.getXb(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "年龄";
+				int age = getAge(homepagePatched.getRysj(), homepagePatched.getCsrq(), homepagePatched.getSfzh(), 0);
+				if ((checkRecord = checkedIsError(checkList, "NL", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "NL", CHECK_TYPE_VALIDITY, "不是数字")) != null
+				 || (checkRecord = checkedIsError(checkList, "NL", CHECK_TYPE_VALIDITY, "必须是大于或等于0的整数")) != null
+				 || (checkRecord = checkedIsError(checkList, "NL", CHECK_TYPE_LOGICAL, "与实际年龄（" + age + "）不符")) != null) {
+					isPatched = true;
+					homepagePatched.setNl(age+"");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "国籍";
-				if (checkedIsError(checkList, "GJ", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "GJ", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setGj("ZZZ");
-				} else if (compareDic(rc038, RecordRangeType.name, homepagePatched.getGj())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "GJ", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC038-国籍字典》")) != null
+						&& compareDic(rc038, RecordRangeType.name, homepagePatched.getGj())) {
 					isPatched = true;
 					homepagePatched.setGj(getDic(rc038, RecordRangeType.name, homepagePatched.getGj(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "籍贯";
-				if (checkedIsError(checkList, "GG", CHECK_TYPE_NONEMPTY, null) && compareDic(rc036, RecordRangeType.name, homepagePatched.getHkdz())) {
+				if ((checkRecord = checkedIsError(checkList, "GG", CHECK_TYPE_NONEMPTY, null)) != null
+				 && compareDic(rc036, RecordRangeType.name, homepagePatched.getHkdz())) {
 					isPatched = true;
 					homepagePatched.setGg(getDic(rc036, RecordRangeType.name, homepagePatched.getHkdz(), RecordRangeType.code));
-				} else if (compareDic(rc036, RecordRangeType.name, homepagePatched.getGg())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "GG", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC036-籍贯》")) != null
+						&& compareDic(rc036, RecordRangeType.name, homepagePatched.getGg())) {
 					isPatched = true;
 					homepagePatched.setGg(getDic(rc036, RecordRangeType.name, homepagePatched.getGg(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "民族";
-				if (checkedIsError(checkList, "MZ", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "MZ", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setMz("1");
-				} else if (compareDic(rc035, RecordRangeType.name, homepagePatched.getMz())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "MZ", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC035-民族代码》")) != null
+						&& compareDic(rc035, RecordRangeType.name, homepagePatched.getMz())) {
 					isPatched = true;
 					homepagePatched.setMz(getDic(rc035, RecordRangeType.name, homepagePatched.getMz(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "职业";
-				if (checkedIsError(checkList, "ZY", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "ZY", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setZy("90");
-				} else if (compareDic(rc003, RecordRangeType.name, homepagePatched.getZy())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZY", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC003-职业代码》")) != null
+						&& compareDic(rc003, RecordRangeType.name, homepagePatched.getZy())) {
 					isPatched = true;
 					homepagePatched.setZy(getDic(rc003, RecordRangeType.name, homepagePatched.getZy(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "婚姻";
-				if (compareDic(rc002, RecordRangeType.name, homepagePatched.getHy())) {
+				if ((checkRecord = checkedIsError(checkList, "HY", CHECK_TYPE_NONEMPTY, null)) != null) {
+					isPatched = true;
+					homepagePatched.setHy("9");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "HY", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC002-婚姻代码》")) != null
+						&& compareDic(rc002, RecordRangeType.name, homepagePatched.getHy())) {
 					isPatched = true;
 					homepagePatched.setHy(getDic(rc002, RecordRangeType.name, homepagePatched.getHy(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "现住址";
+				if ((checkRecord = checkedIsError(checkList, "XZZ", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "XZZ", CHECK_TYPE_VALIDITY, "必须以省或自治区开始")) != null) {
+					isPatched = true;
+					homepagePatched.setXzz(patchAddress(homepagePatched.getXzz()));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "户口地址";
+				if ((checkRecord = checkedIsError(checkList, "HKDZ", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "HKDZ", CHECK_TYPE_VALIDITY, "必须以省或自治区开始")) != null) {
+					isPatched = true;
+					homepagePatched.setHkdz(patchAddress(homepagePatched.getHkdz()));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "工作单位及地址";
+				if ((checkRecord = checkedIsError(checkList, "GZDWJDZ", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "GZDWJDZ", CHECK_TYPE_LOGICAL, "职业(ZY)为“11(国家公务员)、13(专业技术人员)、17(职员)、21(企业管理人员)、24(工人)、37(现役军人)”时，必须登记工作单位及地址(GZDWJDZ)，且以省或自治区开始")) != null) {
+					isPatched = true;
+					homepagePatched.setGzdwjdz(patchAddress(homepagePatched.getGzdwjdz()));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "联系人地址";
+				if ((checkRecord = checkedIsError(checkList, "DZ", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "DZ", CHECK_TYPE_VALIDITY, "必须以省或自治区开始")) != null) {
+					isPatched = true;
+					homepagePatched.setDz(patchAddress(homepagePatched.getDz()));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "联系人关系";
-				if (checkedIsError(checkList, "GX", CHECK_TYPE_NONEMPTY, null) && homepagePatched.getXm().equals(homepagePatched.getLxrxm())) {
+				if ((checkRecord = checkedIsError(checkList, "GX", CHECK_TYPE_NONEMPTY, null)) != null
+				  && homepagePatched.getXm().equals(homepagePatched.getLxrxm())) {
 					isPatched = true;
 					homepagePatched.setGx("0");
-				} else if (compareDic(rc033, RecordRangeType.name, homepagePatched.getGx())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "GX", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC033-联系人关系代码》")) != null
+						&& compareDic(rc033, RecordRangeType.name, homepagePatched.getGx())) {
 					isPatched = true;
 					homepagePatched.setGx(getDic(rc033, RecordRangeType.name, homepagePatched.getGx(), RecordRangeType.code));
-				}
-				status = "入院途径";
-				// TODO 待细分门、急诊
-				if (checkedIsError(checkList, "RYTJ", CHECK_TYPE_NONEMPTY, null) && (!isEmpty(homepagePatched.getJbdm()) || !isEmpty(homepagePatched.getJbbm()))) {
-					isPatched = true;
-					homepagePatched.setRytj("1");
-				} else if (compareDic(rc026, RecordRangeType.name, homepagePatched.getRytj())) {
-					isPatched = true;
-					homepagePatched.setRytj(getDic(rc026, RecordRangeType.name, homepagePatched.getRytj(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "治疗类别";
-				if (compareDic(rc039, RecordRangeType.name, homepagePatched.getZllb())) {
+				if ((checkRecord = checkedIsError(checkList, "ZLLB", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC039-治疗类别字典》")) != null
+				 && compareDic(rc039, RecordRangeType.name, homepagePatched.getZllb())) {
 					isPatched = true;
 					homepagePatched.setZllb(getDic(rc039, RecordRangeType.name, homepagePatched.getZllb(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "入院时间";
-				if (!isDatetime(homepagePatched.getRysj()) && !isEmpty(homepagePatched.getRysj()) && homepagePatched.getRysj().split("\\Q:\\E").length > 3) {
+				if ((checkRecord = checkedIsError(checkList, "RYSJ", CHECK_TYPE_VALIDITY, "格式不正确，yyyy-MM-dd HH:mm:ss")) != null
+				 && !isEmpty(homepagePatched.getRysj()) && homepagePatched.getRysj().split("\\Q:\\E").length > 3) {
 					isPatched = true;
 					homepagePatched.setRysj(homepagePatched.getRysj().substring(0, 19));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "入院时间（时）";
-				if (checkedIsError(checkList, "RYSJS", CHECK_TYPE_LOGICAL, "与入院时间(RYSJ)不匹配")) {
+				if (((checkRecord = checkedIsError(checkList, "RYSJ_S", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "RYSJ_S", CHECK_TYPE_VALIDITY, "格式不正确，小时数（24小时制）")) != null
+				 || (checkRecord = checkedIsError(checkList, "RYSJ_S", CHECK_TYPE_LOGICAL, "与入院时间(RYSJ)不匹配")) != null)
+				 && isDatetime(homepagePatched.getRysj())) {
 					isPatched = true;
 					Calendar _rysj = Calendar.getInstance();
 					_rysj.setTime(FormatUtil.parseDateTime(homepagePatched.getRysj()));
 					homepagePatched.setRysjS(_rysj.get(Calendar.HOUR_OF_DAY)+"");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "入院科别";
-				if (compareDic(rc023, RecordRangeType.name, homepagePatched.getRykb())) {
+				if ((checkRecord = checkedIsError(checkList, "RYKB", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC023-科室代码》")) != null
+				 && compareDic(rc023, RecordRangeType.name, homepagePatched.getRykb())) {
 					isPatched = true;
 					homepagePatched.setRykb(getDic(rc023, RecordRangeType.name, homepagePatched.getRykb(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				/*
 				 * TODO 转科科别
 				 */
 				status = "出院时间";
-				if (!isDatetime(homepagePatched.getCysj()) && !isEmpty(homepagePatched.getCysj()) && homepagePatched.getCysj().split("\\Q:\\E").length > 3) {
+				if ((checkRecord = checkedIsError(checkList, "CYSJ", CHECK_TYPE_VALIDITY, "格式不正确，yyyy-MM-dd HH:mm:ss")) != null
+				 && !isEmpty(homepagePatched.getCysj()) && homepagePatched.getCysj().split("\\Q:\\E").length > 3) {
 					isPatched = true;
 					homepagePatched.setCysj(homepagePatched.getCysj().substring(0, 19));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "出院时间（时）";
-				if (checkedIsError(checkList, "CYSJS", CHECK_TYPE_LOGICAL, "与入院时间(CYSJ)不匹配")) {
+				if (((checkRecord = checkedIsError(checkList, "CYSJ_S", CHECK_TYPE_NONEMPTY, null)) != null
+				 || (checkRecord = checkedIsError(checkList, "CYSJ_S", CHECK_TYPE_VALIDITY, "格式不正确，小时数（24小时制）")) != null
+				 || (checkRecord = checkedIsError(checkList, "CYSJ_S", CHECK_TYPE_LOGICAL, "与出院时间(CYSJ)不匹配")) != null)
+				 && isDatetime(homepagePatched.getCysj())) {
 					isPatched = true;
 					Calendar _cysj = Calendar.getInstance();
 					_cysj.setTime(FormatUtil.parseDateTime(homepagePatched.getCysj()));
 					homepagePatched.setCysjS(_cysj.get(Calendar.HOUR_OF_DAY)+"");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "出院科别";
-				if (compareDic(rc023, RecordRangeType.name, homepagePatched.getCykb())) {
+				if ((checkRecord = checkedIsError(checkList, "CYKB", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC023-科室代码》")) != null
+				 && compareDic(rc023, RecordRangeType.name, homepagePatched.getCykb())) {
 					isPatched = true;
 					homepagePatched.setCykb(getDic(rc023, RecordRangeType.name, homepagePatched.getCykb(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "入院途径";
+				if ((checkRecord = checkedIsError(checkList, "RYTJ", CHECK_TYPE_NONEMPTY, null)) != null
+				 && (!isEmpty(homepagePatched.getJbdm()) || !isEmpty(homepagePatched.getJbbm()))) {
+					isPatched = true;
+					//科别为急诊或夜间(>16:40)，记急诊，否则门诊
+					if (homepagePatched.getRykb().equals("50.16") || homepagePatched.getCykb().equals("50.16")//急诊科系
+					|| isNight(homepagePatched.getRysj()))//夜间(>16:40)
+						homepagePatched.setRytj("2");
+					else
+						homepagePatched.setRytj("1");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "RYTJ", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC026-入院途径代码》")) != null
+						&& compareDic(rc026, RecordRangeType.name, homepagePatched.getRytj())) {
+					isPatched = true;
+					homepagePatched.setRytj(getDic(rc026, RecordRangeType.name, homepagePatched.getRytj(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				}
+				status = "实际住院(天)";
+				if (isDatetime(homepagePatched.getCysj()) && isDatetime(homepagePatched.getRysj())) {
+					long _cysj = FormatUtil.parseDateTime(homepagePatched.getCysj()).getTime();
+					long _rysj = FormatUtil.parseDateTime(homepagePatched.getRysj()).getTime();
+					int _sjzy = Integer.parseInt(((_cysj - _rysj)/86400000 + 1)+"");
+					_sjzy = _sjzy == 0 ? 1 : _sjzy;
+					
+					if ((checkRecord = checkedIsError(checkList, "SJZY", CHECK_TYPE_NONEMPTY, null)) != null
+					 || (checkRecord = checkedIsError(checkList, "SJZY", CHECK_TYPE_VALIDITY, "格式或天数不正确，必需大于0的整数")) != null
+					 || (checkRecord = checkedIsError(checkList, "SJZY", CHECK_TYPE_LOGICAL, "与实际出、入院时间计算不符(" + _sjzy + ")")) != null) {
+						homepagePatched.setSjzy(_sjzy+"");
+						checkRecord.setFlag("PATCHED");
+						homepagePatched.addCheck(checkRecord);
+					}
 				}
 				status = "门(急)诊中医诊断";
-				if (checkedIsError(checkList, "JBDM", CHECK_TYPE_VALIDITY, "与《中医病症分类代码国标版95（TCM95）》不匹配")) {
-					transDiagno(homepagePatched.getJbdm(), homepagePatched.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE);
+				if ((checkRecord = checkedIsError(checkList, "JBDM", CHECK_TYPE_NONEMPTY, null)) != null) {
+					homepagePatched.setJbdm("-");
+					homepagePatched.setMzdZyzd("-");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "JBDM", CHECK_TYPE_VALIDITY, "与《中医病症分类代码国标版95（TCM95）》不匹配")) != null) {
+					IcdTransform d = transDiagno(homepagePatched.getJbdm(), homepagePatched.getMzdZyzd(), RecordRangeType.DIAGNOSIS_CHINESE);
+					homepagePatched.setJbdm(d.getCode());
+					homepagePatched.setMzdZyzd(d.getDiagno());
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "门(急)诊西医诊断";
-				if (checkedIsError(checkList, "JBBM", CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配")) {
-					transDiagno(homepagePatched.getJbbm(), homepagePatched.getMzzdXyzd(), RecordRangeType.DIAGNOSIS_WESTERN);
+				if ((checkRecord = checkedIsError(checkList, "JBBM", CHECK_TYPE_NONEMPTY, null)) != null) {
+					homepagePatched.setJbbm("-");
+					homepagePatched.setMzzdXyzd("-");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "JBBM", CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配")) != null) {
+					IcdTransform d = transDiagno(homepagePatched.getJbbm(), homepagePatched.getMzzdXyzd(), RecordRangeType.DIAGNOSIS_WESTERN);
+					homepagePatched.setJbbm(d.getCode());
+					homepagePatched.setMzzdXyzd(d.getDiagno());
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "实施临床路径";
-				if (checkedIsError(checkList, "SSLCLJ", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "SSLCLJ", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setSslclj("3");
-				} else if (compareDic(rc040, RecordRangeType.name, homepagePatched.getSslclj())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "SSLCLJ", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC040-实施临床路径字典》")) != null
+						&& compareDic(rc040, RecordRangeType.name, homepagePatched.getSslclj())) {
 					isPatched = true;
 					homepagePatched.setSslclj(getDic(rc040, RecordRangeType.name, homepagePatched.getSslclj(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "使用医疗机构中药制剂";
-				if (checkedIsError(checkList, "ZYYJ", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "ZYYJ", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setZyyj(homepagePatched.getZyzjf() > 0 ? "1" : "2");
-				} else if (compareDic(rc016, RecordRangeType.name, homepagePatched.getZyyj())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZYYJ", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC016》")) != null
+						&& compareDic(rc016, RecordRangeType.name, homepagePatched.getZyyj())) {
 					isPatched = true;
 					homepagePatched.setZyyj(getDic(rc016, RecordRangeType.name, homepagePatched.getZyyj(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "使用中医诊疗设备";
-				if (compareDic(rc016, RecordRangeType.name, homepagePatched.getZyzlsb())) {
+				if ((checkRecord = checkedIsError(checkList, "ZYZLSB", CHECK_TYPE_NONEMPTY, null)) != null) {
+					isPatched = true;
+					homepagePatched.setZyzlsb("2");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZYZLSB", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC016》")) != null
+						&& compareDic(rc016, RecordRangeType.name, homepagePatched.getZyzlsb())) {
 					isPatched = true;
 					homepagePatched.setZyzlsb(getDic(rc016, RecordRangeType.name, homepagePatched.getZyzlsb(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "使用中医诊疗技术";
-				if (checkedIsError(checkList, "ZYZLJS", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "ZYZLJS", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setZyzljs((homepagePatched.getZylZyzd()+homepagePatched.getZyzl()+homepagePatched.getZyqt()) > 0 ? "1" : "2");
-				} else if (compareDic(rc016, RecordRangeType.name, homepagePatched.getZyzljs())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZYZLJS", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC016》")) != null
+						&& compareDic(rc016, RecordRangeType.name, homepagePatched.getZyzljs())) {
 					isPatched = true;
 					homepagePatched.setZyzljs(getDic(rc016, RecordRangeType.name, homepagePatched.getZyzljs(), RecordRangeType.code));
-				} else if (checkedIsError(checkList, "ZYZLJS", CHECK_TYPE_LOGICAL, "使用中医诊疗技术，中医类（中医和民族医医疗服务）费应大于0")) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZYZLJS", CHECK_TYPE_LOGICAL, "使用中医诊疗技术，中医类（中医和民族医医疗服务）费应大于0")) != null) {
 					homepagePatched.setZyzljs("2");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "辩证施护";
-				if (checkedIsError(checkList, "BZSH", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "BZSH", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setBzsh("2");
-				} else if (compareDic(rc016, RecordRangeType.name, homepagePatched.getBzsh())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "BZSH", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC016》")) != null
+						&& compareDic(rc016, RecordRangeType.name, homepagePatched.getBzsh())) {
 					isPatched = true;
 					homepagePatched.setBzsh(getDic(rc016, RecordRangeType.name, homepagePatched.getBzsh(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				/*
 				 * ZB	主病出院中医诊断
@@ -2928,8 +3059,19 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				 * ZB_RYBQ	主病入院病情
 				 */
 				status = "主病出院中医诊断";
-				if (checkedIsError(checkList, "ZBJBBM", CHECK_TYPE_VALIDITY, "与《中医病症分类代码国标版95（TCM95）》不匹配")) {
-					transDiagno(homepagePatched.getZbJbbm(), homepagePatched.getZb(), RecordRangeType.DIAGNOSIS_CHINESE);
+				if ((checkRecord = checkedIsError(checkList, "ZB_JBBM", CHECK_TYPE_NONEMPTY, null)) != null) {
+					isPatched = true;
+					homepagePatched.setZbJbbm("-");
+					homepagePatched.setZb("-");
+					homepagePatched.setZbRybq("-");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZB_JBBM", CHECK_TYPE_VALIDITY, "与《中医病症分类代码国标版95（TCM95）》不匹配")) != null) {
+					IcdTransform d = transDiagno(homepagePatched.getZbJbbm(), homepagePatched.getZb(), RecordRangeType.DIAGNOSIS_CHINESE);
+					homepagePatched.setZbJbbm(d.getCode());
+					homepagePatched.setZb(d.getDiagno());
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				/*
 				 * ZYZD	出院主要诊断名称(西医)
@@ -2937,8 +3079,19 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				 * XY_RYBQ	出院主要诊断入院病情(西医)
 				 */
 				status = "出院主要诊断(西医)";
-				if (checkedIsError(checkList, "ZYZDJBBM", CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配")) {
-					transDiagno(homepagePatched.getZyzdJbbm(), homepagePatched.getZyzd(), RecordRangeType.DIAGNOSIS_WESTERN);
+				if ((checkRecord = checkedIsError(checkList, "ZYZD_JBBM", CHECK_TYPE_NONEMPTY, null)) != null) {
+					isPatched = true;
+					homepagePatched.setZyzdJbbm("-");
+					homepagePatched.setZyzd("-");
+					homepagePatched.setXyRybq("-");
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZYZD_JBBM", CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配")) != null) {
+					IcdTransform d = transDiagno(homepagePatched.getZyzdJbbm(), homepagePatched.getZyzd(), RecordRangeType.DIAGNOSIS_WESTERN);
+					homepagePatched.setZyzdJbbm(d.getCode());
+					homepagePatched.setZyzd(d.getDiagno());
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				/*
 				 * ZZ1-ZZ7	主证出院中医诊断
@@ -2949,10 +3102,21 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					status = "主证出院中医诊断" + i;
 					String _code = "Zzjbbm" + i;
 					String _diagno = "Zz" + i;
-					if (checkedIsError(checkList, _code.toUpperCase(), CHECK_TYPE_VALIDITY, "与《中医病症分类代码国标版95（TCM95）》不匹配")) {
-						transDiagno(homepagePatched.getClass().getMethod("get" + _code, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
-								homepagePatched.getClass().getMethod("get" + _diagno, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
-								RecordRangeType.DIAGNOSIS_CHINESE);
+					String _rybq = "ZzRybq" + i;
+					if ((checkRecord = checkedIsError(checkList, "ZZ_JBBM" + i, CHECK_TYPE_NONEMPTY, null)) != null) {
+						homepagePatched.getClass().getMethod("set" + _code, new Class[] {String.class}).invoke(homepagePatched, new Object[] {"-"});
+						homepagePatched.getClass().getMethod("set" + _diagno, new Class[] {String.class}).invoke(homepagePatched, new Object[] {"-"});
+						homepagePatched.getClass().getMethod("set" + _rybq, new Class[] {String.class}).invoke(homepagePatched, new Object[] {"-"});
+						checkRecord.setFlag("PATCHED");
+						homepagePatched.addCheck(checkRecord);
+					} else if ((checkRecord = checkedIsError(checkList, "ZZ_JBBM" + i, CHECK_TYPE_VALIDITY, "与《中医病症分类代码国标版95（TCM95）》不匹配")) != null) {
+						IcdTransform d = transDiagno(homepagePatched.getClass().getMethod("get" + _code, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
+													 homepagePatched.getClass().getMethod("get" + _diagno, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
+													 RecordRangeType.DIAGNOSIS_CHINESE);
+						homepagePatched.getClass().getMethod("set" + _code, new Class[] {String.class}).invoke(homepagePatched, new Object[] {d.getCode()});
+						homepagePatched.getClass().getMethod("set" + _diagno, new Class[] {String.class}).invoke(homepagePatched, new Object[] {d.getDiagno()});
+						checkRecord.setFlag("PATCHED");
+						homepagePatched.addCheck(checkRecord);
 					}
 				}
 				/*
@@ -2964,55 +3128,95 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					status = "出院其他诊断(西医)" + i;
 					String _code = "ZyzdJbbm" + i;
 					String _diagno = "Qtzd" + i;
-					if (checkedIsError(checkList, _code.toUpperCase(), CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配")) {
-						transDiagno(homepagePatched.getClass().getMethod("get" + _code, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
-								homepagePatched.getClass().getMethod("get" + _diagno, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
-								RecordRangeType.DIAGNOSIS_WESTERN);
+					String _rybq = "Rybq" + i;
+					if ((checkRecord = checkedIsError(checkList, "ZYZD_JBBM1" + i, CHECK_TYPE_NONEMPTY, null)) != null) {
+						homepagePatched.getClass().getMethod("set" + _code, new Class[] {String.class}).invoke(homepagePatched, new Object[] {"-"});
+						homepagePatched.getClass().getMethod("set" + _diagno, new Class[] {String.class}).invoke(homepagePatched, new Object[] {"-"});
+						homepagePatched.getClass().getMethod("set" + _rybq, new Class[] {String.class}).invoke(homepagePatched, new Object[] {"-"});
+						checkRecord.setFlag("PATCHED");
+						homepagePatched.addCheck(checkRecord);
+					} else if ((checkRecord = checkedIsError(checkList, "ZYZD_JBBM1" + i, CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0编码（ICD-10）》不匹配")) != null) {
+						IcdTransform d = transDiagno(homepagePatched.getClass().getMethod("get" + _code, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
+													 homepagePatched.getClass().getMethod("get" + _diagno, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
+													 RecordRangeType.DIAGNOSIS_WESTERN);
+						homepagePatched.getClass().getMethod("set" + _code, new Class[] {String.class}).invoke(homepagePatched, new Object[] {d.getCode()});
+						homepagePatched.getClass().getMethod("set" + _diagno, new Class[] {String.class}).invoke(homepagePatched, new Object[] {d.getDiagno()});
+						checkRecord.setFlag("PATCHED");
+						homepagePatched.addCheck(checkRecord);
 					}
 				}
 				status = "损伤、中毒外部原因";
-				if (checkedIsError(checkList, homepagePatched.getJbbm1(), CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0(ICD-10)》不匹配")) {
-					transDiagno(homepagePatched.getJbbm1(), homepagePatched.getWbyy(), RecordRangeType.DIAGNOSIS_WESTERN);
+				if ((checkRecord = checkedIsError(checkList, "JBBM1", CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0(ICD-10)》不匹配")) != null) {
+					IcdTransform d = transDiagno(homepagePatched.getJbbm1(), homepagePatched.getWbyy(), RecordRangeType.DIAGNOSIS_WESTERN);
+					homepagePatched.setJbbm1(d.getCode());
+					homepagePatched.setWbyy(d.getDiagno());
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "病理诊断";
-				if (checkedIsError(checkList, homepagePatched.getJbbm2(), CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)》与编码对应的病理名称不匹配")) {
-					transDiagno(homepagePatched.getJbbm2(), homepagePatched.getBlzd(), RecordRangeType.DIAGNOSIS_PATHOLOGY);
+				if ((checkRecord = checkedIsError(checkList, "JBBM2", CHECK_TYPE_VALIDITY, "与《疾病分类代码国家临床版2.0版肿瘤形态学编码(M码)》不匹配")) != null) {
+					IcdTransform d = transDiagno(homepagePatched.getJbbm2(), homepagePatched.getBlzd(), RecordRangeType.DIAGNOSIS_PATHOLOGY);
+					homepagePatched.setJbbm2(d.getCode());
+					homepagePatched.setBlzd(d.getDiagno());
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "有无药物过敏";
-				if (checkedIsError(checkList, "YWGM", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "YWGM", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setYwgm("1");
-				} else if (compareDic(rc028, RecordRangeType.name, homepagePatched.getYwgm())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "YWGM", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC028-药物过敏》")) != null
+						&& compareDic(rc028, RecordRangeType.name, homepagePatched.getYwgm())) {
 					isPatched = true;
 					homepagePatched.setYwgm(getDic(rc028, RecordRangeType.name, homepagePatched.getYwgm(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "ABO血型";
-				if (checkedIsError(checkList, "XX", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "XX", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					if (homepagePatched.getXf() > 0) homepagePatched.setXx("5");
 					else homepagePatched.setXx("6");
-				} else if (compareDic(rc030, RecordRangeType.name, homepagePatched.getXx())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "XX", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC030-血型编码》")) != null
+						&& compareDic(rc030, RecordRangeType.name, homepagePatched.getXx())) {
 					isPatched = true;
 					homepagePatched.setXx(getDic(rc030, RecordRangeType.name, homepagePatched.getXx(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "Rh血型";
-				if (checkedIsError(checkList, "RH", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "RH", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					if (homepagePatched.getXf() > 0) homepagePatched.setRh("3");
 					else homepagePatched.setRh("4");
-				} else if (compareDic(rc031, RecordRangeType.name, homepagePatched.getRh())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "RH", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC031-Rh血型》")) != null
+						&& compareDic(rc031, RecordRangeType.name, homepagePatched.getRh())) {
 					isPatched = true;
 					homepagePatched.setRh(getDic(rc031, RecordRangeType.name, homepagePatched.getRh(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "病案质量";
-				if (compareDic(rc011, RecordRangeType.name, homepagePatched.getBazl())) {
+				if ((checkRecord = checkedIsError(checkList, "BAZL", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC011-病案质量》")) != null
+				 && compareDic(rc011, RecordRangeType.name, homepagePatched.getBazl())) {
 					isPatched = true;
 					homepagePatched.setBazl(getDic(rc011, RecordRangeType.name, homepagePatched.getBazl(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				status = "质控日期";
-				if (!isDatetime(homepagePatched.getZkrq()) && !isEmpty(homepagePatched.getZkrq()) && homepagePatched.getZkrq().split("\\Q:\\E").length > 3) {
+				if ((checkRecord = checkedIsError(checkList, "ZKRQ", CHECK_TYPE_VALIDITY, "格式不正确，yyyy-MM-dd")) != null
+				 && homepagePatched.getZkrq().split("\\Q:\\E").length > 3) {
 					isPatched = true;
 					homepagePatched.setZkrq(homepagePatched.getZkrq().substring(0, 19));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 				/*
 				 * SSJCZBM1	主要手术操作编码
@@ -3042,28 +3246,38 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					status = "主要（其他）手术操作" + i;
 					String _code = "Ssjczbm" + i;
 					String _diagno = "Ssjczmc" + i;
-					if (checkedIsError(checkList, _code.toUpperCase(), CHECK_TYPE_VALIDITY, "与《手术操作分类代码国家临床版2.0编码（ICD-9-CM3）》不匹配")) {
-						transDiagno(homepagePatched.getClass().getMethod("get" + _code, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
-								homepagePatched.getClass().getMethod("get" + _diagno, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
-								RecordRangeType.DIAGNOSIS_OPERATION);
+					if ((checkRecord = checkedIsError(checkList, "SSJCZBM" + i, CHECK_TYPE_VALIDITY, "与《手术操作分类代码国家临床版2.0编码（ICD-9-CM3）》不匹配")) != null) {
+						IcdTransform d = transDiagno(homepagePatched.getClass().getMethod("get" + _code, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
+													 homepagePatched.getClass().getMethod("get" + _diagno, new Class[0]).invoke(homepagePatched, new Object[0]).toString(),
+													 RecordRangeType.DIAGNOSIS_OPERATION
+													);
+						homepagePatched.getClass().getMethod("set" + _code, new Class[] {String.class}).invoke(homepagePatched, new Object[] {d.getCode()});
+						homepagePatched.getClass().getMethod("set" + _diagno, new Class[] {String.class}).invoke(homepagePatched, new Object[] {d.getDiagno()});
+						checkRecord.setFlag("PATCHED");
+						homepagePatched.addCheck(checkRecord);
 					}
 				}
 				status = "是否有出院31天内再住院计划";
-				if (checkedIsError(checkList, "ZZYJH", CHECK_TYPE_NONEMPTY, null)) {
+				if ((checkRecord = checkedIsError(checkList, "ZZYJH", CHECK_TYPE_NONEMPTY, null)) != null) {
 					isPatched = true;
 					homepagePatched.setZzyjh("2");
-				} else if (compareDic(rc016, RecordRangeType.name, homepagePatched.getZzyjh())) {
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
+				} else if ((checkRecord = checkedIsError(checkList, "ZZYJH", CHECK_TYPE_VALIDITY, "代码不正确，《值域范围参考RC016》")) != null
+						&& compareDic(rc016, RecordRangeType.name, homepagePatched.getZzyjh())) {
 					isPatched = true;
 					homepagePatched.setZzyjh(getDic(rc016, RecordRangeType.name, homepagePatched.getZzyjh(), RecordRangeType.code));
+					checkRecord.setFlag("PATCHED");
+					homepagePatched.addCheck(checkRecord);
 				}
 
 				if ((homepage.getFlag() == null || !homepage.getFlag().equals("orig")) && isPatched) {
 					homepage.setFlag("orig");
-					homepagePatchedList.add(homepagePatched);
-					homepagePatchedList.add(homepage);
+					patchedList.add(homepagePatched);
+					patchedList.add(homepage);
 				}
 			}
-			return homepagePatchedList;
+			return patchedList;
 		}
 		catch(Exception ex) {
 			throw new Exception("数据修正[" + status + "]时发生错误：" + ex.getMessage());
@@ -3218,13 +3432,29 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		return value.equals("-") || value.equals("─");
 	}
 
-	public boolean checkedIsError(InpatientHomepageAnalyCheck[] list, String name, String type, String message) {
+	public Integer getAge(String rysj, String csrq, String sfzh, Integer defaultValue) {
+		Integer ret = defaultValue;
+		try {
+			csrq = ((csrq == null || !isDate(csrq)) && sfzh != null && sfzh.length() == 18) ? sfzh.substring(5, 13) : csrq;
+			if (rysj == null || csrq == null || !isDatetime(rysj) || !isDate(csrq)) return ret;
+			Calendar _rysj = Calendar.getInstance();
+			Calendar _csrq = Calendar.getInstance();
+			_rysj.setTime(FormatUtil.parseDateTime(rysj));
+			_csrq.setTime(FormatUtil.parseDate(csrq));
+			ret = _rysj.get(Calendar.YEAR) - _csrq.get(Calendar.YEAR);
+		}
+		catch(Exception e) {}
+
+		return ret;
+	}
+
+	public InpatientHomepageAnalyCheck checkedIsError(InpatientHomepageAnalyCheck[] list, String name, String type, String message) throws CloneNotSupportedException {
 		for (InpatientHomepageAnalyCheck check : list) {
-			if (check.getName().equalsIgnoreCase(name) && check.getType().equals(type)) {
-				return message == null || (message != null && check.getMessage().equals(message));
+			if (check.getName().equalsIgnoreCase(name) && check.getType().equals(type) && (message == null || check.getMessage().equals(message))) {
+				return check.clone();
 			}
 		}
-		return false;
+		return null;
 	}
 
 	public IcdTransform transDiagno(String code, String diagnosis, RecordRangeType type) throws Exception {
@@ -3279,6 +3509,37 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		}
 
 		return rest;
+	}
+
+	public boolean isNight(String datetime) throws Exception {
+		if (datetime != null && isDatetime(datetime)) {
+			Calendar c = Calendar.getInstance();
+			c.setTime(FormatUtil.parseDateTime(datetime));
+			float time = Float.parseFloat(c.get(Calendar.HOUR_OF_DAY) + "." + c.get(Calendar.MINUTE));
+
+			return time > NIGHT_TIME;
+		}
+
+		return false;
+	}
+
+	public String patchAddress(String address) {
+		String addr = address.replaceFirst("-", "").replaceFirst("─", "");
+		String ret = this.DEFAULT_CITY + addr;
+		for (DicAdministrativeDivision city : administrativeDivisionCity) {
+			if (addr.length() >= city.getName().length() - 1 && city.getName().equals(addr.substring(0, city.getName().length() - 1))) {
+				return city.getProv() + addr;
+			} else if (addr.length() >= city.getShortName().length() - 1 && city.getShortName().equals(addr.substring(0, city.getShortName().length() - 1))) {
+				return city.getProv() + city.getName() + addr.substring(city.getShortName().length() - 1);
+			}
+		}
+		for (DicAdministrativeDivision prov : administrativeDivisionProv) {
+			if (addr.length() >= prov.getShortName().length() - 1 && prov.getShortName().equals(addr.substring(0, prov.getShortName().length() - 1))) {
+				return prov.getName() + addr.substring(prov.getShortName().length() - 1);
+			}
+		}
+
+		return ret;
 	}
 
 	public HomepageDao getHomepageDao() {

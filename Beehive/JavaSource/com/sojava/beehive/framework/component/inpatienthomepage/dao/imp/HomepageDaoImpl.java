@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sojava.beehive.framework.component.inpatienthomepage.bean.DicAdministrativeDivision;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.Dictionary;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.IcdTransform;
 import com.sojava.beehive.framework.component.inpatienthomepage.bean.InpatientHomepageAnaly;
@@ -55,6 +56,22 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 		List<Dictionary> list = null;
 		try {
 			list = (List<Dictionary>) query(Dictionary.class, new Criterion[]{Restrictions.eq("kind", kind)}, new Order[]{Order.asc("id")}, null, false);
+
+			return list;
+		}
+		catch(Exception ex) {
+			throw new ErrorException(getClass(), ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<DicAdministrativeDivision> getAdministrativeDivision(int level) throws Exception {
+		List<DicAdministrativeDivision> list = null;
+		try {
+			Criterion[] filter = null;
+			if (level > 0) filter = new Criterion[] {Restrictions.eq("level", level)};
+			list = (List<DicAdministrativeDivision>) query(DicAdministrativeDivision.class, filter, new Order[]{Order.asc("id")}, null, false);
 
 			return list;
 		}
@@ -145,10 +162,12 @@ public class HomepageDaoImpl extends BeehiveDaoImpl implements HomepageDao {
 				stmt.executeUpdate();
 			}
 			for (InpatientHomepageAnaly homepage : homepageList) {
-				status = "保存解析数据第" + homepage.getId().getId() + "条(bah:" + homepage.getBah() + ";zycs:" + homepage.getZycs() + ")";
-				session.save(homepage);
-				for (InpatientHomepageAnalyCheck check : homepage.getInpatientHomepageAnalyChecks()) {
-					session.saveOrUpdate(check);
+				if (homepage instanceof InpatientHomepageAnaly) {
+					status = "保存解析数据第" + homepage.getId().getId() + "条(bah:" + homepage.getBah() + ";zycs:" + homepage.getZycs() + ")";
+					session.save(homepage);
+					for (InpatientHomepageAnalyCheck check : homepage.getInpatientHomepageAnalyChecks()) {
+						session.saveOrUpdate(check);
+					}
 				}
 			}
 			trans.commit();

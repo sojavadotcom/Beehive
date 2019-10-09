@@ -29,4 +29,9 @@ public enum RecordRangeType {
 	public static final String rc038 = "国籍字典";
 	public static final String rc039 = "治疗类别";
 	public static final String rc040 = "实施临床路径";
+
+	public static final int ADMINISTRATIVE_DIVISION_ALL = 0;
+	public static final int ADMINISTRATIVE_DIVISION_PROV = 1;
+	public static final int ADMINISTRATIVE_DIVISION_CITY = 2;
+	public static final int ADMINISTRATIVE_DIVISION_DIST = 3;
 }
