@@ -336,7 +336,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 		/***************************************************************************************/
 		try {
 			status = "1. ZZJGDM 组织机构代码 字符 22 必填 指医疗机构执业许可证上面的机构代码。";
-			if (homepage.getZzjgdm().isEmpty()) {
+			if (homepage.getZzjgdm().isEmpty() || isEmpty(homepage.getZzjgdm())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -358,7 +358,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "2. JGMC 医疗机构名称 字符 80 必填";
-			if (homepage.getJgmc().isEmpty()) {
+			if (homepage.getJgmc().isEmpty() || isEmpty(homepage.getJgmc())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -370,7 +370,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "3. USERNAME 对应的系统登录用户名 字符 10 必填 医院名称或者编码";
-			if (homepage.getUsername().isEmpty()) {
+			if (homepage.getUsername().isEmpty() || isEmpty(homepage.getUsername())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -382,7 +382,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "4. YLFKFS 医疗付款方式 字符 3 必填 《值域范围参考RC032-医疗付费方式代码》";
-			if (homepage.getYlfkfs().isEmpty()) {
+			if (homepage.getYlfkfs().isEmpty() || isEmpty(homepage.getYlfkfs())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -416,7 +416,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "6. ZYCS 住院次数 数字 4 必填 大于0的整数";
-			if (homepage.getZycs().isEmpty()) {
+			if (homepage.getZycs().isEmpty() || isEmpty(homepage.getZycs())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -448,7 +448,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "7. BAH 病案号 字符 50 必填";
-			if (homepage.getBah().isEmpty()) {
+			if (homepage.getBah().isEmpty() || isEmpty(homepage.getBah())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -460,7 +460,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "8. XM 姓名 字符 40 必填";
-			if (homepage.getXm().isEmpty()) {
+			if (homepage.getXm().isEmpty() || isEmpty(homepage.getXm())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -472,7 +472,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "9. XB 性别 数字 1 必填 《值域范围参考RC001-性别代码》";
-			if (homepage.getXb().isEmpty()) {
+			if (homepage.getXb().isEmpty() || isEmpty(homepage.getXb())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -494,7 +494,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "10. CSRQ 出生日期 日期 10 必填 yyyy-mm-dd";
-			if (homepage.getCsrq().isEmpty()) {
+			if (homepage.getCsrq().isEmpty() || isEmpty(homepage.getCsrq())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -562,7 +562,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				}
 			}
 			status = "12. GJ 国籍 字符 40 必填 《值域范围参考RC038-国籍字典》";
-			if (homepage.getGj().isEmpty()) {
+			if (homepage.getGj().isEmpty() || isEmpty(homepage.getGj())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -585,7 +585,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			}
 			status = "13. BZYZS_NL 年龄不足1周岁的年龄（天） 数字 3 条件必填 新生儿病例";
 			if (_age == 0) {
-				if (homepage.getBzyzsNl().isEmpty()) {
+				if (homepage.getBzyzsNl().isEmpty() || isEmpty(homepage.getBzyzsNl())) {
 						checkRecord.add(new InpatientHomepageAnalyCheck(
 							checkIndex ++,
 							homepage.getId(),
@@ -638,7 +638,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 	//			
 	//		}
 			status = "20. CSD 出生地 字符 200 必填 例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。";
-			if (homepage.getCsd().isEmpty()) {
+			if (homepage.getCsd().isEmpty() || isEmpty(homepage.getCsd())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -660,7 +660,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "21. GG 籍贯 字符 50 必填 《值域范围参考RC036-籍贯》";
-			if (homepage.getGg().isEmpty()) {
+			if (homepage.getGg().isEmpty() || isEmpty(homepage.getGg())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -682,7 +682,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "22. MZ 民族 字符 2 必填 《值域范围参考RC035-民族代码》";
-			if (homepage.getMz().isEmpty()) {
+			if (homepage.getMz().isEmpty() || isEmpty(homepage.getMz())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -704,7 +704,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "23. SFZH 身份证号 字符 18 必填 住院患者入院时要如实填写15位或18位身份证号码";
-			if (homepage.getSfzh().isEmpty()) {
+			if (homepage.getSfzh().isEmpty() || isEmpty(homepage.getSfzh())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -741,7 +741,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				}
 			}
 			status = "24. ZY 职业 字符 2 必填 《值域范围参考RC003-职业代码》";
-			if (homepage.getZy().isEmpty()) {
+			if (homepage.getZy().isEmpty() || isEmpty(homepage.getZy())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -763,7 +763,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "25. HY 婚姻 字符 1 必填 《值域范围参考RC002-婚姻代码》";
-			if (homepage.getHy().isEmpty()) {
+			if (homepage.getHy().isEmpty() || isEmpty(homepage.getHy())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -785,7 +785,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "26. XZZ 现住址 字符 200 必填 例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。";
-			if (homepage.getXzz().isEmpty()) {
+			if (homepage.getXzz().isEmpty() || isEmpty(homepage.getXzz())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -831,7 +831,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "29. HKDZ 户口地址 字符 200 必填 例如：陕西省商洛市商南县金丝峡镇梁家湾村58号，必填到省或自治区。";
-			if (homepage.getHkdz().isEmpty()) {
+			if (homepage.getHkdz().isEmpty() || isEmpty(homepage.getHkdz())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -918,7 +918,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "34. LXRXM 联系人姓名 字符 40 必填";
-			if (homepage.getLxrxm().isEmpty()) {
+			if (homepage.getLxrxm().isEmpty() || isEmpty(homepage.getLxrxm())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -930,7 +930,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "35. GX 联系人关系 字符 1 必填 《值域范围参考RC033-联系人关系代码》";
-			if (homepage.getGx().isEmpty()) {
+			if (homepage.getGx().isEmpty() || isEmpty(homepage.getGx())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -998,7 +998,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "38. RYTJ 入院途径 字符 1 必填 《值域范围参考RC026-入院途径代码》";
-			if (homepage.getRytj().isEmpty()) {
+			if (homepage.getRytj().isEmpty() || isEmpty(homepage.getRytj())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1032,7 +1032,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "40. RYSJ 入院时间 日期 必填 格式 yyyy-MM-dd HH:mm:ss；入院时间不能晚于出院时间";
-			if (homepage.getRysj().isEmpty()) {
+			if (homepage.getRysj().isEmpty() || isEmpty(homepage.getRysj())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1054,7 +1054,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						));
 			}
 			status = "41. RYSJ_S 时 必填 24小时制";
-			if (homepage.getRysjS().isEmpty()) {
+			if (homepage.getRysjS().isEmpty() || isEmpty(homepage.getRysjS())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1093,7 +1093,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				}
 			}
 			status = "42. RYKB 入院科别 字符 6 必填 《值域范围参考RC023-科室代码》";
-			if (homepage.getRykb().isEmpty()) {
+			if (homepage.getRykb().isEmpty() || isEmpty(homepage.getRykb())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1115,7 +1115,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "43. RYBF 入院病房 字符 30 必填";
-			if (homepage.getRybf().isEmpty()) {
+			if (homepage.getRybf().isEmpty() || isEmpty(homepage.getRybf())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1127,17 +1127,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "44. ZKKB 转科科别 集合 可以多选 《值域范围参考RC023-科室代码》";
-			if (homepage.getZkkb().isEmpty()) {
-				checkRecord.add(new InpatientHomepageAnalyCheck(
-						checkIndex ++,
-						homepage.getId(),
-						"ZKKB",
-						"转科科别",
-						homepage.getZkkb(),
-						"不能为空",
-						CHECK_TYPE_NONEMPTY
-					));
-			} else if (homepage.getZkkb().length() > 1) {
+			if (!homepage.getZkkb().isEmpty() || !isEmpty(homepage.getZkkb()) && homepage.getZkkb().length() > 1) {
 				String[] _zkkbs = homepage.getZkkb().split("\\Q,\\E");
 				for (String _zkkb : _zkkbs) {
 					if (!compareDic(rc023, RecordRangeType.code, _zkkb.trim())) {
@@ -1154,7 +1144,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				}
 			}
 			status = "45. CYSJ 出院时间 日期 必填 格式 yyyy-MM-dd HH:mm:ss；入院时间不能晚于出院时间";
-			if (homepage.getCysj().isEmpty()) {
+			if (homepage.getCysj().isEmpty() || isEmpty(homepage.getCysj())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1191,7 +1181,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						));
 			}
 			status = "46. CYSJ_S 时 必填";
-			if (homepage.getCysjS().isEmpty()) {
+			if (homepage.getCysjS().isEmpty() || isEmpty(homepage.getCysjS())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1230,7 +1220,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				}
 			}
 			status = "47. CYKB 出院科别 字符 6 必填 《值域范围参考RC023-科室代码》；国家重点专科科室必须有数据。";
-			if (homepage.getCykb().isEmpty()) {
+			if (homepage.getCykb().isEmpty() || isEmpty(homepage.getCykb())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1252,7 +1242,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "48. CYBF 出院病房 字符 30 必填";
-			if (homepage.getCybf().isEmpty()) {
+			if (homepage.getCybf().isEmpty() || isEmpty(homepage.getCybf())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1264,7 +1254,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "49. SJZY 实际住院(天) 数字 6 必填 大于0整数。入院时间与出院时间只计算一天，例如：2018年6月12日入院，2018年6月15日出院，计住院天数为3天";
-			if (homepage.getSjzy().isEmpty()) {
+			if (homepage.getSjzy().isEmpty() || isEmpty(homepage.getSjzy())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1364,7 +1354,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "54. SSLCLJ 实施临床路径 字符 1 必填 《值域范围参考RC040-实施临床路径字典》";
-			if (homepage.getSslclj().isEmpty()) {
+			if (homepage.getSslclj().isEmpty() || isEmpty(homepage.getSslclj())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1386,7 +1376,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "55. ZYYJ 使用医疗机构中药制剂 字符 1 必填 《值域范围参考RC016》；参照卫统4-2病案首页值域；当值为“是”时，医疗机构中药制剂费>0";
-			if (homepage.getZyyj().isEmpty()) {
+			if (homepage.getZyyj().isEmpty() || isEmpty(homepage.getZyyj())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1432,7 +1422,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 				}
 			}
 			status = "56. ZYZLSB 使用中医诊疗设备 字符 1 必填 《值域范围参考RC016》；参照卫统4-2病案首页值域";
-			if (homepage.getZyzlsb().isEmpty()) {
+			if (homepage.getZyzlsb().isEmpty() || isEmpty(homepage.getZyzlsb())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1454,7 +1444,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "57. ZYZLJS 使用中医诊疗技术 字符 1 必填 《值域范围参考RC016》；参照卫统4-2病案首页值域；中医类（中医和民族医医疗服务）费>0";
-			if (homepage.getZyzljs().isEmpty()) {
+			if (homepage.getZyzljs().isEmpty() || isEmpty(homepage.getZyzljs())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1486,7 +1476,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "58. BZSH 辩证施护 字符 1 必填 《值域范围参考RC016》；参照卫统4-2病案首页值域";
-			if (homepage.getBzsh().isEmpty()) {
+			if (homepage.getBzsh().isEmpty() || isEmpty(homepage.getBzsh())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1519,7 +1509,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"不能为空",
 						CHECK_TYPE_NONEMPTY
 					));
-			} else if (!diagnosisVerify(homepage.getZbJbbm(), homepage.getMzdZyzd(), RecordRangeType.ICD2, RecordRangeType.DIAGNOSIS_CHINESE)) {
+			} else if (!isEmpty(homepage.getZbJbbm()) && !diagnosisVerify(homepage.getZbJbbm(), homepage.getMzdZyzd(), RecordRangeType.ICD2, RecordRangeType.DIAGNOSIS_CHINESE)) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1531,7 +1521,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "61. ZB_RYBQ 主病入院病情 字符 1 必填 《值域范围参考RC027-入院病情》";
-			if (homepage.getZbRybq().isEmpty()) {
+			if (homepage.getZbRybq().isEmpty() || isEmpty(homepage.getZbRybq())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1541,7 +1531,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"不能为空",
 						CHECK_TYPE_NONEMPTY
 					));
-			} else if (!homepage.getZbRybq().equals("-") && !compareDic(rc027, RecordRangeType.code, homepage.getZbRybq())) {
+			} else if (!compareDic(rc027, RecordRangeType.code, homepage.getZbRybq())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1564,7 +1554,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"不能为空",
 						CHECK_TYPE_NONEMPTY
 					));
-			} else if (!diagnosisVerify(homepage.getZyzdJbbm(), homepage.getMzdZyzd(), RecordRangeType.ICD2, RecordRangeType.DIAGNOSIS_CHINESE)) {
+			} else if (isEmpty(homepage.getZyzdJbbm()) && !diagnosisVerify(homepage.getZyzdJbbm(), homepage.getMzdZyzd(), RecordRangeType.ICD2, RecordRangeType.DIAGNOSIS_CHINESE)) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1576,7 +1566,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "64. XY_RYBQ 出院主要诊断入院病情(西医) 字符 1 必填 《值域范围参考RC027-入院病情》";
-			if (homepage.getXyRybq().isEmpty()) {
+			if (homepage.getXyRybq().isEmpty() || isEmpty(homepage.getXyRybq())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1743,7 +1733,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			}
 			status = "75. BLH 病理号 字符 50 条件必填 有病理诊断编码时必填";
 			//逻辑校验
-			if (!homepage.getJbbm2().isEmpty() && homepage.getBlh().isEmpty()) {
+			if (!homepage.getJbbm2().isEmpty() && (homepage.getBlh().isEmpty() || isEmpty(homepage.getBlh()))) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1755,7 +1745,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "76. YWGM 有无药物过敏 字符 1 必填 《值域范围参考RC028-药物过敏》";
-			if (homepage.getYwgm().isEmpty()) {
+			if (homepage.getYwgm().isEmpty() || isEmpty(homepage.getYwgm())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1778,7 +1768,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			}
 			status = "77. GMYW 过敏药物名称 字符 200 条件必填 “有无药物过敏”为“有”时必填；多种药物用英文逗号进行分隔";
 			//逻辑校验
-			if (homepage.getYwgm().equals("2") && homepage.getGmyw().isEmpty()) {
+			if (homepage.getYwgm().equals("2") && (homepage.getGmyw().isEmpty() || isEmpty(homepage.getGmyw()))) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1804,7 +1794,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "79. XX ABO血型 字符 1 必填 《值域范围参考RC030-血型编码》";
-			if (homepage.getXx().isEmpty()) {
+			if (homepage.getXx().isEmpty() || isEmpty(homepage.getXx())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1826,7 +1816,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "80. RH Rh血型 字符 1 必填 《值域范围参考RC031-Rh血型》；当血费>0时，RH血型值为字典值。";
-			if (homepage.getRh().isEmpty()) {
+			if (homepage.getRh().isEmpty() || isEmpty(homepage.getRh())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1860,7 +1850,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "81. KZR 科主任 字符 40 必填";
-			if (homepage.getKzr().isEmpty()) {
+			if (homepage.getKzr().isEmpty() || isEmpty(homepage.getKzr())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1872,7 +1862,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "82. ZRYS 主任（副主任）医师 字符 40 必填";
-			if (homepage.getZrys().isEmpty()) {
+			if (homepage.getZrys().isEmpty() || isEmpty(homepage.getZrys())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1884,7 +1874,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "83. ZZYS 主治医师 字符 40 必填";
-			if (homepage.getZzys().isEmpty()) {
+			if (homepage.getZzys().isEmpty() || isEmpty(homepage.getZzys())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1896,7 +1886,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "84. ZYYS 住院医师 字符 40 必填";
-			if (homepage.getZyys().isEmpty()) {
+			if (homepage.getZyys().isEmpty() || isEmpty(homepage.getZyys())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1908,7 +1898,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 					));
 			}
 			status = "85. ZRHS 责任护士 字符 40 必填";
-			if (homepage.getZrhs().isEmpty()) {
+			if (homepage.getZrhs().isEmpty() || isEmpty(homepage.getZrhs())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -1952,7 +1942,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			 * 91. ZKHS	质控护士	字符	40
 			 **************************/
 			status = "92. ZKRQ 质控日期 日期 格式 yyyy-MM-dd";
-			if (!homepage.getZkrq().isEmpty() && !isDate(homepage.getZkrq())) {
+			if (!homepage.getZkrq().isEmpty() && !isEmpty(homepage.getZkrq()) && !isDate(homepage.getZkrq())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -2170,7 +2160,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			status = "115. LYFS 离院方式 字符 1 必填 《值域范围参考RC019》；指患者本次住院出院的方式，填写相应的阿拉伯数字；"
 					+ "116. YZZY_JGMC 医嘱转院，拟接收医疗机构名称 字符 100 条件必填 离院方式为医嘱转院患者必填；"
 					+ "117. WSY_JGMC 医嘱转社区卫生服务机构/乡镇卫生院，拟接收医疗机构名称 字符 100 条件必填 离院方式为医嘱转社区患者必填";
-			if (homepage.getLyfs().isEmpty()) {
+			if (homepage.getLyfs().isEmpty() || isEmpty(homepage.getLyfs())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -2190,7 +2180,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"代码不正确，《值域范围参考RC019》",
 						CHECK_TYPE_VALIDITY
 					));
-			} else if (homepage.getLyfs().equals("2") && homepage.getYzzyJgmc().isEmpty()) {
+			} else if (homepage.getLyfs().equals("2") && (homepage.getYzzyJgmc().isEmpty() || isEmpty(homepage.getYzzyJgmc()))) {
 				status = "逻辑校验 - 医嘱转院";
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
@@ -2201,7 +2191,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"离院方式(LYFS)为“2(医嘱转院)”时，不能为空",
 						CHECK_TYPE_LOGICAL
 					));
-			} else if (homepage.getLyfs().equals("3") && homepage.getWsyJgmc().isEmpty()) {
+			} else if (homepage.getLyfs().equals("3") && (homepage.getWsyJgmc().isEmpty() || isEmpty(homepage.getWsyJgmc()))) {
 				status = "逻辑校验 - 医嘱转社区卫生服务机构/乡镇卫生院";
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
@@ -2215,7 +2205,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 			}
 			status = "118. ZZYJH 是否有出院31天内再住院计划 数字 1 必填 《值域范围参考RC016》，指患者本次住院出院后31天内是否有诊疗需要的再住院安排。如果有再住院计划，则需要填写目的，如：进行二次手术；"
 					+ "119. MD 目的 字符 100 条件必填 是否有出院31日内再住院计划填“有”时必填";
-			if (homepage.getZzyjh().isEmpty()) {
+			if (homepage.getZzyjh().isEmpty() || isEmpty(homepage.getZzyjh())) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
@@ -2235,7 +2225,7 @@ public class HomepageCheckerServiceImpl implements HomepageCheckerService {
 						"代码不正确，《值域范围参考RC016》",
 						CHECK_TYPE_VALIDITY
 					));
-			} else if (homepage.getZzyjh().equals("2") && homepage.getMd().isEmpty()) {
+			} else if (homepage.getZzyjh().equals("2") && (homepage.getMd().isEmpty() || isEmpty(homepage.getMd()))) {
 				checkRecord.add(new InpatientHomepageAnalyCheck(
 						checkIndex ++,
 						homepage.getId(),
