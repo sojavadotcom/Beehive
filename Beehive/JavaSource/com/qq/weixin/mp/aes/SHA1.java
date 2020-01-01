@@ -16,7 +16,19 @@ import java.util.Arrays;
  *
  * 计算公众平台的消息签名接口.
  */
-class SHA1 {
+public class SHA1 {
+
+	/**
+	 * 用SHA1算法生成安全签名
+	 * @param token 票据
+	 * @param timestamp 时间戳
+	 * @param nonce 随机字符串
+	 * @return 安全签名
+	 * @throws AesException 
+	 */
+	public static String getSHA1(String token, String timestamp, String nonce) throws AesException {
+		return getSHA1(token, timestamp, nonce, "");
+	}
 
 	/**
 	 * 用SHA1算法生成安全签名

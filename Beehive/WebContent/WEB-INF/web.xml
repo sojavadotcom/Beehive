@@ -117,6 +117,14 @@
 		<filter-name>beehiveFilter</filter-name>
 		<url-pattern>*.s2</url-pattern>
 	</filter-mapping>
+	<filter-mapping>
+		<filter-name>beehiveFilter</filter-name>
+		<url-pattern>/WeChat</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>beehiveFilter</filter-name>
+		<url-pattern>/WeChat/*</url-pattern>
+	</filter-mapping>
 <!-- 
 	<filter-mapping>
 		<filter-name>beehiveFilter</filter-name>
@@ -161,6 +169,14 @@
 	<filter-mapping>
 		<filter-name>struts2Filter</filter-name>
 		<url-pattern>/verifyCode.jpg</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>struts2Filter</filter-name>
+		<url-pattern>/WeChat</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>struts2Filter</filter-name>
+		<url-pattern>/WeChat/*</url-pattern>
 	</filter-mapping>
 <!--
 	<servlet>

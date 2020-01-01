@@ -14,6 +14,7 @@
 package com.qq.weixin.mp.aes;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -39,7 +40,7 @@ import org.apache.commons.codec.binary.Base64;
  * </ol>
  */
 public class WXBizMsgCrypt {
-	static Charset CHARSET = Charset.forName("utf-8");
+	Charset CHARSET = StandardCharsets.UTF_8;
 	Base64 base64 = new Base64();
 	byte[] aesKey;
 	String token;
@@ -269,6 +270,22 @@ public class WXBizMsgCrypt {
 	 * @param msgSignature 签名串，对应URL参数的msg_signature
 	 * @param timeStamp 时间戳，对应URL参数的timestamp
 	 * @param nonce 随机串，对应URL参数的nonce
+	 * 
+	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
+	 */
+	public void verifyUrl(String msgSignature, String timeStamp, String nonce) throws AesException {
+		String signature = SHA1.getSHA1(token, timeStamp, nonce);
+
+		if (!signature.equals(msgSignature)) {
+			throw new AesException(AesException.ValidateSignatureError);
+		}
+	}
+
+	/**
+	 * 验证URL
+	 * @param msgSignature 签名串，对应URL参数的msg_signature
+	 * @param timeStamp 时间戳，对应URL参数的timestamp
+	 * @param nonce 随机串，对应URL参数的nonce
 	 * @param echoStr 随机串，对应URL参数的echostr
 	 * 
 	 * @return 解密之后的echostr
@@ -283,6 +300,7 @@ public class WXBizMsgCrypt {
 		}
 
 		String result = decrypt(echoStr);
+
 		return result;
 	}
 
