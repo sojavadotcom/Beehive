@@ -17,21 +17,24 @@
 <meta name="apple-mobie-web-app-capable" content="yes" />
 <meta http-equiv="cache-control" content="no-cache" />
 <meta http-equiv="pragma" content="no-cache" />
-<!-- 
-<link rel="stylesheet" type="text/css" href="/components/dojo/dijit/themes/dijit.css" media="screen"/>
-<link rel="stylesheet" type="text/css" href="/components/dojo/dijit/themes/claro/claro.css" media="screen"/>
-<link rel="stylesheet" type="text/css" href="/components/dojo/dojox/widget/Dialog/Dialog.css"/>
- -->
 <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
-<script src="/components/dojo/dojo.js" data-dojo-config="locale: 'zh-cn', async: true, parseOnLoad: true, isDebug: true, gfxRenderer: 'svg,silverlight,vml'"></script>
+<script src="/components/dojo/dojo/dojo.js" data-dojo-config="locale: 'zh-cn', async: true, parseOnLoad: true, isDebug: true, gfxRenderer: 'svg,silverlight,vml'"></script>
 <script type="text/javascript">
+function take() {
+	wx.chooseImage({
+		count: 1, // 默认9
+		sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+		sourceType: ['camera', 'album'], // 可以指定来源是相册还是相机，默认二者都有
+		success: function (res) {
+			var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+			alert(localIds);
+		}
+	});
+}
 require(
-["dojox/mobile/parser", "dojox/mobile/compat", "dojox/mobile/Button", "dojo/domReady!"],
-function(parser) {
-	parser.parse();
-/*
+["dojo", "dojox/mobile/parser", "dojox/mobile/compat", "dojox/mobile/Button", "dojo/domReady!"],
+function(dojo, parser) {
 	dojo.ready(function() {
-		alert(1);
 		dojo.xhrGet({
 			url : "/WeChat/TQM/Query.Signature.s2",
 			handleAs : "json",
@@ -39,9 +42,8 @@ function(parser) {
 		}).then(function (data) {
 			if (data.success) {
 				var prop = data.data;
-				alert(prop.signature);
 				wx.config({
-					debug: true,
+					debug: false,
 					appId: prop.appId,
 					timestamp: prop.timestamp,
 					nonceStr: prop.nonceStr,
@@ -51,21 +53,9 @@ function(parser) {
 			}
 		});
 	});
-*/
 });
-function take() {
-	wx.chooseImage({
-		count: 1, // 默认9
-		sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
-		sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
-		success: function (res) {
-			var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
-			alert(localIds);
-		}
-	});
-}
 wx.ready(function() {
-	alert("接口处理成功验证");
+// 	take();
 });
 wx.error(function(res) {
 	alert(res);
@@ -74,7 +64,7 @@ wx.error(function(res) {
 </head>
 <body class="claro">
 <div style="text-align: center">
-	<button data-dojo-type="dojox/mobile/Button" label="11">拍照</button>
+	<button id="takeBtn" jsId="takeBtn" dojoType="dojox.mobile.Button" label="拍照" onclick="take()"></button>
 </div>
 </body>
 </html>
