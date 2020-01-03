@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 
 import com.qq.weixin.mp.aes.WXBizMsgCrypt;
 import com.sojava.beehive.framework.ActionSupport;
+import com.sojava.beehive.framework.component.wechat.define.WeChatInfo;
 import com.sojava.beehive.framework.io.Writer;
 
 import java.io.BufferedReader;
@@ -22,25 +23,11 @@ import java.io.InputStreamReader;
 public class TQMAdapter extends ActionSupport {
 	private static final long serialVersionUID = 8732195833246317990L;
 
-	private final String APP_ID = "wxd5b66e9aa4391045";
-	private final String APP_SECRET = "4426b4b826210dc7896b3742ca12a6fa";
-	private final String TOKEN = "TQM";
-	private final String ENCODING_AES_KEY = "RFzK3lGVIh5z6xYWfcdNd1FotKYWr7Xjg0rzyLkcucw";
 	private String signature;// = "389ab0960499c04cf662af4e86133f754d270cd2";
 	private String echostr;// = "5512701662590795775";
 	private String timestamp;// = "1577900695";
 	private String nonce;// = "382127749";
 	private String openid;
-
-	public static void main(String[] args) {
-		TQMAdapter a = new TQMAdapter();
-		try {
-			a.index();
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
-	}
 
 	@Action("Adapter")
 	public String index() throws Exception {
@@ -50,7 +37,7 @@ public class TQMAdapter extends ActionSupport {
 //		System.out.println("echostr=" + (echostr == null ? "null" : echostr));
 //		System.out.println("timestamp=" + (timestamp == null ? "null" : timestamp));
 //		System.out.println("nonce=" + (nonce == null ? "null" : nonce));
-		WXBizMsgCrypt pc = new WXBizMsgCrypt(TOKEN, ENCODING_AES_KEY, APP_ID);
+		WXBizMsgCrypt pc = new WXBizMsgCrypt(WeChatInfo.TQM_TOKEN, WeChatInfo.TQM_ENCODING_AES_KEY, WeChatInfo.TQM_APPID);
 		pc.verifyUrl(signature, timestamp, nonce);
 		InputStream in = getRequest().getInputStream();
 		if (in.available() == 0) new Writer(getRequest(), getResponse()).output(echostr);

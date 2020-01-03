@@ -8,6 +8,14 @@ import com.sojava.beehive.framework.log.Logger;
 public class ErrorException extends CommonException {
 	private static final long serialVersionUID = -7660611658717730181L;
 
+	public ErrorException(Throwable t) {
+		super(t);
+	}
+
+	public ErrorException(String message) {
+		super(message);
+	}
+
 	public ErrorException(Class<?> instance, Throwable t) {
 		super(instance, t);
 		Logger.error(instance, null, t);

@@ -243,8 +243,7 @@ public class WXBizMsgCrypt {
 	 * @return 解密后的原文
 	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
 	 */
-	public String decryptMsg(String msgSignature, String timeStamp, String nonce, String postData)
-			throws AesException {
+	public String decryptMsg(String msgSignature, String timeStamp, String nonce, String postData) throws AesException {
 
 		// 密钥，公众账号的app secret
 		// 提取密文
@@ -291,8 +290,7 @@ public class WXBizMsgCrypt {
 	 * @return 解密之后的echostr
 	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
 	 */
-	public String verifyUrl(String msgSignature, String timeStamp, String nonce, String echoStr)
-			throws AesException {
+	public String verifyUrl(String msgSignature, String timeStamp, String nonce, String echoStr) throws AesException {
 		String signature = SHA1.getSHA1(token, timeStamp, nonce, echoStr);
 
 		if (!signature.equals(msgSignature)) {

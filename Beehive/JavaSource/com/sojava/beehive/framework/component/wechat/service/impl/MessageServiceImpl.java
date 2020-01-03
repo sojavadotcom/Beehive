@@ -19,7 +19,7 @@ public class MessageServiceImpl implements MessageService {
 
 	@Override
 	public void receive(String signature, String timestamp, String nonce, String echostr, String replyMsg) throws Exception {
-		WXBizMsgCrypt pc = new WXBizMsgCrypt(WeChatInfo.TOKEN, WeChatInfo.ENCODING_AES_KEY, WeChatInfo.APPID);
+		WXBizMsgCrypt pc = new WXBizMsgCrypt(WeChatInfo.APP_TOKEN, WeChatInfo.APP_ENCODING_AES_KEY, WeChatInfo.APP_APPID);
 		pc.verifyUrl(signature, timestamp, nonce, echostr);
 
 		String decryptMsg = pc.decryptMsg(signature, timestamp, nonce, replyMsg);

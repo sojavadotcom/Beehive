@@ -44,7 +44,7 @@ public class Login extends ActionSupport {
 		int len = 0;
 		JSONObject rest;
 
-		String urlStr = "https://api.weixin.qq.com/sns/jscode2session?appid=" + WeChatInfo.APPID + "&secret=" + WeChatInfo.SECRET + "&js_code=" + code + "&grant_type=authorization_code";
+		String urlStr = "https://api.weixin.qq.com/sns/jscode2session?appid=" + WeChatInfo.APP_APPID + "&secret=" + WeChatInfo.APP_SECRET + "&js_code=" + code + "&grant_type=authorization_code";
 		URL url = new URL(urlStr);
 		URLConnection connect = url.openConnection();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
