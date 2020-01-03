@@ -118,7 +118,7 @@ function(Fieldset, ItemFileReadStore, Form, TextBox, ValidationTextBox, NumberSp
 	<div dojoType="dijit.Fieldset" title="误餐费" toggleable="false">
 		<div style="margin: 5px 0;">
 			<span name="overtimeFile" type="file" dojoType="dojox.form.Uploader" required="required">
-				<script type="dojo/method" event="onChange" args="dataArray"">
+				<script type="dojo/method" event="onChange" args="dataArray">
 					var _fileName = "";
 					for (var i = 0; i < dataArray.length; i ++) {
 						var _file = dataArray[i];
