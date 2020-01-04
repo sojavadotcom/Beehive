@@ -1,6 +1,5 @@
 package com.sojava.beehive.framework.component.wechat.action;
 
-import com.alibaba.fastjson.JSONObject;
 import com.sojava.beehive.framework.component.wechat.bean.AccessToken;
 import com.sojava.beehive.framework.component.wechat.bean.JsapiTicket;
 import com.sojava.beehive.framework.component.wechat.define.WeChatInfo;
@@ -11,8 +10,10 @@ import com.sojava.beehive.framework.util.NetworkUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import net.sf.json.JSONObject;
+
 @Component
-public class TQMTokenSchedule {
+public class TokenSchedule {
 
 	@Scheduled(initialDelay = 1000, fixedDelay = 7000 * 1000)	//每小时执行一次
 	public void execute() throws Exception {
@@ -46,13 +47,13 @@ public class TQMTokenSchedule {
 		NetworkUtil netHelper = new NetworkUtil();
 		String result = netHelper.getHttpsResponse(String.format(WeChatInfo.ACCESS_TOKEN_URL, WeChatInfo.TQM_APPID, WeChatInfo.TQM_SECRET), "GET");
 		Logger.debug(getClass(), result);
-		JSONObject json = JSONObject.parseObject(result);
+		JSONObject json = JSONObject.fromObject(result);
 
 		AccessToken token = null;
-		if (json.getInteger("errcode") == null || json.getInteger("errcode") == 0) {
+		if (!json.containsKey("errcode") || json.getInt("errcode") == 0) {
 			token = new AccessToken();
 			token.setAccessToken(json.getString("access_token"));
-			token.setExpiresin(json.getInteger("expires_in"));
+			token.setExpiresin(json.getInt("expires_in"));
 		} else {
 			throw new ErrorException("AccessToken getAccessToken() " + json.getString("errmsg"));
 		}
@@ -68,13 +69,13 @@ public class TQMTokenSchedule {
     	NetworkUtil netHelper = new NetworkUtil();
         String result = netHelper.getHttpsResponse(String.format(WeChatInfo.JSAPI_TICKET_URL, accessToken), "GET");
         Logger.debug(getClass(), result);
-        JSONObject json = JSONObject.parseObject(result);
+        JSONObject json = JSONObject.fromObject(result);
 
         JsapiTicket jsapiTicket = null;
-        if (json.getInteger("errcode") == 0) {
+        if (json.getInt("errcode") == 0) {
 	        jsapiTicket = new JsapiTicket();
 	        jsapiTicket.setJsapiTicket(json.getString("ticket"));
-	        jsapiTicket.setExpiresin(json.getInteger("expires_in"));
+	        jsapiTicket.setExpiresin(json.getInt("expires_in"));
         } else {
         	throw new ErrorException("JsapiTicket getJsapiTicket(String accessToken) " + json.getString("errmsg"));
         }

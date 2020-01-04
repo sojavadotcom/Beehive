@@ -1,4 +1,4 @@
-package com.sojava.beehive.framework.component.wechat.action;
+package com.sojava.beehive.framework.component.wechat.tqm.action;
 
 
 import org.apache.struts2.convention.annotation.Action;
@@ -20,7 +20,7 @@ import java.io.InputStreamReader;
 @Scope("prototype")
 @Namespace("/WeChat/TQM")
 @ParentPackage("json-default")
-public class TQMAdapter extends ActionSupport {
+public class Adapter extends ActionSupport {
 	private static final long serialVersionUID = 8732195833246317990L;
 
 	private String signature;// = "389ab0960499c04cf662af4e86133f754d270cd2";

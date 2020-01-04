@@ -15,15 +15,15 @@ import com.sojava.beehive.framework.component.wechat.define.WeChatInfo;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.io.Writer;
 
-@Namespace("/WeChat/TQM")
-@Controller("WeChat/TQM/Query")
+@Namespace("/WeChat")
+@Controller("WeChat/Token")
 @Scope("prototype")
-public class TQMQuery extends ActionSupport {
+public class Token extends ActionSupport {
 	private static final long serialVersionUID = -6792358151658105592L;
 
 	private String url;
 
-	@Action("Query.*")
+	@Action("Token.*")
 	public String index() throws Exception {
 		super.execute();
 		String actionName = this.getActionContext().getName();
@@ -32,12 +32,15 @@ public class TQMQuery extends ActionSupport {
 		rest.put("errmsg", "ok");
 		try {
 			actionName = actionName.split("\\Q.\\E")[1];
-			if (WeChatInfo.getTQMJsapiTicket() == null) throw new ErrorException("jsapi_ticket未准备好");
-			String jsapiTicket = WeChatInfo.getTQMJsapiTicket().getJsapiTicket();
+			String jsapiTicket = null;
+			if (actionName.equals("TQM")) {
+				if (WeChatInfo.getTQMJsapiTicket() == null) throw new ErrorException("jsapi_ticket未准备好");
+				jsapiTicket = WeChatInfo.getTQMJsapiTicket().getJsapiTicket();
 
-			if (actionName.equals("Signature")) {
 				Signature signature = Sign.sign(WeChatInfo.TQM_APPID, jsapiTicket, url);
 				rest.put("data", JSONObject.fromObject(signature));
+			} else {
+				throw new ErrorException("非法地址");
 			}
 		}
 		catch(Exception ex) {
