@@ -1064,8 +1064,12 @@ define([
 						}
 						break;
 					case "innerText":
+						// Deprecated, use "textContent" instead.
 						mapNode.innerHTML = "";
 						mapNode.appendChild(this.ownerDocument.createTextNode(value));
+						break;
+					case "textContent":
+						mapNode.textContent = value;
 						break;
 					case "innerHTML":
 						mapNode.innerHTML = value;
@@ -4838,6 +4842,14 @@ define(["./_base", "dojo/_base/lang", "dojo/_base/declare", "dojo/_base/kernel",
 	"dojo/on", "dojo/_base/array", "dojo/dom-construct", "dojo/_base/Color", "./matrix" ],
 	function(g, lang, declare, kernel, has, on, arr, domConstruct, Color, matrixLib){
 
+	function removeItemAt(a, index) {
+		var len = (a.length - 1);
+		while (index < len) {
+			a[index] = a[++index];
+		}
+		a.length = len;
+	}
+
 	var shape = g.shape = {
 		// summary:
 		//		This module contains the core graphics Shape API.
@@ -5391,7 +5403,7 @@ define(["./_base", "dojo/_base/lang", "dojo/_base/declare", "dojo/_base/kernel",
 						shape.parent = null;
 						shape.parentMatrix = null;
 					}
-					this.children.splice(i, 1);
+					removeItemAt(this.children, i);
 					break;
 				}
 			}
@@ -5461,7 +5473,7 @@ define(["./_base", "dojo/_base/lang", "dojo/_base/declare", "dojo/_base/kernel",
 			//		one of the child shapes to move to the front
 			for(var i = 0; i < this.children.length; ++i){
 				if(this.children[i] == shape){
-					this.children.splice(i, 1);
+					removeItemAt(this.children, i);
 					this.children.push(shape);
 					break;
 				}
@@ -5475,7 +5487,7 @@ define(["./_base", "dojo/_base/lang", "dojo/_base/declare", "dojo/_base/kernel",
 			//		one of the child shapes to move to the front
 			for(var i = 0; i < this.children.length; ++i){
 				if(this.children[i] == shape){
-					this.children.splice(i, 1);
+					removeItemAt(this.children, i);
 					this.children.unshift(shape);
 					break;
 				}
@@ -12068,8 +12080,7 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				events = this.events(),
 				bar = this.getBarProperties();
 
-			var z = this.series.length;
-			arr.forEach(this.series, function(serie){if(serie.hidden){z--;}});
+			var z = 0; // the non-hidden series index
 
 			// Collect and calculate  all values
 			var extractedValues = this.extractValues(this._hScaler);
@@ -12094,7 +12105,6 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 					run.dyn.fill = theme.series.fill;
 					continue;
 				}
-				z--;
 
 				s = run.group;
 				var indexed = arr.some(run.data, function(item){
@@ -12178,6 +12188,7 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				}
 				this._eventSeries[run.name] = eventSeries;
 				run.dirty = false;
+				z++;
 			}
 			this.dirty = false;
 			// chart mirroring starts

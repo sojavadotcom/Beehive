@@ -6,120 +6,158 @@
 
 //>>built
 define("dojo/request/util",["exports","../errors/RequestError","../errors/CancelError","../Deferred","../io-query","../_base/array","../_base/lang","../promise/Promise","../has"],function(_1,_2,_3,_4,_5,_6,_7,_8,_9){
-_1.deepCopy=function deepCopy(_a,_b){
-for(var _c in _b){
-var _d=_a[_c],_e=_b[_c];
-if(_d!==_e){
-if(_d&&typeof _d==="object"&&_e&&typeof _e==="object"){
-if(_e instanceof Date){
-_a[_c]=new Date(_e);
-}else{
-_1.deepCopy(_d,_e);
-}
-}else{
-_a[_c]=_e;
-}
-}
-}
-return _a;
+function _a(_b){
+return _9("native-arraybuffer")&&_b instanceof ArrayBuffer;
 };
-_1.deepCreate=function deepCreate(_f,_10){
-_10=_10||{};
-var _11=_7.delegate(_f),_12,_13;
-for(_12 in _f){
-_13=_f[_12];
-if(_13&&typeof _13==="object"){
-_11[_12]=_1.deepCreate(_13,_10[_12]);
-}
-}
-return _1.deepCopy(_11,_10);
+function _c(_d){
+return _9("native-blob")&&_d instanceof Blob;
 };
-var _14=Object.freeze||function(obj){
+function _e(_f){
+if(typeof Element!=="undefined"){
+return _f instanceof Element;
+}
+return _f.nodeType===1;
+};
+function _10(_11){
+return _9("native-formdata")&&_11 instanceof FormData;
+};
+function _12(_13){
+return _13&&typeof _13==="object"&&!_10(_13)&&!_e(_13)&&!_c(_13)&&!_a(_13);
+};
+_1.deepCopy=function(_14,_15){
+for(var _16 in _15){
+var _17=_14[_16],_18=_15[_16];
+if(_17!==_18){
+if(_12(_18)){
+if(Object.prototype.toString.call(_18)==="[object Date]"){
+_14[_16]=new Date(_18);
+}else{
+if(_7.isArray(_18)){
+_14[_16]=_1.deepCopyArray(_18);
+}else{
+if(_17&&typeof _17==="object"){
+_1.deepCopy(_17,_18);
+}else{
+_14[_16]=_1.deepCopy({},_18);
+}
+}
+}
+}else{
+_14[_16]=_18;
+}
+}
+}
+return _14;
+};
+_1.deepCopyArray=function(_19){
+var _1a=[];
+for(var i=0,l=_19.length;i<l;i++){
+var _1b=_19[i];
+if(typeof _1b==="object"){
+_1a.push(_1.deepCopy({},_1b));
+}else{
+_1a.push(_1b);
+}
+}
+return _1a;
+};
+_1.deepCreate=function deepCreate(_1c,_1d){
+_1d=_1d||{};
+var _1e=_7.delegate(_1c),_1f,_20;
+for(_1f in _1c){
+_20=_1c[_1f];
+if(_20&&typeof _20==="object"){
+_1e[_1f]=_1.deepCreate(_20,_1d[_1f]);
+}
+}
+return _1.deepCopy(_1e,_1d);
+};
+var _21=Object.freeze||function(obj){
 return obj;
 };
-function _15(_16){
-return _14(_16);
+function _22(_23){
+return _21(_23);
 };
-function _17(_18){
-return _18.data!==undefined?_18.data:_18.text;
+function _24(_25){
+return _25.data!==undefined?_25.data:_25.text;
 };
-_1.deferred=function deferred(_19,_1a,_1b,_1c,_1d,_1e){
-var def=new _4(function(_1f){
-_1a&&_1a(def,_19);
-if(!_1f||!(_1f instanceof _2)&&!(_1f instanceof _3)){
-return new _3("Request canceled",_19);
+_1.deferred=function deferred(_26,_27,_28,_29,_2a,_2b){
+var def=new _4(function(_2c){
+_27&&_27(def,_26);
+if(!_2c||!(_2c instanceof _2)&&!(_2c instanceof _3)){
+return new _3("Request canceled",_26);
 }
-return _1f;
+return _2c;
 });
-def.response=_19;
-def.isValid=_1b;
-def.isReady=_1c;
-def.handleResponse=_1d;
-function _20(_21){
-_21.response=_19;
-throw _21;
+def.response=_26;
+def.isValid=_28;
+def.isReady=_29;
+def.handleResponse=_2a;
+function _2d(_2e){
+_2e.response=_26;
+throw _2e;
 };
-var _22=def.then(_15).otherwise(_20);
+var _2f=def.then(_22).otherwise(_2d);
 if(_1.notify){
-_22.then(_7.hitch(_1.notify,"emit","load"),_7.hitch(_1.notify,"emit","error"));
+_2f.then(_7.hitch(_1.notify,"emit","load"),_7.hitch(_1.notify,"emit","error"));
 }
-var _23=_22.then(_17);
-var _24=new _8();
-for(var _25 in _23){
-if(_23.hasOwnProperty(_25)){
-_24[_25]=_23[_25];
+var _30=_2f.then(_24);
+var _31=new _8();
+for(var _32 in _30){
+if(_30.hasOwnProperty(_32)){
+_31[_32]=_30[_32];
 }
 }
-_24.response=_22;
-_14(_24);
-if(_1e){
-def.then(function(_26){
-_1e.call(def,_26);
-},function(_27){
-_1e.call(def,_19,_27);
+_31.response=_2f;
+_21(_31);
+if(_2b){
+def.then(function(_33){
+_2b.call(def,_33);
+},function(_34){
+_2b.call(def,_26,_34);
 });
 }
-def.promise=_24;
-def.then=_24.then;
+def.promise=_31;
+def.then=_31.then;
 return def;
 };
-_1.addCommonMethods=function addCommonMethods(_28,_29){
-_6.forEach(_29||["GET","POST","PUT","DELETE"],function(_2a){
-_28[(_2a==="DELETE"?"DEL":_2a).toLowerCase()]=function(url,_2b){
-_2b=_7.delegate(_2b||{});
-_2b.method=_2a;
-return _28(url,_2b);
+_1.addCommonMethods=function addCommonMethods(_35,_36){
+_6.forEach(_36||["GET","POST","PUT","DELETE"],function(_37){
+_35[(_37==="DELETE"?"DEL":_37).toLowerCase()]=function(url,_38){
+_38=_7.delegate(_38||{});
+_38.method=_37;
+return _35(url,_38);
 };
 });
 };
-_1.parseArgs=function parseArgs(url,_2c,_2d){
-var _2e=_2c.data,_2f=_2c.query;
-if(_2e&&!_2d){
-if(typeof _2e==="object"&&(!(_9("native-xhr2"))||!(_2e instanceof ArrayBuffer||_2e instanceof Blob))){
-_2c.data=_5.objectToQuery(_2e);
+_1.parseArgs=function parseArgs(url,_39,_3a){
+var _3b=_39.data,_3c=_39.query;
+if(_3b&&!_3a){
+if(typeof _3b==="object"&&(!(_9("native-xhr2"))||!(_a(_3b)||_c(_3b)))){
+_39.data=_5.objectToQuery(_3b);
 }
 }
-if(_2f){
-if(typeof _2f==="object"){
-_2f=_5.objectToQuery(_2f);
+if(_3c){
+if(typeof _3c==="object"){
+_3c=_5.objectToQuery(_3c);
 }
-if(_2c.preventCache){
-_2f+=(_2f?"&":"")+"request.preventCache="+(+(new Date));
+if(_39.preventCache){
+_3c+=(_3c?"&":"")+"request.preventCache="+(+(new Date));
 }
 }else{
-if(_2c.preventCache){
-_2f="request.preventCache="+(+(new Date));
+if(_39.preventCache){
+_3c="request.preventCache="+(+(new Date));
 }
 }
-if(url&&_2f){
-url+=(~url.indexOf("?")?"&":"?")+_2f;
+if(url&&_3c){
+url+=(~url.indexOf("?")?"&":"?")+_3c;
 }
-return {url:url,options:_2c,getHeader:function(_30){
+return {url:url,options:_39,getHeader:function(_3d){
 return null;
 }};
 };
-_1.checkStatus=function(_31){
-_31=_31||0;
-return (_31>=200&&_31<300)||_31===304||_31===1223||!_31;
+_1.checkStatus=function(_3e){
+_3e=_3e||0;
+return (_3e>=200&&_3e<300)||_3e===304||_3e===1223||!_3e;
 };
 });

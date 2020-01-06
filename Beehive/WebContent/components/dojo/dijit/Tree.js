@@ -601,9 +601,17 @@ return _a5;
 this._startPaint(def);
 return def;
 },focusNode:function(_a6){
-var _a7=this.domNode.scrollLeft;
+var tmp=[];
+for(var _a7=this.domNode;_a7&&_a7.tagName&&_a7.tagName.toUpperCase()!=="IFRAME";_a7=_a7.parentNode){
+tmp.push({domNode:_a7.contentWindow||_a7,scrollLeft:_a7.scrollLeft||0,scrollTop:_a7.scrollTop||0});
+}
 this.focusChild(_a6);
-this.domNode.scrollLeft=_a7;
+this.defer(function(){
+for(var i=0,max=tmp.length;i<max;i++){
+tmp[i].domNode.scrollLeft=tmp[i].scrollLeft;
+tmp[i].domNode.scrollTop=tmp[i].scrollTop;
+}
+},0);
 },_onNodeMouseEnter:function(){
 },_onNodeMouseLeave:function(){
 },_onItemChange:function(_a8){

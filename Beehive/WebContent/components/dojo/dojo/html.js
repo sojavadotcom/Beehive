@@ -136,7 +136,7 @@ var _1b=this;
 this.parseDeferred=_7.parse({rootNode:_18,noStart:!this.startup,inherited:_19,scope:this.parserScope}).then(function(_1c){
 return _1b.parseResults=_1c;
 },function(e){
-_1b._onError("Content",e,"Error parsing in _ContentSetter#"+this.id);
+_1b._onError("Content",e,"Error parsing in _ContentSetter#"+_1b.id);
 });
 }
 catch(e){

@@ -555,6 +555,8 @@ _54="backcolor";
 }
 }
 return _54;
+},_implCommand:function(cmd){
+return "_"+this._normalizeCommand(cmd)+"EnabledImpl";
 },_qcaCache:{},queryCommandAvailable:function(_55){
 var ca=this._qcaCache[_55];
 if(ca!==undefined){
@@ -649,7 +651,7 @@ if(this.disabled||!this._disabledOK){
 return false;
 }
 _5b=this._normalizeCommand(_5b);
-var _5c="_"+_5b+"EnabledImpl";
+var _5c=this._implCommand(_5b);
 if(this[_5c]){
 return this[_5c](_5b);
 }else{

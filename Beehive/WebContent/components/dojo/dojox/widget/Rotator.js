@@ -45,13 +45,16 @@ _20._idMap[_1e.id]=undefined;
 }
 _20._domNode.removeChild(_1e.node);
 }
+if(_20.idx>idx){
+_20.idx--;
+}
 };
 var _21,_20=this,_1f=this.panes;
 if(typeof _1c==="number"){
 _21=_1c;
 }else{
 for(var i=0;i<_1f.length;i++){
-if(_1f.node===_1c){
+if(_1f[i].node===_1c){
 _21=i;
 break;
 }
@@ -71,9 +74,6 @@ _1d(_21);
 }
 }else{
 _1d(_21);
-if(this.idx>_21){
-this.idx--;
-}
 }
 },destroy:function(){
 _5.forEach([this._controlSub,this.wfe],function(wfe){

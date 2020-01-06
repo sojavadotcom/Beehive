@@ -443,6 +443,7 @@ try{
 this.inherited(arguments);
 if(this.document&&this.document.body){
 _9.set(this.document.body,"color",_9.get(this.iframe,"color"));
+_9.set(this.document.body,"background-color",_9.get(this.iframe,"background-color"));
 }
 }
 catch(e){

@@ -54,12 +54,10 @@ return this.toCss(true);
 }});
 _5.blendColors=_1.blendColors=function(_b,_c,_d,_e){
 var t=_e||new _5();
-_3.forEach(["r","g","b","a"],function(x){
-t[x]=_b[x]+(_c[x]-_b[x])*_d;
-if(x!="a"){
-t[x]=Math.round(t[x]);
-}
-});
+t.r=Math.round(_b.r+(_c.r-_b.r)*_d);
+t.g=Math.round(_b.g+(_c.g-_b.g)*_d);
+t.b=Math.round(_b.b+(_c.b-_b.b)*_d);
+t.a=_b.a+(_c.a-_b.a)*_d;
 return t.sanitize();
 };
 _5.fromRgb=_1.colorFromRgb=function(_f,obj){

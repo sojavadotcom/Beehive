@@ -4,6 +4,9 @@ return _2("dijit.form._FormWidgetMixin",null,{name:"",alt:"",value:"",type:"text
 this._set("disabled",_a);
 if(/^(button|input|select|textarea|optgroup|option|fieldset)$/i.test(this.focusNode.tagName)){
 _3.set(this.focusNode,"disabled",_a);
+if(_7("trident")&&"readOnly" in this){
+_3.set(this.focusNode,"readonly",_a||this.readOnly);
+}
 }else{
 this.focusNode.setAttribute("aria-disabled",_a?"true":"false");
 }

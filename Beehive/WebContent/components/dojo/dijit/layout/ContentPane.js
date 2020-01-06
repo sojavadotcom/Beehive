@@ -142,7 +142,7 @@ try{
 this.onLoadDeferred.resolve(_22);
 }
 catch(e){
-console.error("Error "+this.widgetId+" running custom onLoad code: "+e.message);
+console.error("Error "+(this.widgetId||this.id)+" running custom onLoad code: "+e.message);
 }
 },_onUnloadHandler:function(){
 this._set("isLoaded",false);

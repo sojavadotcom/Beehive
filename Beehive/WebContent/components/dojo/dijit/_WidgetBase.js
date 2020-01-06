@@ -212,6 +212,9 @@ case "innerText":
 _38.innerHTML="";
 _38.appendChild(this.ownerDocument.createTextNode(_35));
 break;
+case "textContent":
+_38.textContent=_35;
+break;
 case "innerHTML":
 _38.innerHTML=_35;
 break;

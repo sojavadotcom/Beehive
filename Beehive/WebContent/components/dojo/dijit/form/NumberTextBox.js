@@ -35,7 +35,7 @@ if(this.focusNode&&this.focusNode.value&&!isNaN(this.value)){
 this.set("value",this.value);
 }
 this._decimalInfo=_7(_e);
-},_onFocus:function(){
+},_onFocus:function(by){
 if(this.disabled||this.readOnly){
 return;
 }
@@ -44,6 +44,9 @@ if(typeof val=="number"&&!isNaN(val)){
 var _10=this.format(val,this.constraints);
 if(_10!==undefined){
 this.textbox.value=_10;
+if(by!=="mouse"){
+this.textbox.select();
+}
 }
 }
 this.inherited(arguments);
