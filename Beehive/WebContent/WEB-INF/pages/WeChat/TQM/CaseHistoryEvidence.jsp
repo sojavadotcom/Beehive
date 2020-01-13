@@ -21,7 +21,7 @@
 <script src="/components/dojo/dojox/mobile/deviceTheme.js" data-dojo-config="mblUserAgent: 'Holodark'"></script>
 <script src="/components/dojo/dojo/dojo.js" data-dojo-config="locale: 'zh-cn', async: true, parseOnLoad: true, isDebug: true, gfxRenderer: 'svg,silverlight,vml'"></script>
 <script type="text/javascript">
-function take(id) {
+function take(id, label) {
 	wx.scanQRCode({
 		desc: 'scanQRCode desc',
 		needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
@@ -45,6 +45,18 @@ function take(id) {
 									*/
 									//二维码号：code
 									//图片数据：localData
+									dojo.xhrPost({
+										url: "/WeChat/TQM/TakeEvidence.Put.s2",
+// 										handleAs: "json",
+										content: {
+											code: code,
+											data: localData,
+											itemNum: id,
+											itemLabel: label
+										}
+									}).then(function (data) {
+										alert(data);
+									});
 								}
 							});
 						});
@@ -81,6 +93,19 @@ function(dojo, parser) {
 				});
 			}
 		});
+
+		dojo.xhrPost({
+			url: "/WeChat/TQM/TakeEvidence.Put.shtml",
+//				handleAs: "json",
+			content: {
+				code: "code",
+				data: "localData",
+				itemNum: 0,
+				itemLabel: "itemLabel"
+			}
+		}).then(function (data) {
+			console.log(data);
+		});
 	});
 });
 wx.ready(function() {
@@ -95,7 +120,7 @@ wx.error(function(res) {
 	<h1 data-dojo-type="dojox/mobile/Heading">病历问题取证</h1>
 	<ul jsId="listGroup" data-dojo-type="dojox/mobile/RoundRectList">
 	<s:iterator value="list" var="item">
-		<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='transition:"slide", onClick:"take(<s:property value="id" />)"'><s:property value="label" /></li>
+		<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='transition:"slide", onClick:"take(<s:property value="id" />, \"<s:property value="label" />\")"'><s:property value="label" /></li>
 	</s:iterator>
 	</ul>
 </div>
