@@ -6,17 +6,17 @@ import java.util.Date;
 
 
 /**
- * The persistent class for the case_history_evidence database table.
+ * The persistent class for the case_history_evidence photobase table.
  * 
  */
 @Entity
-@Table(name="case_history_evidence")
-@NamedQuery(name="CaseHistoryEvidence.findAll", query="SELECT c FROM CaseHistoryEvidence c")
+@Table(name = "case_history_evidence", schema = "quality")
+@NamedQuery(name = "CaseHistoryEvidence.findAll", query = "SELECT c FROM CaseHistoryEvidence c")
 public class CaseHistoryEvidence implements Serializable {
 	private static final long serialVersionUID = -1795354356510863248L;
 
 	@Id
-	@SequenceGenerator(name="CASE_HISTORY_EVIDENCE_ID_GENERATOR", sequenceName="QUALITY.CASE_HISTORY_EVIDENCE_ID")
+	@SequenceGenerator(name="CASE_HISTORY_EVIDENCE_ID_GENERATOR", sequenceName="QUALITY.CASE_HISTORY_EVIDENCE_ID", initialValue = 1, allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="CASE_HISTORY_EVIDENCE_ID_GENERATOR")
 	private Integer id;
 
@@ -29,7 +29,7 @@ public class CaseHistoryEvidence implements Serializable {
 	@Column(name="create_time")
 	private Date createTime;
 
-	private String data;
+	private byte[] photo;
 
 	@Column(name="item_label")
 	private String itemLabel;
@@ -78,12 +78,12 @@ public class CaseHistoryEvidence implements Serializable {
 		this.createTime = createTime;
 	}
 
-	public String getData() {
-		return this.data;
+	public byte[] getPhoto() {
+		return this.photo;
 	}
 
-	public void setData(String data) {
-		this.data = data;
+	public void setPhoto(byte[] photo) {
+		this.photo = photo;
 	}
 
 	public String getItemLabel() {

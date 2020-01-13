@@ -27,8 +27,8 @@ function take(id, label) {
 		needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
 		scanType: [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
 		success: function(res) {
-			var code = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
-			if (code != null) { //验证码正确性
+			var qrcode = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+			if (qrcode != null) { //验证码正确性
 				wx.chooseImage({
 					count: 1, // 默认9
 					sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
@@ -36,29 +36,70 @@ function take(id, label) {
 					success: function (res) {
 						var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
 						localIds.forEach(function (localId) {
-							wx.getLocalImgData({
-								localId: localId, // 图片的localID
+							if (localId.indexOf("wxlocalresource") != -1) {
+								localId = localId.replace("wxlocalresource", "wxLocalResource");
+							}
+							alert(localId);
+							wx.uploadImage({
+								localId: localId,
+								isShowProgressTips: 1,
 								success: function (res) {
-									var localData = res.localData; // localData是图片的base64数据，可以用img标签显示
-									/*
-									* 图片待上传处理
-									*/
-									//二维码号：code
-									//图片数据：localData
+									var serverId = res.serverId;
+									alert(serverId);
 									dojo.xhrPost({
-										url: "/WeChat/TQM/TakeEvidence.Put.s2",
-// 										handleAs: "json",
+										url: "/WeChat/TQM/TakeEvidence.PullPhoto.s2",
+										handleAs: "json",
 										content: {
-											code: code,
-											data: localData,
+											wxServerId: serverId,
+											qrcode: "cn.org.jxszyyy.casehistory.evidence.1",//qrcode,
 											itemNum: id,
 											itemLabel: label
 										}
 									}).then(function (data) {
-										alert(data);
+										if (data.success) {
+											alert("取证成功！");
+										} else {
+											alert("取证失败！[" + data.errmsg + "]");
+										}
 									});
+									alert("完成取证！");
 								}
 							});
+
+// 							wx.getLocalImgData({
+// 								localId: localId, // 图片的localID
+// 								success: function (res) {
+// 									wx.uploadImage({
+// 										localId: localId,
+// 										isShowProgressTips: 1,
+// 										success: function (res) {
+// 											var serverId = res.serverId;
+// 										}
+// 									});
+// 									var localData = res.localData; // localData是图片的base64数据，可以用img标签显示
+// 									/*
+// 									* 图片待上传处理
+// 									*/
+// 									//二维码号：code
+// 									//图片数据：localData
+// 									dojo.xhrPost({
+// 										url: "/WeChat/TQM/TakeEvidence.Put.s2",
+// 										handleAs: "json",
+// 										content: {
+// 											qrcode: qrcode,
+// 											data: localData,
+// 											itemNum: id,
+// 											itemLabel: label
+// 										}
+// 									}).then(function (data) {
+// 										if (data.success) {
+// 											alert("取证成功！");
+// 										} else {
+// 											alert("取证失败！[" + data.errmsg + "]");
+// 										}
+// 									});
+// 								}
+// 							});
 						});
 					}
 				});
@@ -89,22 +130,9 @@ function(dojo, parser) {
 					timestamp: prop.timestamp,
 					nonceStr: prop.nonceStr,
 					signature: prop.signature,
-					jsApiList: ["scanQRCode", "chooseImage", "getLocalImgData"]
+					jsApiList: ["scanQRCode", "chooseImage", "getLocalImgData", "uploadImage"]
 				});
 			}
-		});
-
-		dojo.xhrPost({
-			url: "/WeChat/TQM/TakeEvidence.Put.shtml",
-//				handleAs: "json",
-			content: {
-				code: "code",
-				data: "localData",
-				itemNum: 0,
-				itemLabel: "itemLabel"
-			}
-		}).then(function (data) {
-			console.log(data);
 		});
 	});
 });
