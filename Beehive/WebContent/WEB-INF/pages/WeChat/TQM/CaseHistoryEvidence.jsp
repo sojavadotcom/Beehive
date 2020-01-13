@@ -57,49 +57,12 @@ function take(id, label) {
 										}
 									}).then(function (data) {
 										if (data.success) {
-											alert("取证成功！");
-										} else {
 											alert("取证失败！[" + data.errmsg + "]");
 										}
 									});
 									alert("完成取证！");
 								}
 							});
-
-// 							wx.getLocalImgData({
-// 								localId: localId, // 图片的localID
-// 								success: function (res) {
-// 									wx.uploadImage({
-// 										localId: localId,
-// 										isShowProgressTips: 1,
-// 										success: function (res) {
-// 											var serverId = res.serverId;
-// 										}
-// 									});
-// 									var localData = res.localData; // localData是图片的base64数据，可以用img标签显示
-// 									/*
-// 									* 图片待上传处理
-// 									*/
-// 									//二维码号：code
-// 									//图片数据：localData
-// 									dojo.xhrPost({
-// 										url: "/WeChat/TQM/TakeEvidence.Put.s2",
-// 										handleAs: "json",
-// 										content: {
-// 											qrcode: qrcode,
-// 											data: localData,
-// 											itemNum: id,
-// 											itemLabel: label
-// 										}
-// 									}).then(function (data) {
-// 										if (data.success) {
-// 											alert("取证成功！");
-// 										} else {
-// 											alert("取证失败！[" + data.errmsg + "]");
-// 										}
-// 									});
-// 								}
-// 							});
 						});
 					}
 				});
