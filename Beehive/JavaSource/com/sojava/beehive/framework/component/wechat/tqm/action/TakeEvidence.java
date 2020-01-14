@@ -95,7 +95,7 @@ public class TakeEvidence extends ActionSupport {
 			http.disconnect();
 
 			CaseHistoryEvidence e = new CaseHistoryEvidence();
-			e.setPaperNum(Integer.parseInt(qrcode.replaceAll("[\\D].", "")));
+			e.setPaperNum(Integer.parseInt(qrcode.replaceAll("^.*(cn\\.org\\.jxszyyy\\.casehistory\\.evidence\\.)", "")));
 			e.setCode(qrcode);
 			e.setItemNum(itemNum);
 			e.setItemLabel(itemLabel);

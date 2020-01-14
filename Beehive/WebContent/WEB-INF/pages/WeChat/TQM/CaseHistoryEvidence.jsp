@@ -21,14 +21,14 @@
 <script src="/components/dojo/dojox/mobile/deviceTheme.js" data-dojo-config="mblUserAgent: 'Holodark'"></script>
 <script src="/components/dojo/dojo/dojo.js" data-dojo-config="locale: 'zh-cn', async: true, parseOnLoad: true, isDebug: true, gfxRenderer: 'svg,silverlight,vml'"></script>
 <script type="text/javascript">
-function take(id, label) {
+function take(pid, id, num, label) {
 	wx.scanQRCode({
 		desc: 'scanQRCode desc',
 		needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
 		scanType: [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
 		success: function(res) {
 			var qrcode = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
-			if (/^(cn\.org\.jxszyyy\.casehistory\.evidence\.)\d{1,2}$/.test(qrcode)) { //验证码正确性
+			if (/^.*(cn\.org\.jxszyyy\.casehistory\.evidence\.)\d{1,2}$/.test(qrcode)) { //验证码正确性
 				wx.chooseImage({
 					count: 1, // 默认9
 					sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
@@ -51,7 +51,7 @@ function take(id, label) {
 											wxServerId: serverId,
 											qrcode: qrcode,
 											itemNum: id,
-											itemLabel: label
+											itemLabel: num + "." + label
 										}
 									}).then(function (data) {
 										if (data.success) {
@@ -108,11 +108,16 @@ wx.error(function(res) {
 <body>
 <div id="view1" dojoType="dojox/mobile/View">
 	<h1 data-dojo-type="dojox/mobile/Heading">病历问题取证</h1>
-	<ul jsId="listGroup" data-dojo-type="dojox/mobile/RoundRectList">
-	<s:iterator value="list" var="item">
-		<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='transition:"slide", onClick:"take(<s:property value="id" />, \"<s:property value="label" />\")"'><s:property value="label" /></li>
+	<s:iterator value="list" var="catalog">
+		<h3 data-dojo-type="dojox/mobile/Heading" style="text-align: left;"><s:property value="label"/></h3>
+		<ul data-dojo-type="dojox/mobile/RoundRectList">
+		<s:iterator value="items" var="item">
+			<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props='transition:"slide", onClick:"take(<s:property value="pid" />, <s:property value="id" />, <s:property value="num" />, \"<s:property value="label" />\")"'>
+				<s:property value="num" />.&nbsp;<s:property value="label" />&nbsp;&nbsp;(<s:property value="score" /><s:if test="score != \"否决项\"">分</s:if>)
+			</li>
+		</s:iterator>
+		</ul>
 	</s:iterator>
-	</ul>
 </div>
 <div id="view2" data-dojo-type="dojox/mobile/View">
 	<h2 data-dojo-type="dojox/mobile/Heading" data-dojo-props='back:"返回", moveTo:"view1"'>View 2</h1>

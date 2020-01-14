@@ -15,7 +15,7 @@ import net.sf.json.JSONObject;
 @Component
 public class TokenSchedule {
 
-	@Scheduled(initialDelay = 1000, fixedDelay = 7000 * 1000)	//每小时执行一次
+//	@Scheduled(initialDelay = 1000, fixedDelay = 7000 * 1000)	//每小时执行一次
 	public void execute() throws Exception {
 
 		try {

@@ -138,8 +138,8 @@ public class QRCode{
 		Graphics2D g2 = qrImage.createGraphics();
 		g2.drawImage(matrixImage, 0, 0, width, heigh, null);
 		g2.setColor(Color.BLACK);
-		g2.setFont(new Font("宋体", Font.BOLD, width/7));
-		g2.drawString(note, width/3/0, heigh + 13);// ÷3居中；0居左
+		g2.setFont(new Font(Font.MONOSPACED, Font.TRUETYPE_FONT, width/7));
+		g2.drawString(note, width/3*0, heigh + 13);// ÷3居中；0居左
 
 		return qrImage;
 	}

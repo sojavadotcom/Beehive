@@ -22,16 +22,30 @@ public class CaseHistoryServiceImpl implements CaseHistoryService {
 	@Override
 	public List<Map<String, Object>> getPaper() throws Exception {
 		List<Map<String, Object>> rest = new ArrayList<Map<String,Object>>();
+		Map<String, Object> main = null;
+		List<Map<String, Object>> subList = null;
 
 		CaseHistoryStandard s = caseHistoryDao.queryCaseHistoryStandardByActive();
 		List<CaseHistoryStandardItem> items = s.getCaseHistoryStandardItems();
+		String catalog = "";
 		for (CaseHistoryStandardItem item : items) {
+			String _catalog = item.getCatalog();
+
+			if (!catalog.equals(_catalog)) {
+				catalog = item.getCatalog();
+				subList = new ArrayList<Map<String,Object>>();
+				main = new HashMap<String, Object>();
+				main.put("label", catalog);
+				main.put("items", subList);
+				rest.add(main);
+			}
 			Map<String, Object> r = new HashMap<String, Object>();
+			r.put("pid", item.getCaseHistoryStandard().getId());
 			r.put("id", item.getId());
-			r.put("catalog", item.getCatalog());
+			r.put("num", item.getNum());
 			r.put("label", item.getLabel());
 			r.put("score", item.getScore());
-			rest.add(r);
+			subList.add(r);
 		}
 
 		return rest;

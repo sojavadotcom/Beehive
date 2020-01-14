@@ -3,6 +3,7 @@ import com.sojava.beehive.framework.util.QRCode;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 import javax.print.Doc;
 import javax.print.DocFlavor;
@@ -21,27 +22,27 @@ import javax.print.attribute.standard.PrintQuality;
 
 public class QRCode2Print {
 
-	public static void main(String[] args) {
-		try {
-			FileInputStream in = new FileInputStream("D:\\MyDocument\\git\\Beehive\\Beehive\\WebContent\\images\\logo\\logo128bg.png");
-			byte[] logo = new byte[in.available()];
-			in.read(logo);
-			in.close();
-			for (int i = 1; i <= 1; i ++) {
-				String num = "0000" + i;
-				byte[] buff = QRCode.encode("cn.org.jxszyyy.casehistory.evidence." + i, 300, 300, logo, num.substring(num.length() - 4));
-				toPrint(buff, 1);
-			}
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
-	}
+	private PrintService printer;
+	private PrintRequestAttributeSet psattr;
+	private DocFlavor psInFormat;
+	private DocAttributeSet docattr;
 
-	public static void toPrint(byte[] content, int copies) {
+	private final int COPIES = 1;
 
-		ByteArrayInputStream in = new ByteArrayInputStream(content);
+	public QRCode2Print() {
+		//设置打印属性
+		this.psattr = new HashPrintRequestAttributeSet();
+		this.psattr.add(OrientationRequested.PORTRAIT);
+		this.psattr.add(PrintQuality.HIGH);
+		this.psattr.add(new Copies(COPIES));//打印份数
 
+		//设置打印数据的格式，此处为图片gif格式
+		this.psInFormat = DocFlavor.INPUT_STREAM.PNG;
+		//创建打印数据
+		this.docattr = new HashDocAttributeSet();//设置文档属性
+		docattr.add(new MediaPrintableArea(0, 0, 25, 25, MediaPrintableArea.MM));
+
+		this.printer = PrintServiceLookup.lookupDefaultPrintService();
 		//查找所有打印服务
 /*
 		PrintService[] services = PrintServiceLookup.lookupPrintServices(psInFormat, aset);
@@ -60,18 +61,6 @@ public class QRCode2Print {
 			}
 		}
 */
-		PrintService printer = PrintServiceLookup.lookupDefaultPrintService();
-		//设置打印属性
-		PrintRequestAttributeSet psattr = new HashPrintRequestAttributeSet();
-		psattr.add(OrientationRequested.PORTRAIT);
-		psattr.add(PrintQuality.HIGH);
-		psattr.add(new Copies(copies));//打印份数
-
-		//设置打印数据的格式，此处为图片gif格式
-		DocFlavor psInFormat = DocFlavor.INPUT_STREAM.PNG;
-		//创建打印数据
-		DocAttributeSet docattr = new HashDocAttributeSet();//设置文档属性
-		docattr.add(new MediaPrintableArea(0, 0, 25, 25, MediaPrintableArea.MM));
 
 		//可以输出打印机的各项属性
 /*
@@ -87,17 +76,63 @@ public class QRCode2Print {
 			System.out.println(attributeName + " : " + attributeValue);
 		}
 */
+/*
+		if (printer == null) {
+			PrintService[] services = PrintServiceLookup.lookupPrintServices(psInFormat, psattr);
+			for (int i = 0; i < services.length; i++) {
+				System.out.println("service found: " + services[i]);
+				String svcName = services[i].toString();
+				if (svcName.contains("Foxit PhantomPDF Printer")) {
+					printer = services[i];
+					System.out.println("my printer found: " + svcName);
+					System.out.println("my printer found: " + printer);
+					break;
+				}
+			}
+		}
+*/
+	}
+
+	public static void main(String[] args) {
+		QRCode2Print q = new QRCode2Print();
+		try {
+			String bgfile = null;
+			int start = 1, pages = 1;
+			for (String arg : args) {
+				if (arg.startsWith("bgfile")) bgfile = arg.replaceFirst("\\Qbgfile\\E", "");
+				if (arg.startsWith("start")) pages = Integer.parseInt(arg.replaceFirst("\\Qstart\\E", ""));
+				if (arg.startsWith("pages")) pages = Integer.parseInt(arg.replaceFirst("\\Qpages\\E", ""));
+			}
+			FileInputStream in = new FileInputStream(bgfile);
+			byte[] logo = new byte[in.available()];
+			in.read(logo);
+			in.close();
+			for (int i = start; i <= pages; i ++) {
+				String num = "0000" + i;
+				byte[] buff = QRCode.encode("http://weixin.qq.com/r/2Uzq8sbELJtTrYKR9xnL?cn.org.jxszyyy.casehistory.evidence." + i, 300, 300, logo, num.substring(num.length() - 4));
+				q.toPrint(buff);
+			}
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void toPrint(byte[] content) {
+
+		ByteArrayInputStream in = null;
 
 		if (printer != null) {
-			DocPrintJob job = null;
 			try {
-
+				in = new ByteArrayInputStream(content);
 				Doc doc = new SimpleDoc(in, psInFormat, docattr);
-				job = printer.createPrintJob();//创建文档打印作业
+				DocPrintJob job = printer.createPrintJob();//创建文档打印作业
 				job.print(doc, psattr);//打印文档
-
-			} catch (Exception pe) {
-				pe.printStackTrace();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			finally {
+				try {in.close();} catch(IOException ex) {}
 			}
 		} else {
 			System.out.println("no printer services found");
