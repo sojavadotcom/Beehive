@@ -16,9 +16,12 @@ public class CaseHistoryEvidence implements Serializable {
 	private static final long serialVersionUID = -1795354356510863248L;
 
 	@Id
-//	@SequenceGenerator(name="CASE_HISTORY_EVIDENCE_ID_GENERATOR", sequenceName="QUALITY.CASE_HISTORY_EVIDENCE_ID", initialValue = 1, allocationSize = 1)
-//	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="CASE_HISTORY_EVIDENCE_ID_GENERATOR")
+	@SequenceGenerator(name="CASE_HISTORY_EVIDENCE_ID_GENERATOR", sequenceName="QUALITY.CASE_HISTORY_EVIDENCE_ID", initialValue = 1, allocationSize = 1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="CASE_HISTORY_EVIDENCE_ID_GENERATOR")
 	private Integer id;
+
+	@Column(name="paper_num")
+	private Integer paperNum;
 
 	@Column(name="checker_name")
 	private String checkerName;
@@ -52,6 +55,14 @@ public class CaseHistoryEvidence implements Serializable {
 
 	public void setId(Integer id) {
 		this.id = id;
+	}
+
+	public Integer getPaperNum() {
+		return paperNum;
+	}
+
+	public void setPaperNum(Integer paperNum) {
+		this.paperNum = paperNum;
 	}
 
 	public String getCheckerName() {

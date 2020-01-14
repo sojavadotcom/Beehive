@@ -88,5 +88,7 @@
 		<class>com.sojava.beehive.framework.component.worksheet.bean.Refund</class>
 		<class>com.sojava.beehive.framework.component.worksheet.repair.bean.Repair</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryEvidence</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryStandard</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryStandardItem</class>
 	</persistence-unit>
 </persistence>

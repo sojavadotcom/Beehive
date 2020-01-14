@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Scope("prototype")
-@Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, rollbackFor = {CommonException.class, ErrorException.class, WarnException.class, Exception.class, Throwable.class})
+@Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, rollbackFor = {CommonException.class, ErrorException.class, WarnException.class, Exception.class, Throwable.class})
 public class EvidenceDaoImpl extends BeehiveDaoImpl implements EvidenceDao {
 	private static final long serialVersionUID = -3066101265689820784L;
 
@@ -27,4 +27,9 @@ public class EvidenceDaoImpl extends BeehiveDaoImpl implements EvidenceDao {
 		return e.getPhoto();
 	}
 
+	@Override
+	public void save(Object evidence) throws Exception {
+		Session session = getSession();
+		session.save((CaseHistoryEvidence) evidence);
+	}
 }

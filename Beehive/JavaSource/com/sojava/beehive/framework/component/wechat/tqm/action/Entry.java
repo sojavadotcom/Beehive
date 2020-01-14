@@ -7,7 +7,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.sojava.beehive.framework.ActionSupport;
-import com.sojava.beehive.framework.component.log.Logger;
+import com.sojava.beehive.framework.component.wechat.tqm.service.CaseHistoryService;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
 
 @Namespace("/WeChat/TQM")
 @Controller("WeChat/TQM/Entry")
@@ -15,29 +20,36 @@ import com.sojava.beehive.framework.component.log.Logger;
 public class Entry extends ActionSupport {
 	private static final long serialVersionUID = -8555460271356972319L;
 
-	private Integer step;
+	@Resource private CaseHistoryService caseHistoryService;
 
-	@Action(value = "Entry.*", results = {
-			@Result(name = "index", location = "/welcome.jsp"),
+	private Integer step;
+	private List<Map<String, Object>> list;
+
+	@Action(value = "Entry.Checkin", results = {
 			@Result(name = "Checkin", location = "Checkin.jsp", params = {"step", "%{step}"})
 		})
-	public String index() throws Exception {
+	public String checkin() throws Exception {
 		super.execute();
-		String actionName = this.getActionContext().getName();
-		try {
-			actionName = actionName.split("\\Q.\\E")[1];
 
-			if (actionName.equals("Checkin")) {
-			} else {
-				actionName = "index";
-			}
-		}
-		catch(Exception ex) {
-			actionName = "index";
-			Logger.error(getClass(), ex);
-		}
+		return "Checkin";
+	}
 
-		return actionName;
+	@Action(value = "Entry.CaseHistory", results = {
+			@Result(name = "CaseHistory", location = "CaseHistoryEvidence.jsp", params = {"list", "%{list}"})
+		})
+	public String caseHistory() throws Exception {
+		super.execute();
+		list = caseHistoryService.getPaper();
+
+		return "CaseHistory";
+	}
+
+	public CaseHistoryService getCaseHistoryService() {
+		return caseHistoryService;
+	}
+
+	public void setCaseHistoryService(CaseHistoryService caseHistoryService) {
+		this.caseHistoryService = caseHistoryService;
 	}
 
 	public Integer getStep() {
@@ -46,6 +58,14 @@ public class Entry extends ActionSupport {
 
 	public void setStep(Integer step) {
 		this.step = step;
+	}
+
+	public List<Map<String, Object>> getList() {
+		return list;
+	}
+
+	public void setList(List<Map<String, Object>> list) {
+		this.list = list;
 	}
 
 }

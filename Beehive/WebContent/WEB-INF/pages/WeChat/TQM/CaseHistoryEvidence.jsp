@@ -28,7 +28,7 @@ function take(id, label) {
 		scanType: [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
 		success: function(res) {
 			var qrcode = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
-			if (qrcode != null) { //验证码正确性
+			if (/^(cn\.org\.jxszyyy\.casehistory\.evidence\.)\d{1,2}$/.test(qrcode)) { //验证码正确性
 				wx.chooseImage({
 					count: 1, // 默认9
 					sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
@@ -39,13 +39,11 @@ function take(id, label) {
 							if (localId.indexOf("wxlocalresource") != -1) {
 								localId = localId.replace("wxlocalresource", "wxLocalResource");
 							}
-							alert(localId);
 							wx.uploadImage({
 								localId: localId,
 								isShowProgressTips: 1,
 								success: function (res) {
 									var serverId = res.serverId;
-									alert(serverId);
 									dojo.xhrPost({
 										url: "/WeChat/TQM/TakeEvidence.PullPhoto.s2",
 										handleAs: "json",
@@ -56,11 +54,12 @@ function take(id, label) {
 											itemLabel: label
 										}
 									}).then(function (data) {
-										if (!data.success) {
+										if (data.success) {
+											alert("完成取证！");
+										} else {
 											alert("取证失败！[" + data.errmsg + "]");
 										}
 									});
-									alert("完成取证！");
 								}
 							});
 						});

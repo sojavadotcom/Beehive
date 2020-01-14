@@ -2,7 +2,6 @@ package com.sojava.beehive.framework.component.wechat.tqm.action;
 
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.Namespace;
-import org.apache.struts2.convention.annotation.Result;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
@@ -20,11 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Namespace("/WeChat/TQM")
 @Controller("WeChat/TQM/TakeEvidence")
@@ -32,7 +27,6 @@ import java.util.Map;
 public class TakeEvidence extends ActionSupport {
 	private static final long serialVersionUID = 5297527713190499766L;
 
-	private List<Map<String, Object>> list;
 	private String wxServerId;
 	private String qrcode;
 	private Integer itemNum;
@@ -46,21 +40,6 @@ public class TakeEvidence extends ActionSupport {
     private final String JPG = "image/jpeg;charset=UTF-8";
 
     private EvidenceService evidenceService;
-
-	@Action(value = "TakeEvidence.CaseHistory", results = {
-		@Result(name = "Evidence", location = "CaseHistoryEvidence.jsp", params = {"list", "%{list}"})
-	})
-	public String caseHistory() throws Exception {
-		super.execute();
-		list = new ArrayList<Map<String,Object>>();
-		for (int i = 1; i <= 50; i ++) {
-			Map<String, Object> item = new HashMap<String, Object>();
-			item.put("id", i);
-			item.put("label", "第 " + i + " 项");
-			list.add(item);
-		}
-		return "Evidence";
-	}
 
 	@Action("TakeEvidence.VerifyQRCode")
 	public void verifyQRCode() throws Exception {
@@ -116,7 +95,7 @@ public class TakeEvidence extends ActionSupport {
 			http.disconnect();
 
 			CaseHistoryEvidence e = new CaseHistoryEvidence();
-			e.setId(Integer.parseInt(qrcode.replaceAll("[\\D].", "")));
+			e.setPaperNum(Integer.parseInt(qrcode.replaceAll("[\\D].", "")));
 			e.setCode(qrcode);
 			e.setItemNum(itemNum);
 			e.setItemLabel(itemLabel);
@@ -145,14 +124,6 @@ public class TakeEvidence extends ActionSupport {
 		finally {
 			out.close();
 		}
-	}
-
-	public List<Map<String, Object>> getList() {
-		return list;
-	}
-
-	public void setList(List<Map<String, Object>> list) {
-		this.list = list;
 	}
 
 	public String getWxServerId() {
