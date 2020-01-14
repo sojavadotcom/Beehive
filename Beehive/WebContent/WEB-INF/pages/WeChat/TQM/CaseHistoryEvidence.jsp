@@ -51,12 +51,12 @@ function take(id, label) {
 										handleAs: "json",
 										content: {
 											wxServerId: serverId,
-											qrcode: "cn.org.jxszyyy.casehistory.evidence.1",//qrcode,
+											qrcode: qrcode,
 											itemNum: id,
 											itemLabel: label
 										}
 									}).then(function (data) {
-										if (data.success) {
+										if (!data.success) {
 											alert("取证失败！[" + data.errmsg + "]");
 										}
 									});
