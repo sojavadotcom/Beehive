@@ -4,7 +4,6 @@ import com.sojava.beehive.framework.util.QRCode;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.print.Doc;
@@ -109,13 +108,15 @@ public class QRCode2Print {
 			byte[] logo = new byte[in.available()];
 			in.read(logo);
 			in.close();
-			List<byte[]> queue = new ArrayList<byte[]>();
-			for (int i = start; i <= pages; i ++) {
-				String num = "0000" + i;
-				byte[] buff = QRCode.encode("http://weixin.qq.com/r/2Uzq8sbELJtTrYKR9xnL?cn.org.jxszyyy.casehistory.evidence." + i, 300, 300, logo, num.substring(num.length() - 4));
-				queue.add(buff);
+//			List<byte[]> queue = new ArrayList<byte[]>();
+			for (int i = 0; i < pages; i ++) {
+				String num = "0000" + start;
+				byte[] buff = QRCode.encode("http://weixin.qq.com/r/2Uzq8sbELJtTrYKR9xnL?cn.org.jxszyyy.casehistory.evidence." + start, 300, 300, logo, num.substring(num.length() - 4));
+				start ++;
+				q.toPrint(buff);
+//				queue.add(buff);
 			}
-			q.toPrint(queue);
+//			q.toPrint(queue);
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();
