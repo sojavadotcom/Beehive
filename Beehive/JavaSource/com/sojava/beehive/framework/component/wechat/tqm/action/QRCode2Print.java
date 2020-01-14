@@ -4,6 +4,8 @@ import com.sojava.beehive.framework.util.QRCode;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.print.Doc;
 import javax.print.DocFlavor;
@@ -100,26 +102,49 @@ public class QRCode2Print {
 			int start = 1, pages = 1;
 			for (String arg : args) {
 				if (arg.startsWith("bgfile")) bgfile = arg.replaceFirst("\\Qbgfile\\E", "");
-				if (arg.startsWith("start")) pages = Integer.parseInt(arg.replaceFirst("\\Qstart\\E", ""));
+				if (arg.startsWith("start")) start = Integer.parseInt(arg.replaceFirst("\\Qstart\\E", ""));
 				if (arg.startsWith("pages")) pages = Integer.parseInt(arg.replaceFirst("\\Qpages\\E", ""));
 			}
 			FileInputStream in = new FileInputStream(bgfile);
 			byte[] logo = new byte[in.available()];
 			in.read(logo);
 			in.close();
+			List<byte[]> queue = new ArrayList<byte[]>();
 			for (int i = start; i <= pages; i ++) {
 				String num = "0000" + i;
 				byte[] buff = QRCode.encode("http://weixin.qq.com/r/2Uzq8sbELJtTrYKR9xnL?cn.org.jxszyyy.casehistory.evidence." + i, 300, 300, logo, num.substring(num.length() - 4));
-				q.toPrint(buff);
+				queue.add(buff);
 			}
+			q.toPrint(queue);
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
 	}
 
-	public void toPrint(byte[] content) {
+	public void toPrint(List<byte[]> queue) {
+		if (this.printer == null) {
+			System.out.println("Can't find the Default print service!");
+			return;
+		}
+		DocPrintJob job = printer.createPrintJob();//创建文档打印作业
+		for (byte[] buff : queue) {
+			ByteArrayInputStream in = null;
+			try {
+				in = new ByteArrayInputStream(buff);
+				Doc doc = new SimpleDoc(in, psInFormat, docattr);
+				job.print(doc, psattr);
+			}
+			catch(Exception ex) {
+				ex.printStackTrace();
+			}
+			finally {
+				try {in.close();} catch(IOException ex) {}
+			}
+		}
+	}
 
+	public void toPrint(byte[] content) {
 		ByteArrayInputStream in = null;
 
 		if (printer != null) {
