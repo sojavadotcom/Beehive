@@ -13,7 +13,7 @@ public class EvidenceServiceImpl implements EvidenceService {
 
 	@Resource private EvidenceDao evidenceDao;
 
-	private final String REGEX = "^.*(cn\\.org\\.jxszyyy\\.casehistory\\.evidence\\.)\\d{1,2}$";
+	private final String REGEX = "^.*(cn\\.org\\.jxszyyy\\.casehistory\\.evidence\\.)\\d{1,}$";
 
 	@Override
 	public boolean verifyQRCode(String qrcode) throws Exception {
