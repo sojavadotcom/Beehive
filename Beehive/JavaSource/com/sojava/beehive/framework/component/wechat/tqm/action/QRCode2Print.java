@@ -98,9 +98,10 @@ public class QRCode2Print {
 		QRCode2Print q = new QRCode2Print();
 		try {
 			String bgfile = null;
-			int start = 1, pages = 1;
+			int standardId = 1, start = 168, pages = 1;
 			for (String arg : args) {
 				if (arg.startsWith("bgfile")) bgfile = arg.replaceFirst("\\Qbgfile\\E", "");
+				if (arg.startsWith("standardId")) standardId = Integer.parseInt(arg.replaceFirst("\\QstandardId\\E", ""));
 				if (arg.startsWith("start")) start = Integer.parseInt(arg.replaceFirst("\\Qstart\\E", ""));
 				if (arg.startsWith("pages")) pages = Integer.parseInt(arg.replaceFirst("\\Qpages\\E", ""));
 			}
@@ -111,7 +112,7 @@ public class QRCode2Print {
 //			List<byte[]> queue = new ArrayList<byte[]>();
 			for (int i = 0; i < pages; i ++) {
 				String num = "0000" + start;
-				byte[] buff = QRCode.encode("http://weixin.qq.com/r/2Uzq8sbELJtTrYKR9xnL?cn.org.jxszyyy.casehistory.evidence." + start, 300, 300, logo, num.substring(num.length() - 4));
+				byte[] buff = QRCode.encode("http://weixin.qq.com/r/2Uzq8sbELJtTrYKR9xnL?cn.org.jxszyyy.casehistory.evidence." + standardId + "-" + start, 300, 300, logo, num.substring(num.length() - 4));
 				start ++;
 				q.toPrint(buff);
 //				queue.add(buff);

@@ -46,6 +46,12 @@ public class CaseHistoryEvidence implements Serializable {
 	@Column(name="wx_name")
 	private String wxName;
 
+	@Column(name="standard_id")
+	private Integer standardId;
+
+	@Column(name="item_id")
+	private Integer itemId;
+
 	public CaseHistoryEvidence() {
 	}
 
@@ -127,6 +133,22 @@ public class CaseHistoryEvidence implements Serializable {
 
 	public void setWxName(String wxName) {
 		this.wxName = wxName;
+	}
+
+	public Integer getStandardId() {
+		return standardId;
+	}
+
+	public void setStandardId(Integer standardId) {
+		this.standardId = standardId;
+	}
+
+	public Integer getItemId() {
+		return itemId;
+	}
+
+	public void setItemId(Integer itemId) {
+		this.itemId = itemId;
 	}
 
 }

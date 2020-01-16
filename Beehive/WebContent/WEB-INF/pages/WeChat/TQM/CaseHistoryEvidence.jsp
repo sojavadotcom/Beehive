@@ -28,7 +28,7 @@ function take(pid, id, num, label) {
 		scanType: [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
 		success: function(res) {
 			var qrcode = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
-			if (/^.*(cn\.org\.jxszyyy\.casehistory\.evidence\.)\d{1,}$/.test(qrcode)) { //验证码正确性
+			if (/^.*(cn\.org\.jxszyyy\.casehistory\.evidence\.)\d{1,}(\-\d{1,}){0,1}$/.test(qrcode)) { //验证码正确性
 				wx.chooseImage({
 					count: 1, // 默认9
 					sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
@@ -50,8 +50,9 @@ function take(pid, id, num, label) {
 										content: {
 											wxServerId: serverId,
 											qrcode: qrcode,
-											itemNum: id,
-											itemLabel: num + "." + label
+											itemId: id,
+											itemNum: num,
+											itemLabel: label
 										}
 									}).then(function (data) {
 										if (data.success) {

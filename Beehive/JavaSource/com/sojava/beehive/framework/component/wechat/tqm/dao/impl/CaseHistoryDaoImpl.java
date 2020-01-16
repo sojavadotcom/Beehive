@@ -24,13 +24,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class CaseHistoryDaoImpl extends BeehiveDaoImpl implements CaseHistoryDao {
 	private static final long serialVersionUID = -4373536040564009387L;
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public CaseHistoryStandard queryCaseHistoryStandardByActive() throws Exception {
+		return queryCaseHistoryStandard(new Criterion[] {Restrictions.eq("status", "已启用")});
+	}
+
+	@Override
+	public CaseHistoryStandard queryCaseHistoryStandardById(int id) throws Exception {
+		return queryCaseHistoryStandard(new Criterion[] {Restrictions.eq("id", id)});
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public CaseHistoryStandard queryCaseHistoryStandard(Criterion[] filters) throws Exception {
 
 		List<CaseHistoryStandard> c = (List<CaseHistoryStandard>) this.query(
 				CaseHistoryStandard.class,
-				new Criterion[] {Restrictions.eq("status", "已启用")},
+				filters,
 				null, null, false);
 		CaseHistoryStandard s = c.get(0);
 		List<CaseHistoryStandardItem> items = (List<CaseHistoryStandardItem>) this.query(
@@ -42,5 +52,4 @@ public class CaseHistoryDaoImpl extends BeehiveDaoImpl implements CaseHistoryDao
 
 		return s;
 	}
-
 }

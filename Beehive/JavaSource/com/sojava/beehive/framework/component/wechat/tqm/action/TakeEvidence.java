@@ -29,6 +29,7 @@ public class TakeEvidence extends ActionSupport {
 
 	private String wxServerId;
 	private String qrcode;
+	private Integer itemId;
 	private Integer itemNum;
 	private String itemLabel;
 	private String data;
@@ -95,8 +96,11 @@ public class TakeEvidence extends ActionSupport {
 			http.disconnect();
 
 			CaseHistoryEvidence e = new CaseHistoryEvidence();
-			e.setPaperNum(Integer.parseInt(qrcode.replaceAll("^.*(cn\\.org\\.jxszyyy\\.casehistory\\.evidence\\.)", "")));
+			String[] str = qrcode.replaceAll("^.*\\Qcn.org.jxszyyy.casehistory.evidence.\\E", "").split("\\Q-\\E");
+			e.setPaperNum(Integer.parseInt(str.length == 2 ? str[1] : str[0]));
 			e.setCode(qrcode);
+			e.setStandardId(Integer.parseInt(str.length == 2 ? str[0] : "1"));
+			e.setItemId(itemId);
 			e.setItemNum(itemNum);
 			e.setItemLabel(itemLabel);
 			e.setPhoto(photo);
@@ -140,6 +144,14 @@ public class TakeEvidence extends ActionSupport {
 
 	public void setQrcode(String qrcode) {
 		this.qrcode = qrcode;
+	}
+
+	public Integer getItemId() {
+		return itemId;
+	}
+
+	public void setItemId(Integer itemId) {
+		this.itemId = itemId;
 	}
 
 	public Integer getItemNum() {
