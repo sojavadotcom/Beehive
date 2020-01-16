@@ -63,6 +63,7 @@ public class EvidenceServiceImpl implements EvidenceService {
 		List<CaseHistoryEvidence> evidences = queryEvidence(standardId, paperNum);
 		for (CaseHistoryEvidence evidence : evidences) {
 			Map<String, Object> photo = new HashMap<String, Object>();
+			photo.put("id", evidence.getId()+"");
 			photo.put("num", evidence.getItemNum()+"");
 			photo.put("label", evidence.getItemLabel());
 			photo.put("photo", Base64.getEncoder().encodeToString(evidence.getPhoto()));

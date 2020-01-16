@@ -51,7 +51,7 @@ function(dojo, parser) {
 					timestamp: prop.timestamp,
 					nonceStr: prop.nonceStr,
 					signature: prop.signature,
-					jsApiList: ["scanQRCode"]
+					jsApiList: ["scanQRCode", "previewImage"]
 				});
 			}
 		});
@@ -73,6 +73,17 @@ function scanQRCode() {
 		}
 	});
 }
+function previewPhoto(id) {
+	var url = "https://wx.jxszyyy.org.cn/WeChat/TQM/TakeEvidence.Photo.shtml?id=";
+	wx.previewImage({
+		current: url + id,
+		urls: [
+			<s:iterator value="list" var="photo">
+			url + <s:property value="id" />,
+			</s:iterator>
+		]
+	});
+}
 </script>
 </head>
 <body>
@@ -82,7 +93,7 @@ function scanQRCode() {
 	</s:if>
 	<s:iterator value="list" var="photo">
 	<div dojoType="dojox/mobile/SwapView" style="text-align: center; width: 100%">
-		<div dojoType="dojox.mobile.CarouselItem" style="width: 100%;" data-dojo-props='src:"data:image/jpeg;base64,<s:property value="photo" />", value:"<s:property value="num"/>.&nbsp;<s:property value="label"/>", headerText:"<s:property value="num"/>.&nbsp;<s:property value="label"/>"'></div>
+		<div dojoType="dojox.mobile.CarouselItem" onClick="previewPhoto(<s:property value="id"/>)" style="width: 100%;" data-dojo-props='src:"data:image/jpeg;base64,<s:property value="photo" />", value:"<s:property value="num"/>.&nbsp;<s:property value="label"/>", headerText:"<s:property value="num"/>.&nbsp;<s:property value="label"/>"'></div>
 	</div>
 	</s:iterator>
 </div>
