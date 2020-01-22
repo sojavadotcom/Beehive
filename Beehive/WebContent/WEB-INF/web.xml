@@ -108,6 +108,22 @@
 	<filter>
 		<filter-name>beehiveFilter</filter-name>
 		<filter-class>com.sojava.beehive.framework.dispatcher.ExecuteFilter</filter-class>
+		<init-param>
+			<param-name>DomainAccess</param-name>
+			<param-value>[
+							{domain:"(\\Qhttps://oa.jxszyyy.\\E.*)|((http|https)\\Q://localhost\\E)", uri:"^[\\/]$|(^(\\/index\\.).*$)|(^(\\/Menu/Entry\\.).*$)|(^(\\/User/Entry\\.).*$)|(^(\\/User/Login\\.).*$)|(^(\\/User/Logout\\.).*$)|(^(\\/User/Query.name\\.).*$)|(^(\\/WeChat).*$)"},
+							{domain:"\\Qhttps://wx.jxszyyy.\\E.*", uri:"(^(\\/WeChat).*$)"}
+						]
+			</param-value>
+		</init-param>
+		<init-param>
+			<param-name>URIAccess</param-name>
+			<param-value>^[\/]$|(^(\/index\.).*$)|(^(\/Menu/Entry\.).*$)|(^(\/User/Entry\.).*$)|(^(\/User/Login\.).*$)|(^(\/User/Logout\.).*$)|(^(\/User/Query.name\.).*$)|(^(\/WeChat).*$)</param-value>
+		</init-param>
+		<init-param>
+			<param-name>URIAssHeader</param-name>
+			<param-value>[{uri:"(^(\\/WeChat).*$)", name:"user-agent", value:".*\\Q MicroMessenger/\\E\\d{1,}(\\d|\\.)*\\ .*", errmsg:"只能使用微信访问"}]</param-value>
+		</init-param>
 	</filter>
 	<filter-mapping>
 		<filter-name>beehiveFilter</filter-name>
