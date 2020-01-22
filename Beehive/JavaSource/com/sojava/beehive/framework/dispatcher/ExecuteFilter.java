@@ -72,6 +72,7 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 		JSONArray uriAssHeaders = JSONArray.fromObject(uriAssHeaderStr);
 
 		try {
+			//验证域名与功能对应访问权限
 			boolean domainValid = false;
 			for (int i = 0; i < domainAccesses.size(); i ++) {
 				JSONObject domainAccess = domainAccesses.getJSONObject(i);
@@ -89,6 +90,18 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 			if (!domainValid) {
 				throw new ErrorException("地址未授权，不能访问");
 			}
+			//验证功能与Header信息匹配权限
+			for (int i = 0; i < uriAssHeaders.size(); i ++) {
+				JSONObject uriAssHeader = uriAssHeaders.getJSONObject(i);
+				String _uri = uriAssHeader.getString("uri");
+				String _name = uriAssHeader.getString("name");
+				String _value = uriAssHeader.getString("value");
+				String _errmsg = uriAssHeader.getString("errmsg");
+				if (uri.matches(_uri) && !getHeadValue(request, _name).matches(_value)) {
+					throw new ErrorException(_errmsg);
+				}
+			}
+			//必须登录后才可进入，但对部分功能不启用（如：登录模块、菜单模块等）
 			if (userInfo == null && !uri.matches(uriAccessRegex)) {
 				try {
 					new Writer((HttpServletRequest) request, (HttpServletResponse) response).output("<script>try {top.bee.login.show();} catch(e) {}</script>", ContentType.html);
@@ -97,16 +110,6 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 					new ErrorException(getClass(), ex);
 				}
 			} else {
-				for (int i = 0; i < uriAssHeaders.size(); i ++) {
-					JSONObject uriAssHeader = uriAssHeaders.getJSONObject(i);
-					String _uri = uriAssHeader.getString("uri");
-					String _name = uriAssHeader.getString("name");
-					String _value = uriAssHeader.getString("value");
-					String _errmsg = uriAssHeader.getString("errmsg");
-					if (uri.matches(_uri) && !getHeadValue(request, _name).matches(_value)) {
-						throw new ErrorException(_errmsg);
-					}
-				}
 				if (contentType.toLowerCase().indexOf("application/x-www-form-urlencoded") != -1) {
 					HttpRequest req = new HttpRequest((HttpServletRequest) request);
 					Map<String, Serializable> parameter = new HashMap<String, Serializable>();
@@ -119,7 +122,6 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 							for(int i = 0; i < values.length; i ++) {
 								String value = values[i];
 								try {
-									value = URLDecoder.decode(value, System.getProperty("system.encoding", "UTF-8"));
 									value = URLDecoder.decode(value, System.getProperty("system.encoding", "UTF-8"));
 								}
 								catch(IllegalArgumentException e) {}

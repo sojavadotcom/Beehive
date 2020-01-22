@@ -27,9 +27,10 @@ public class Entry extends ActionSupport {
 	private Integer step;
 	private List<Map<String, Object>> list;
 	private String qrcode;
+	private String state;
 
 	@Action(value = "Entry.Checkin", results = {
-			@Result(name = "Checkin", location = "Checkin.jsp", params = {"step", "%{step}"})
+			@Result(name = "Checkin", location = "Checkin.jsp", params = {"step", "%{step}", "wxstate", "state"})
 		})
 	public String checkin() throws Exception {
 		super.execute();
@@ -105,6 +106,14 @@ public class Entry extends ActionSupport {
 
 	public void setQrcode(String qrcode) {
 		this.qrcode = qrcode;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
 	}
 
 }

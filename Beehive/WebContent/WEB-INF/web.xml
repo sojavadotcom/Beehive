@@ -111,8 +111,8 @@
 		<init-param>
 			<param-name>DomainAccess</param-name>
 			<param-value>[
-							{domain:"(\\Qhttps://oa.jxszyyy.\\E.*)|((http|https)\\Q://localhost\\E)", uri:"^[\\/]$|(^(\\/index\\.).*$)|(^(\\/Menu/Entry\\.).*$)|(^(\\/User/Entry\\.).*$)|(^(\\/User/Login\\.).*$)|(^(\\/User/Logout\\.).*$)|(^(\\/User/Query.name\\.).*$)|(^(\\/WeChat).*$)"},
-							{domain:"\\Qhttps://wx.jxszyyy.\\E.*", uri:"(^(\\/WeChat).*$)"}
+							{domain:"(\\Qhttps://oa.jxszyyy.org.cn\\E)|(\\Qhttps://oa.jxszyyy.cn\\E)|((http|https)\\Q://localhost\\E)", uri:"^[\\/]$|(^(\\/index\\.).*$)|(^(\\/Menu/Entry\\.).*$)|(^(\\/User/Entry\\.).*$)|(^(\\/User/Login\\.).*$)|(^(\\/User/Logout\\.).*$)|(^(\\/User/Query.name\\.).*$)|(^(\\/WeChat).*$)"},
+							{domain:"\\Qhttps://wx.jxszyyy.org.cn\\E", uri:"(^(\\/WeChat).*$)"}
 						]
 			</param-value>
 		</init-param>
@@ -122,7 +122,7 @@
 		</init-param>
 		<init-param>
 			<param-name>URIAssHeader</param-name>
-			<param-value>[{uri:"(^(\\/WeChat).*$)", name:"user-agent", value:".*\\Q MicroMessenger/\\E\\d{1,}(\\d|\\.)*\\ .*", errmsg:"只能使用微信访问"}]</param-value>
+			<param-value>[{uri:"(^(\\/WeChat).*$)", name:"user-agent", value:".*\\Q MicroMessenger/\\E\\d{1,}.*\\ .*", errmsg:"只能使用微信访问"}]</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
