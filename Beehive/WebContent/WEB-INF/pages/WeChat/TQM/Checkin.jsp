@@ -28,6 +28,7 @@ require(
 	"dojo/domReady!"],
 function(dojo, parser) {
 	dojo.ready(function() {
+/*
 		dojo.xhrGet({
 			url : "/WeChat/Token.TQM.s2",
 			handleAs : "json",
@@ -45,9 +46,11 @@ function(dojo, parser) {
 				});
 			}
 		});
+*/
 	});
 });
-wx.ready(function() {
+wx.ready(function(data) {
+	console.log(data);
 });
 wx.error(function(res) {
 // 	alert(res);

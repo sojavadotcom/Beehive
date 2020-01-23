@@ -90,5 +90,6 @@
 		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryEvidence</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryStandard</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryStandardItem</class>
+		<class>com.sojava.beehive.framework.component.wechat.bean.WxUserinfo</class>
 	</persistence-unit>
 </persistence>
