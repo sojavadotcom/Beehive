@@ -109,15 +109,19 @@
 		<filter-name>beehiveFilter</filter-name>
 		<filter-class>com.sojava.beehive.framework.dispatcher.ExecuteFilter</filter-class>
 		<init-param>
-			<param-name>DomainAccess</param-name>
+			<param-name>URLAccess</param-name>
 			<param-value>[
-							{domain:"(\\Qhttps://oa.jxszyyy.org.cn\\E)|(\\Qhttps://oa.jxszyyy.cn\\E)|((http|https)\\Q://localhost\\E)", uri:"^[\\/]$|(^(\\/index\\.).*$)|(^(\\/Menu/Entry\\.).*$)|(^(\\/User/Entry\\.).*$)|(^(\\/User/Login\\.).*$)|(^(\\/User/Logout\\.).*$)|(^(\\/User/Query.name\\.).*$)|(^(\\/WeChat).*$)"},
-							{domain:"\\Qhttps://wx.jxszyyy.org.cn\\E", uri:"(^(\\/WeChat).*$)"}
+							{domain:"(\\Qhttps://oa.jxszyyy.org.cn\\E)|(\\Qhttps://oa.jxszyyy.cn\\E)|((http|https)\\Q://localhost\\E)", uri:"^.*$", errmsg: "功能未授权，不能访问"},
+							{domain:"\\Qhttps://wx.jxszyyy.org.cn\\E", uri:"(^(\\/WeChat).*$)", errmsg: "功能未授权，不能访问"}
 						]
 			</param-value>
 		</init-param>
 		<init-param>
-			<param-name>URIAccess</param-name>
+			<param-name>DomainAccessErrmsg</param-name>
+			<param-value>地址未授权，不能访问</param-value>
+		</init-param>
+		<init-param>
+			<param-name>LoginIgnore</param-name>
 			<param-value>^[\/]$|(^(\/index\.).*$)|(^(\/Menu/Entry\.).*$)|(^(\/User/Entry\.).*$)|(^(\/User/Login\.).*$)|(^(\/User/Logout\.).*$)|(^(\/User/Query.name\.).*$)|(^(\/WeChat).*$)</param-value>
 		</init-param>
 		<init-param>

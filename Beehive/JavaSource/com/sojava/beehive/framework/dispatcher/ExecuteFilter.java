@@ -62,33 +62,33 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 			}
 		}
 		String domain = request.getScheme() + "://" + request.getServerName();
-		String domainAccessStr = request.getServletContext().getFilterRegistration(filterRegName).getInitParameter("DomainAccess");
-		domainAccessStr = domainAccessStr == null ? "[]" : domainAccessStr;
-		JSONArray domainAccesses = JSONArray.fromObject(domainAccessStr);
-		String uriAccessRegex = request.getServletContext().getFilterRegistration(filterRegName).getInitParameter("URIAccess");
-		uriAccessRegex = uriAccessRegex == null ? "^[\\/]$" : uriAccessRegex;
+		String domainAccessErrmsg = request.getServletContext().getFilterRegistration(filterRegName).getInitParameter("DomainAccessErrmsg");
+		String urlAccessStr = request.getServletContext().getFilterRegistration(filterRegName).getInitParameter("URLAccess");
+		urlAccessStr = urlAccessStr == null ? "[]" : urlAccessStr;
+		JSONArray urlAccesses = JSONArray.fromObject(urlAccessStr);
+		String loginIgnoreRegex = request.getServletContext().getFilterRegistration(filterRegName).getInitParameter("LoginIgnore");
+		loginIgnoreRegex = loginIgnoreRegex == null ? "^[\\/]$" : loginIgnoreRegex;
 		String uriAssHeaderStr = request.getServletContext().getFilterRegistration(filterRegName).getInitParameter("URIAssHeader");
 		uriAssHeaderStr = uriAssHeaderStr == null ? "[]" : uriAssHeaderStr;
 		JSONArray uriAssHeaders = JSONArray.fromObject(uriAssHeaderStr);
 
 		try {
-			//验证域名与功能对应访问权限
+			//验证功能（与域名匹配）访问权限
 			boolean domainValid = false;
-			for (int i = 0; i < domainAccesses.size(); i ++) {
-				JSONObject domainAccess = domainAccesses.getJSONObject(i);
-				String _domain = domainAccess.getString("domain");
-				String _uri = domainAccess.getString("uri");
+			for (int i = 0; i < urlAccesses.size(); i ++) {
+				JSONObject urlAccess = urlAccesses.getJSONObject(i);
+				String _domain = urlAccess.getString("domain");
+				String _uri = urlAccess.getString("uri");
+				String _errmsg = urlAccess.getString("errmsg");
 
 				if (domain.matches(_domain) && !uri.matches(_uri)) {
-					throw new ErrorException("功能未授权，不能访问");
+					throw new ErrorException(_errmsg);
 				}
-				if (domain.matches(_domain)) {
-					domainValid = true;
-					break;
-				}
+				domainValid = domain.matches(_domain);
+				if (domainValid) break;
 			}
 			if (!domainValid) {
-				throw new ErrorException("地址未授权，不能访问");
+				throw new ErrorException(domainAccessErrmsg);
 			}
 			//验证功能与Header信息匹配权限
 			for (int i = 0; i < uriAssHeaders.size(); i ++) {
@@ -102,7 +102,7 @@ public class ExecuteFilter extends StrutsPrepareAndExecuteFilter {
 				}
 			}
 			//必须登录后才可进入，但对部分功能不启用（如：登录模块、菜单模块等）
-			if (userInfo == null && !uri.matches(uriAccessRegex)) {
+			if (userInfo == null && !uri.matches(loginIgnoreRegex)) {
 				try {
 					new Writer((HttpServletRequest) request, (HttpServletResponse) response).output("<script>try {top.bee.login.show();} catch(e) {}</script>", ContentType.html);
 				}
