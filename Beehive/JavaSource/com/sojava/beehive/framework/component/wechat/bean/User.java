@@ -10,14 +10,14 @@ import java.sql.Timestamp;
  * 
  */
 @Entity
-@Table(name="wx_userinfo")
-@NamedQuery(name="WxUserinfo.findAll", query="SELECT w FROM WxUserinfo w")
-public class WxUserinfo implements Serializable {
-	private static final long serialVersionUID = 1L;
+@Table(name="user", schema="wechat")
+@NamedQuery(name="WxUserinfo.findAll", query="SELECT w FROM User w")
+public class User implements Serializable {
+	private static final long serialVersionUID = 132244651809462502L;
 
 	@Id
-	@SequenceGenerator(name="WX_USERINFO_ID_GENERATOR", sequenceName="QUALITY.CASE_HISTORY_STANDARD_ID")
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="WX_USERINFO_ID_GENERATOR")
+	@SequenceGenerator(name="USER_ID_GENERATOR", sequenceName="WECHAT.USER_ID")
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="USER_ID_GENERATOR")
 	private Integer id;
 
 	@Column(name="access_token")
@@ -62,7 +62,11 @@ public class WxUserinfo implements Serializable {
 
 	private String unionid;
 
-	public WxUserinfo() {
+	private String platform;
+
+	private String role;
+
+	public User() {
 	}
 
 	public Integer getId() {
@@ -207,6 +211,22 @@ public class WxUserinfo implements Serializable {
 
 	public void setUnionid(String unionid) {
 		this.unionid = unionid;
+	}
+
+	public String getPlatform() {
+		return platform;
+	}
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 }
