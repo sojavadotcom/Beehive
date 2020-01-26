@@ -22,9 +22,9 @@
 <script src="/components/dojo/dojo/dojo.js" data-dojo-config="locale: 'zh-cn', async: true, parseOnLoad: true, isDebug: true, gfxRenderer: 'svg,silverlight,vml'"></script>
 <script type="text/javascript">
 require(
-["dojo", "dojox/mobile/parser", "dojox/mobile/compat", "dojox/mobile/Button",
+["dojo", "dojox/mobile/parser", "dojox/mobile/compat",
 	"dijit/form/DataList",
-	"dojox/mobile/View", "dojox/mobile/Heading", "dojox/mobile/GridLayout", "dojox/mobile/Pane",
+	"dojox/mobile/View", "dojox/mobile/Heading", "dojox/mobile/FormLayout", "dojox/mobile/TextBox", "dojox/mobile/Button",
 	"dojo/domReady!"],
 function(dojo, parser) {
 	dojo.ready(function() {
@@ -34,18 +34,39 @@ function(dojo, parser) {
 </head>
 <body>
 <div id="view1" dojoType="dojox.mobile.View">
-	<div dojoType="dojox.mobile.GridLayout" cols="1">
-		<div dojoType="dojox.mobile.Heading" style="line-height: 1em; font-size: .9em;">
-			<div><img src='<s:property value="user.headimgurl" />' style="height: 7em" /></div>
-			<div><label><s:property value="user.staffName" /></label> <label><s:property value="user.jobTitle" /></label></div>
-			<div><label><s:property value="user.deptName" /></label> <label><s:property value="user.adminDuty" /></label></div>
+	<h1 dojoType="dojox.mobile.Heading">用户登记</h1>
+	<div dojoType="dojox.mobile.FormLayout" columns="two" rightAlign="true">
+		<div>
+			<label>姓名：</label>
+			<input dojoType="dojox.mobile.TextBox" />
 		</div>
-		<ul dojoType="dojox.mobile.IconMenu" style="width: 100%;" cols="3">
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-		</ul>
+		<div>
+			<label>职称：</label>
+			<input dojoType="dojox.mobile.TextBox" />
+		</div>
+		<div>
+			<label>科室：</label>
+			<input dojoType="dojox.mobile.TextBox" />
+		</div>
+		<div>
+			<label>职务：</label>
+			<input dojoType="dojox.mobile.TextBox" />
+		</div>
+		<div>
+			<label>集团小号：</label>
+			<input dojoType="dojox.mobile.TextBox" />
+		</div>
+		<div>
+			<label>手机号码：</label>
+			<input dojoType="dojox.mobile.TextBox" />
+		</div>
+		<div>
+			<button dojoType="dojox.mobile.Button">登记</button>
+		</div>
+		<div>
+			<label>：</label>
+			<input dojoType="dojox.mobile.TextBox" />
+		</div>
 	</div>
 </div>
 </body>

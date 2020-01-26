@@ -65,6 +65,9 @@ public class UserDaoImpl extends BeehiveDaoImpl implements UserDao {
 			User updateUser = list.get(0);
 			updateUser.setStaffId(user.getStaffId());
 			updateUser.setStaffName(user.getStaffName());
+			updateUser.setJobTitle(user.getJobTitle());
+			updateUser.setAdminDuty(user.getAdminDuty());
+			updateUser.setMobileShortNumber(user.getMobileShortNumber());
 			updateUser.setMobileNumber(user.getMobileNumber());
 			updateUser.setDeptName(user.getDeptName());
 			updateUser.setPlatform(user.getPlatform());

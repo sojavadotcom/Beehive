@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void Signup(UserToken userToken, WxUserInfo wxUserInfo, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
+	public void Signup(UserToken userToken, WxUserInfo wxUserInfo, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileShortNumber, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
 
 		try {
 			User user = new User();
@@ -140,6 +140,7 @@ public class UserServiceImpl implements UserService {
 			user.setStaffName(staffName);
 			user.setAdminDuty(adminDuty);
 			user.setJobTitle(jobTitle);
+			user.setMobileShortNumber(mobileShortNumber);
 			user.setMobileNumber(mobileNumber);
 			user.setDeptName(deptName);
 			user.setPlatform(platform);
@@ -161,7 +162,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void updateStaffInfo(String accessToken, String openid, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
+	public void updateStaffInfo(String accessToken, String openid, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileShortNumber, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
 		User user = new User();
 		user.setAccessToken(accessToken);
 		user.setOpenid(openid);
@@ -169,6 +170,7 @@ public class UserServiceImpl implements UserService {
 		user.setStaffName(staffName);
 		user.setAdminDuty(adminDuty);
 		user.setJobTitle(jobTitle);
+		user.setMobileShortNumber(mobileShortNumber);
 		user.setMobileNumber(mobileNumber);
 		user.setDeptName(deptName);
 		user.setPlatform(platform);

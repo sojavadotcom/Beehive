@@ -34,7 +34,7 @@ public class UserAdapter extends ActionSupport {
 
 	@Action(value = "index", results = {
 				@Result(name = "index", location = "Index.jsp", params = {"user", "%{user}"}),
-				@Result(name = "signup", location = "Signup.jsp", params = {"user", "%{user}"}),
+				@Result(name = "signup", location = "Register.jsp", params = {"user", "%{user}"}),
 				@Result(name = ERROR, location = "Error.jsp", params = {"errmsg", "%{errmsg}"})
 			})
 	public String index() throws Exception {

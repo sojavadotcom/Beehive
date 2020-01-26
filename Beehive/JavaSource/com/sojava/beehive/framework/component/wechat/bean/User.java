@@ -38,6 +38,9 @@ public class User implements Serializable {
 
 	private String headimgurl;
 
+	@Column(name="mobile_short_number")
+	private String mobileShortNumber;
+
 	@Column(name="mobile_number")
 	private String mobileNumber;
 
@@ -259,6 +262,14 @@ public class User implements Serializable {
 
 	public void setJobTitle(String jobTitle) {
 		this.jobTitle = jobTitle;
+	}
+
+	public String getMobileShortNumber() {
+		return mobileShortNumber;
+	}
+
+	public void setMobileShortNumber(String mobileShortNumber) {
+		this.mobileShortNumber = mobileShortNumber;
 	}
 
 }
