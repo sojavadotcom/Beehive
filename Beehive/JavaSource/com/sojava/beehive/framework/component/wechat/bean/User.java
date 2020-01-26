@@ -60,11 +60,19 @@ public class User implements Serializable {
 	@Column(name="staff_name")
 	private String staffName;
 
+	@Column(name="admin_duty")
+	private String adminDuty;
+
+	@Column(name="job_title")
+	private String jobTitle;
+
 	private String unionid;
 
 	private String platform;
 
 	private String role;
+
+	private String status;
 
 	public User() {
 	}
@@ -227,6 +235,30 @@ public class User implements Serializable {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getAdminDuty() {
+		return adminDuty;
+	}
+
+	public void setAdminDuty(String adminDuty) {
+		this.adminDuty = adminDuty;
+	}
+
+	public String getJobTitle() {
+		return jobTitle;
+	}
+
+	public void setJobTitle(String jobTitle) {
+		this.jobTitle = jobTitle;
 	}
 
 }

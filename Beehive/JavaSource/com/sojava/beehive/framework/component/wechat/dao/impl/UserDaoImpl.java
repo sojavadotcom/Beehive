@@ -9,6 +9,7 @@ import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.exception.WarnException;
 import com.sojava.beehive.hibernate.dao.impl.BeehiveDaoImpl;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.hibernate.criterion.Criterion;
@@ -30,8 +31,10 @@ public class UserDaoImpl extends BeehiveDaoImpl implements UserDao {
 		try {
 			List<User> list = (List<User>) query(User.class,
 					new Criterion[] {
-						Restrictions.eq("accessToken", user.getAccessToken())
-						},
+						Restrictions.eq("accessToken", user.getAccessToken()),
+						Restrictions.eq("openid", user.getOpenid()),
+						Restrictions.eq("platform", user.getPlatform())
+					},
 					null,
 					null,
 					false);
@@ -45,16 +48,72 @@ public class UserDaoImpl extends BeehiveDaoImpl implements UserDao {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void updateStaffInfo(User user) throws ErrorException {
-		// TODO Auto-generated method stub
-		
+		try {
+			List<User> list = (List<User>) query(User.class,
+				new Criterion[] {
+					Restrictions.eq("accessToken", user.getAccessToken()),
+					Restrictions.eq("openid", user.getOpenid())
+				},
+				null,
+				null,
+				false);
+			if (list.size() == 0) throw new ErrorException("未找到用户[token:" + user.getAccessToken() + "; openid:" + user.getOpenid() + "]");
+			else if (list.size() > 1) throw new ErrorException("找到多个用户[token:" + user.getAccessToken() + "; openid:" + user.getOpenid() + "]");
+			User updateUser = list.get(0);
+			updateUser.setStaffId(user.getStaffId());
+			updateUser.setStaffName(user.getStaffName());
+			updateUser.setMobileNumber(user.getMobileNumber());
+			updateUser.setDeptName(user.getDeptName());
+			updateUser.setPlatform(user.getPlatform());
+			updateUser.setRole(user.getRole());
+			updateUser.setStatus(user.getStatus());
+
+			getSession().update(updateUser);
+		}
+		catch(Exception ex) {
+			throw new ErrorException(ex.getLocalizedMessage());
+		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void updateWxUserInfo(UserToken userToken, WxUserInfo wxUserInfo) throws ErrorException {
-		// TODO Auto-generated method stub
-		
+		try {
+			List<User> list = (List<User>) query(User.class,
+				new Criterion[] {
+					Restrictions.eq("accessToken", userToken.getAccessToken()),
+					Restrictions.eq("openid", userToken.getOpenid())
+				},
+				null,
+				null,
+				false);
+			if (list.size() == 0) throw new ErrorException("未找到微信用户[token:" + userToken.getAccessToken() + "; openid:" + userToken.getOpenid() + "]");
+			else if (list.size() > 1) throw new ErrorException("找到多个微信用户[token:" + userToken.getAccessToken() + "; openid:" + userToken.getOpenid() + "]");
+			User user = list.get(0);
+			//access token信息
+			user.setAccessToken(userToken.getRefreshToken());
+			user.setOpenid(userToken.getOpenid());
+			user.setRequestTime(new Timestamp(userToken.getStart()));
+			user.setExpiresIn(userToken.getExpiresIn());
+			user.setExpiresTime(new Timestamp(userToken.getStart() + userToken.getExpiresIn() * 1000));
+			//微信用户信息
+			user.setNickname(wxUserInfo.getNickname());
+			user.setSex(wxUserInfo.getSex());
+			user.setProvince(wxUserInfo.getProvince());
+			user.setCity(wxUserInfo.getCity());
+			user.setCountry(wxUserInfo.getCountry());
+			user.setHeadimgurl(wxUserInfo.getHeadimgurl());
+			user.setPrivilege(wxUserInfo.getPrivilege());
+			user.setUnionid(wxUserInfo.getUnionid());
+
+			getSession().update(user);
+		}
+		catch(Exception ex) {
+			throw new ErrorException(ex.getLocalizedMessage());
+		}
 	}
 
 }

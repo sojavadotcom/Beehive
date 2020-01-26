@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
 import net.sf.json.JSONObject;
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void Signup(UserToken userToken, WxUserInfo wxUserInfo, Integer staffId, String staffName, String mobileNumber, String deptName, String platform, String role) throws ErrorException {
+	public void Signup(UserToken userToken, WxUserInfo wxUserInfo, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
 
 		try {
 			User user = new User();
@@ -137,10 +138,13 @@ public class UserServiceImpl implements UserService {
 			//人员信息
 			user.setStaffId(staffId);
 			user.setStaffName(staffName);
+			user.setAdminDuty(adminDuty);
+			user.setJobTitle(jobTitle);
 			user.setMobileNumber(mobileNumber);
 			user.setDeptName(deptName);
 			user.setPlatform(platform);
 			user.setRole(role);
+			user.setStatus(status);
 
 			userDao.signup(user);
 		}
@@ -150,11 +154,28 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void updateWxUserInfo(String accessToken, String openid) throws ErrorException {
+	public void updateWxUserInfo(String appid, String accessToken) throws ErrorException {
+		UserToken userToken = refreshToken(appid, accessToken);
+		WxUserInfo wxUserInfo = getUserinfo(userToken.getRefreshToken(), userToken.getOpenid());
+		userDao.updateWxUserInfo(userToken, wxUserInfo);
 	}
 
 	@Override
-	public void updateStaffInfo(Integer staffId, String staffName, String mobileNumber, String deptName, String platform, String role) throws ErrorException {
+	public void updateStaffInfo(String accessToken, String openid, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
+		User user = new User();
+		user.setAccessToken(accessToken);
+		user.setOpenid(openid);
+		user.setStaffId(staffId);
+		user.setStaffName(staffName);
+		user.setAdminDuty(adminDuty);
+		user.setJobTitle(jobTitle);
+		user.setMobileNumber(mobileNumber);
+		user.setDeptName(deptName);
+		user.setPlatform(platform);
+		user.setRole(role);
+		user.setStatus(status);
+
+		userDao.updateStaffInfo(user);
 	}
 
 	@Override
@@ -189,11 +210,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User getUser(String openid, String platform) throws ErrorException {
+	public User getUser(String openid) throws ErrorException {
 		User rest = null;
 
 		try {
-			
+			User[] list = listUser(new Criterion[] {Restrictions.eq("openid", openid)}, null);
+			if (list.length == 1) rest = list[0];
+			else if (list.length > 1) throw new ErrorException("找到多个重复微信用户");
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex.getLocalizedMessage());

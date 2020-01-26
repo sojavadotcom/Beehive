@@ -52,9 +52,10 @@ public class Login extends ActionSupport {
 		while((len = in.read(buff, 0, 1024)) != -1) {
 			out.write(buff, 0, len);
 		}
+		buff = out.toByteArray();
 		in.close();
 		out.close();
-		rest = JSONObject.fromObject(out.toString());
+		rest = JSONObject.fromObject(new String(buff));
 
 		new Writer(getRequest(), getResponse()).output(ClientType.WeChat, ResultType.Json, rest);
 
