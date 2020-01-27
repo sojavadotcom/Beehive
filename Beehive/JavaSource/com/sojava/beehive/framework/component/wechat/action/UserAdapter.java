@@ -40,7 +40,7 @@ public class UserAdapter extends ActionSupport {
 	@Action(value = "Index", results = {
 				@Result(name = "index", location = "Index.jsp", params = {"user", "%{user}"}),
 				@Result(name = "signup", location = "Register.jsp", params = {"user", "%{user}"}),
-				@Result(name = ERROR, location = "/WEB-INF/pages/WeChat/Error.jsp", params = {"errmsg", "%{errmsg}"})
+				@Result(name = ERROR, location = "../Error.jsp", params = {"errmsg", "%{errmsg}"})
 			})
 	public String index() throws Exception {
 		String rest = null;
@@ -113,7 +113,7 @@ public class UserAdapter extends ActionSupport {
 
 	@Action(value = "Signup", results = {
 			@Result(name = "index", location = "Index.jsp", params = {"user", "%{user}"}),
-			@Result(name = ERROR, location = "/WEB-INF/pages/WeChat/Error.jsp", params = {"errmsg", "%{errmsg}"})
+			@Result(name = ERROR, location = "../Error.jsp", params = {"errmsg", "%{errmsg}"})
 		})
 	public String signup() {
 		String rest = null;

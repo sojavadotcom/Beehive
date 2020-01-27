@@ -61,7 +61,7 @@ public class Entry extends ActionSupport {
 
 	@Action(value = "Entry.CaseHistory", results = {
 			@Result(name = "CaseHistory", location = "CaseHistoryEvidence.jsp", params = {"list", "%{list}"}),
-			@Result(name = ERROR, location = "/WEB-INF/pages/WeChat/Error.jsp", params = {"errmsg", "%{errmsg}"})
+			@Result(name = ERROR, location = "../Error.jsp", params = {"errmsg", "%{errmsg}"})
 		})
 	public String caseHistory() throws Exception {
 		String rest = null;
@@ -103,7 +103,7 @@ public class Entry extends ActionSupport {
 
 	@Action(value = "Entry.ViewEvidence", results = {
 			@Result(name = "ViewEvidence", location = "ViewEvidence.jsp", params = {"list", "%{list}"}),
-			@Result(name = ERROR, location = "/WEB-INF/pages/WeChat/Error.jsp", params = {"errmsg", "%{errmsg}"})
+			@Result(name = ERROR, location = "../Error.jsp", params = {"errmsg", "%{errmsg}"})
 		})
 	public String viewEvidence() throws Exception {
 		String rest = null;
