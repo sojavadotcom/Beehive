@@ -34,7 +34,7 @@ function(dojo, parser) {
 <body>
 <div id="view1" dojoType="dojox.mobile.View">
 	<h1 dojoType="dojox.mobile.Heading">发生错误</h1>
-	<s:property value="errmsg" />
+	<label style="padding: 1em;"><s:property value="errmsg" /></label>
 </div>
 </body>
 </html>

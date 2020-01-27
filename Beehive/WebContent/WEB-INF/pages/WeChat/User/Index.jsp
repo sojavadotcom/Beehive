@@ -30,21 +30,23 @@ function(dojo, parser) {
 	dojo.ready(function() {
 	});
 });
+
+function go(url) {
+	window.location.href = url;
+}
 </script>
 </head>
 <body>
 <div id="view1" dojoType="dojox.mobile.View">
 	<div dojoType="dojox.mobile.GridLayout" cols="1">
-		<div dojoType="dojox.mobile.Heading" style="line-height: 1em; font-size: .9em;">
-			<div><img src='<s:property value="user.headimgurl" />' style="height: 7em" /></div>
-			<div><label><s:property value="user.staffName" /></label> <label><s:property value="user.jobTitle" /></label></div>
+		<div dojoType="dojox.mobile.Heading" style="line-height: 1.2em; font-size: .9em; padding-bottom: 1em;">
+			<div><img src='<s:property value="user.headimgurl" />' /></div>
+			<div><label><s:property value="user.staffName" />(<s:property value="user.status" />)</label> <label><s:property value="user.jobTitle" /></label></div>
 			<div><label><s:property value="user.deptName" /></label> <label><s:property value="user.adminDuty" /></label></div>
 		</div>
 		<ul dojoType="dojox.mobile.IconMenu" style="width: 100%;" cols="3">
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
-			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/128/repair.png"></li>
+			<li dojoType="dojox.mobile.IconMenuItem" label="病历检查" icon="/images/icons/64/medicalcase.png" onClick="go('https://wx.jxszyyy.org.cn/WeChat/TQM/Entry.CaseHistory.shtml')"></li>
+			<li dojoType="dojox.mobile.IconMenuItem" label="取证查询" icon="/images/icons/64/medicalcase.png" onClick="go('https://wx.jxszyyy.org.cn/WeChat/TQM/Entry.ViewEvidence.shtml')"></li>
 		</ul>
 	</div>
 </div>

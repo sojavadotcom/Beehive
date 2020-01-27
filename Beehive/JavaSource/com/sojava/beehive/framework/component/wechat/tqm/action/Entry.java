@@ -7,9 +7,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.sojava.beehive.framework.ActionSupport;
+import com.sojava.beehive.framework.component.wechat.bean.User;
+import com.sojava.beehive.framework.component.wechat.bean.UserToken;
+import com.sojava.beehive.framework.component.wechat.define.WeChatInfo;
+import com.sojava.beehive.framework.component.wechat.service.WxUserService;
 import com.sojava.beehive.framework.component.wechat.tqm.service.CaseHistoryService;
 import com.sojava.beehive.framework.component.wechat.tqm.service.EvidenceService;
+import com.sojava.beehive.framework.exception.ErrorException;
 
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 
@@ -23,12 +29,17 @@ public class Entry extends ActionSupport {
 
 	@Resource private CaseHistoryService caseHistoryService;
 	@Resource private EvidenceService evidenceService;
+	@Resource private WxUserService wxUserService;
+
+	private final String WX_URL = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=snsapi_base&state=%s#wechat_redirect";
+	private final String STATE = "7B801";
 
 	private Integer step;
 	private List<Map<String, Object>> list;
 	private String qrcode;
 	private String code;
 	private String state;
+	private String errmsg;
 
 	@Action(value = "Entry.UserInterface", results = {
 			@Result(name = "UserInterface", location = "UserInterface.jsp")
@@ -49,33 +60,96 @@ public class Entry extends ActionSupport {
 	}
 
 	@Action(value = "Entry.CaseHistory", results = {
-			@Result(name = "CaseHistory", location = "CaseHistoryEvidence.jsp", params = {"list", "%{list}"})
+			@Result(name = "CaseHistory", location = "CaseHistoryEvidence.jsp", params = {"list", "%{list}"}),
+			@Result(name = ERROR, location = "/WEB-INF/pages/WeChat/Error.jsp", params = {"errmsg", "%{errmsg}"})
 		})
 	public String caseHistory() throws Exception {
-		super.execute();
-		list = caseHistoryService.getPaper();
+		String rest = null;
+		try {
+			super.execute();
+			if (code == null) {
+				getResponse().sendRedirect(String.format(
+							this.WX_URL,
+							WeChatInfo.TQM_APPID,
+							URLEncoder.encode("https://wx.jxszyyy.org.cn/WeChat/TQM/Entry.CaseHistory.shtml", System.getProperty("system.encoding", "UTF-8")),
+							this.STATE
+						));
 
-		return "CaseHistory";
+				rest = null;
+			} else {
+				if (state.equals(this.STATE)) {
+					UserToken userToken = wxUserService.getToken(WeChatInfo.TQM_APPID, WeChatInfo.TQM_SECRET, code);
+					User user = wxUserService.getUser(userToken.getOpenid());
+					if (user == null || !user.getStatus().equals("已激活")) {
+						throw new ErrorException("用户未登记，不能操作");
+					}
+
+					/*
+					 *  业务操作开始
+					 */
+					list = caseHistoryService.getPaper();
+				}
+
+				rest = "CaseHistory";
+			}
+		}
+		catch(Exception ex) {
+			errmsg = ex.getLocalizedMessage();
+			rest = ERROR;
+		}
+
+		return rest;
 	}
 
 	@Action(value = "Entry.ViewEvidence", results = {
-			@Result(name = "ViewEvidence", location = "ViewEvidence.jsp", params = {"list", "%{list}"})
+			@Result(name = "ViewEvidence", location = "ViewEvidence.jsp", params = {"list", "%{list}"}),
+			@Result(name = ERROR, location = "/WEB-INF/pages/WeChat/Error.jsp", params = {"errmsg", "%{errmsg}"})
 		})
 	public String viewEvidence() throws Exception {
-		super.execute();
-		int standardId = 1, paperNum = 0;
-		if (qrcode != null && evidenceService.verifyQRCode(qrcode)) {
-			String[] str = qrcode.replaceAll("^.*\\Qcn.org.jxszyyy.casehistory.evidence.\\E", "").split("\\Q-\\E");
-			if (str.length == 2) {
-				standardId = Integer.parseInt(str[0]);
-				paperNum = Integer.parseInt(str[1]);
+		String rest = null;
+		try {
+			super.execute();
+			int standardId = 1, paperNum = 0;
+			if (code == null) {
+				getResponse().sendRedirect(String.format(
+							WX_URL,
+							WeChatInfo.TQM_APPID,
+							URLEncoder.encode("https://wx.jxszyyy.org.cn/WeChat/TQM/Entry.ViewEvidence.shtml", System.getProperty("system.encoding", "UTF-8")),
+							this.STATE
+						));
+
+				rest = null;
 			} else {
-				paperNum = Integer.parseInt(str[0]);
+				if (state.equals(this.STATE)) {
+					UserToken userToken = wxUserService.getToken(WeChatInfo.TQM_APPID, WeChatInfo.TQM_SECRET, code);
+					User user = wxUserService.getUser(userToken.getOpenid());
+					if (user == null || !user.getStatus().equals("已激活")) {
+						throw new ErrorException("用户未登记，不能操作");
+					}
+
+					/*
+					 *  业务操作开始
+					 */
+					if (qrcode != null && evidenceService.verifyQRCode(qrcode)) {
+						String[] str = qrcode.replaceAll("^.*\\Qcn.org.jxszyyy.casehistory.evidence.\\E", "").split("\\Q-\\E");
+						if (str.length == 2) {
+							standardId = Integer.parseInt(str[0]);
+							paperNum = Integer.parseInt(str[1]);
+						} else {
+							paperNum = Integer.parseInt(str[0]);
+						}
+					}
+					list = evidenceService.getPhotos(standardId, paperNum);
+					rest = "ViewEvidence";
+				}
 			}
 		}
-		list = evidenceService.getPhotos(standardId, paperNum);
+		catch(Exception ex) {
+			errmsg = ex.getLocalizedMessage();
+			rest = ERROR;
+		}
 
-		return "ViewEvidence";
+		return rest;
 	}
 
 	public CaseHistoryService getCaseHistoryService() {
@@ -92,6 +166,14 @@ public class Entry extends ActionSupport {
 
 	public void setEvidenceService(EvidenceService evidenceService) {
 		this.evidenceService = evidenceService;
+	}
+
+	public WxUserService getWxUserService() {
+		return wxUserService;
+	}
+
+	public void setWxUserService(WxUserService wxUserService) {
+		this.wxUserService = wxUserService;
 	}
 
 	public Integer getStep() {
@@ -132,6 +214,14 @@ public class Entry extends ActionSupport {
 
 	public void setState(String state) {
 		this.state = state;
+	}
+
+	public String getErrmsg() {
+		return errmsg;
+	}
+
+	public void setErrmsg(String errmsg) {
+		this.errmsg = errmsg;
 	}
 
 }

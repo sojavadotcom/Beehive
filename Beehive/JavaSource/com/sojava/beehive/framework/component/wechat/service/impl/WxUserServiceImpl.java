@@ -3,8 +3,8 @@ package com.sojava.beehive.framework.component.wechat.service.impl;
 import com.sojava.beehive.framework.component.wechat.bean.User;
 import com.sojava.beehive.framework.component.wechat.bean.UserToken;
 import com.sojava.beehive.framework.component.wechat.bean.WxUserInfo;
-import com.sojava.beehive.framework.component.wechat.dao.UserDao;
-import com.sojava.beehive.framework.component.wechat.service.UserService;
+import com.sojava.beehive.framework.component.wechat.dao.WxUserDao;
+import com.sojava.beehive.framework.component.wechat.service.WxUserService;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.util.NetworkUtil;
 
@@ -15,19 +15,18 @@ import javax.annotation.Resource;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
 import net.sf.json.JSONObject;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class WxUserServiceImpl implements WxUserService {
 
-	@Resource private UserDao userDao;
+	@Resource private WxUserDao wxUserDao;
 
 	private NetworkUtil networkUtil;
 
-	public UserServiceImpl() {
+	public WxUserServiceImpl() {
 		super();
 		this.networkUtil = new NetworkUtil();
 	}
@@ -40,7 +39,7 @@ public class UserServiceImpl implements UserService {
 			long start = System.currentTimeMillis();
 			String data = this.networkUtil.getHttpsResponse(String.format("https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code", appid, secret, code), "GET");
 			JSONObject rec = JSONObject.fromObject(data);
-			if (rec.containsKey("errcode") && (!rec.getString("errcode").equals("ok") || !rec.getString("errcode").equals("0"))) {
+			if (rec.containsKey("errcode")) {
 				throw new ErrorException(rec.getString("errcode") + "[" + rec.getString("errmsg") + "]");
 			} else {
 				rest = new UserToken();
@@ -87,7 +86,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public WxUserInfo getUserinfo(String accessToken, String openid) throws ErrorException {
+	public WxUserInfo getWxUserInfo(String accessToken, String openid) throws ErrorException {
 		WxUserInfo rest = null;
 
 		try {
@@ -147,7 +146,17 @@ public class UserServiceImpl implements UserService {
 			user.setRole(role);
 			user.setStatus(status);
 
-			userDao.signup(user);
+			wxUserDao.signup(user);
+		}
+		catch(Exception ex) {
+			throw new ErrorException(getClass(), ex.getLocalizedMessage());
+		}
+	}
+
+	@Override
+	public void Signup(User user) throws ErrorException {
+		try {
+			wxUserDao.save(user);
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex.getLocalizedMessage());
@@ -157,8 +166,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void updateWxUserInfo(String appid, String accessToken) throws ErrorException {
 		UserToken userToken = refreshToken(appid, accessToken);
-		WxUserInfo wxUserInfo = getUserinfo(userToken.getRefreshToken(), userToken.getOpenid());
-		userDao.updateWxUserInfo(userToken, wxUserInfo);
+		WxUserInfo wxUserInfo = getWxUserInfo(userToken.getRefreshToken(), userToken.getOpenid());
+		wxUserDao.updateWxUserInfo(userToken, wxUserInfo);
 	}
 
 	@Override
@@ -177,7 +186,7 @@ public class UserServiceImpl implements UserService {
 		user.setRole(role);
 		user.setStatus(status);
 
-		userDao.updateStaffInfo(user);
+		wxUserDao.updateStaffInfo(user);
 	}
 
 	@Override
@@ -196,13 +205,12 @@ public class UserServiceImpl implements UserService {
 		return rest;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public User[] listUser(Criterion[] filters, Order[] orders) throws ErrorException {
 		List<User> rest = null;
 
 		try {
-			rest = (List<User>) userDao.query(User.class, filters, orders, null, false);
+			rest = (List<User>) wxUserDao.listUser(filters, orders, null, true);
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex.getLocalizedMessage());
@@ -213,25 +221,23 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User getUser(String openid) throws ErrorException {
-		User rest = null;
+		User user = null;
 
 		try {
-			User[] list = listUser(new Criterion[] {Restrictions.eq("openid", openid)}, null);
-			if (list.length == 1) rest = list[0];
-			else if (list.length > 1) throw new ErrorException("找到多个重复微信用户");
+			user = wxUserDao.getUser(openid, true);
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex.getLocalizedMessage());
 		}
 
-		return rest;
+		return user;
 	}
 
-	public UserDao getUserDao() {
-		return userDao;
+	public WxUserDao getUserDao() {
+		return wxUserDao;
 	}
 
-	public void setUserDao(UserDao userDao) {
-		this.userDao = userDao;
+	public void setUserDao(WxUserDao userDao) {
+		this.wxUserDao = userDao;
 	}
 }
