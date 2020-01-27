@@ -23,8 +23,8 @@ public class CaseHistoryEvidence implements Serializable {
 	@Column(name="paper_num")
 	private Integer paperNum;
 
-	@Column(name="checker_name")
-	private String checkerName;
+	@Column(name="staff_name")
+	private String staffName;
 
 	private String code;
 
@@ -40,17 +40,13 @@ public class CaseHistoryEvidence implements Serializable {
 	@Column(name="item_num")
 	private Integer itemNum;
 
-	@Column(name="wx_id")
-	private String wxId;
-
-	@Column(name="wx_name")
-	private String wxName;
-
 	@Column(name="standard_id")
 	private Integer standardId;
 
 	@Column(name="item_id")
 	private Integer itemId;
+
+	private String openid;
 
 	public CaseHistoryEvidence() {
 	}
@@ -71,12 +67,12 @@ public class CaseHistoryEvidence implements Serializable {
 		this.paperNum = paperNum;
 	}
 
-	public String getCheckerName() {
-		return this.checkerName;
+	public String getStaffName() {
+		return this.staffName;
 	}
 
-	public void setCheckerName(String checkerName) {
-		this.checkerName = checkerName;
+	public void setStaffName(String staffName) {
+		this.staffName = staffName;
 	}
 
 	public String getCode() {
@@ -119,22 +115,6 @@ public class CaseHistoryEvidence implements Serializable {
 		this.itemNum = itemNum;
 	}
 
-	public String getWxId() {
-		return this.wxId;
-	}
-
-	public void setWxId(String wxId) {
-		this.wxId = wxId;
-	}
-
-	public String getWxName() {
-		return this.wxName;
-	}
-
-	public void setWxName(String wxName) {
-		this.wxName = wxName;
-	}
-
 	public Integer getStandardId() {
 		return standardId;
 	}
@@ -149,6 +129,14 @@ public class CaseHistoryEvidence implements Serializable {
 
 	public void setItemId(Integer itemId) {
 		this.itemId = itemId;
+	}
+
+	public String getOpenid() {
+		return openid;
+	}
+
+	public void setOpenid(String openid) {
+		this.openid = openid;
 	}
 
 }

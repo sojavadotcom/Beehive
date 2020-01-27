@@ -4,14 +4,19 @@ import com.sojava.beehive.framework.component.wechat.bean.User;
 import com.sojava.beehive.framework.component.wechat.bean.UserToken;
 import com.sojava.beehive.framework.component.wechat.bean.WxUserInfo;
 import com.sojava.beehive.framework.component.wechat.dao.WxUserDao;
+import com.sojava.beehive.framework.component.wechat.define.Platform;
+import com.sojava.beehive.framework.component.wechat.define.WxScope;
 import com.sojava.beehive.framework.component.wechat.service.WxUserService;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.util.NetworkUtil;
 
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
@@ -23,6 +28,8 @@ import net.sf.json.JSONObject;
 public class WxUserServiceImpl implements WxUserService {
 
 	@Resource private WxUserDao wxUserDao;
+
+	private final String STATE = "7B801";
 
 	private NetworkUtil networkUtil;
 
@@ -115,7 +122,7 @@ public class WxUserServiceImpl implements WxUserService {
 	}
 
 	@Override
-	public void Signup(UserToken userToken, WxUserInfo wxUserInfo, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileShortNumber, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
+	public void signup(UserToken userToken, WxUserInfo wxUserInfo, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileShortNumber, String mobileNumber, String deptName, Platform platform, String role, String status) throws ErrorException {
 
 		try {
 			User user = new User();
@@ -142,7 +149,7 @@ public class WxUserServiceImpl implements WxUserService {
 			user.setMobileShortNumber(mobileShortNumber);
 			user.setMobileNumber(mobileNumber);
 			user.setDeptName(deptName);
-			user.setPlatform(platform);
+			user.setPlatform(platform.name());
 			user.setRole(role);
 			user.setStatus(status);
 
@@ -154,7 +161,7 @@ public class WxUserServiceImpl implements WxUserService {
 	}
 
 	@Override
-	public void Signup(User user) throws ErrorException {
+	public void signup(User user) throws ErrorException {
 		try {
 			wxUserDao.save(user);
 		}
@@ -171,7 +178,7 @@ public class WxUserServiceImpl implements WxUserService {
 	}
 
 	@Override
-	public void updateStaffInfo(String accessToken, String openid, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileShortNumber, String mobileNumber, String deptName, String platform, String role, String status) throws ErrorException {
+	public void updateStaffInfo(String accessToken, String openid, Integer staffId, String staffName, String adminDuty, String jobTitle, String mobileShortNumber, String mobileNumber, String deptName, Platform platform, String role, String status) throws ErrorException {
 		User user = new User();
 		user.setAccessToken(accessToken);
 		user.setOpenid(openid);
@@ -182,7 +189,7 @@ public class WxUserServiceImpl implements WxUserService {
 		user.setMobileShortNumber(mobileShortNumber);
 		user.setMobileNumber(mobileNumber);
 		user.setDeptName(deptName);
-		user.setPlatform(platform);
+		user.setPlatform(platform.name());
 		user.setRole(role);
 		user.setStatus(status);
 
@@ -228,6 +235,87 @@ public class WxUserServiceImpl implements WxUserService {
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex.getLocalizedMessage());
+		}
+
+		return user;
+	}
+
+	@Override
+	public User checkWxUser(HttpServletResponse response, String redirectURL, String appid, String secret, WxScope scope, String code, String state, Platform platform) throws ErrorException {
+		User user = null;
+		try {
+			if (code == null || code.trim().equals("")) {
+				response.sendRedirect(String.format(
+							"https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s#wechat_redirect",
+							appid,
+							URLEncoder.encode(redirectURL, System.getProperty("system.encoding", "UTF-8")),
+							scope.name(),
+							this.STATE
+						));
+			} else {
+				if (state.equals(this.STATE)) {
+					UserToken userToken = getToken(appid, secret, code);
+					user = getUser(userToken.getOpenid());
+					if (user == null || !user.getStatus().equals("已激活")) {
+						WxUserInfo wxUserInfo = getWxUserInfo(userToken.getAccessToken(), userToken.getOpenid());
+						if (user == null) {
+							user = new User();
+							user.setAccessToken(userToken.getAccessToken());
+							user.setOpenid(userToken.getOpenid());
+							signup(userToken, wxUserInfo, null, null, null, null, null, null, null, platform, null, "待登记");
+						} else {
+							//access token信息
+							user.setAccessToken(userToken.getAccessToken());
+							user.setOpenid(userToken.getOpenid());
+							user.setRequestTime(new Timestamp(userToken.getStart()));
+							user.setExpiresIn(userToken.getExpiresIn());
+							user.setExpiresTime(new Timestamp(userToken.getStart() + userToken.getExpiresIn() * 1000));
+							//微信用户信息
+							user.setNickname(wxUserInfo.getNickname());
+							user.setSex(wxUserInfo.getSex());
+							user.setProvince(wxUserInfo.getProvince());
+							user.setCity(wxUserInfo.getCity());
+							user.setCountry(wxUserInfo.getCountry());
+							user.setHeadimgurl(wxUserInfo.getHeadimgurl());
+							user.setPrivilege(wxUserInfo.getPrivilege());
+							user.setUnionid(wxUserInfo.getUnionid());
+							signup(user);
+						}
+					}
+				}
+				else if (state.equals("10003")) throw new ErrorException("redirect_uri域名与后台配置不一致");
+				else if (state.equals("10004")) throw new ErrorException("此公众号被封禁");
+				else if (state.equals("10005")) throw new ErrorException("此公众号并没有这些scope的权限");
+				else if (state.equals("10006")) throw new ErrorException("必须关注“鸡西市中医医院质量管理平台”后才能进入");
+				else if (state.equals("10009")) throw new ErrorException("操作太频繁了，请稍后重试");
+				else if (state.equals("10010")) throw new ErrorException("scope不能为空");
+				else if (state.equals("10011")) throw new ErrorException("redirect_uri不能为空");
+				else if (state.equals("10012")) throw new ErrorException("appid不能为空");
+				else if (state.equals("10013")) throw new ErrorException("state不能为空");
+				else if (state.equals("10015")) throw new ErrorException("公众号未授权第三方平台，请检查授权状态");
+				else if (state.equals("10016")) throw new ErrorException("不支持微信开放平台的Appid，请使用公众号Appid");
+			}
+		}
+		catch(ErrorException ex) {
+			//处理40163 code已使用错误
+			if (ex.getLocalizedMessage().startsWith("40163[code")) {
+				try {
+					user = null;
+					response.sendRedirect(String.format(
+							"https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s#wechat_redirect",
+							appid,
+							URLEncoder.encode(redirectURL, System.getProperty("system.encoding", "UTF-8")),
+							scope.name(),
+							this.STATE
+						));
+				}
+				catch(IOException e) {
+					throw new ErrorException(e);
+				}
+			} else throw ex;
+		}
+		catch(Exception ex) {
+			throw new ErrorException(ex);
 		}
 
 		return user;

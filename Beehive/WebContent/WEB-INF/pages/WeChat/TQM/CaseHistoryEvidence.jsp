@@ -52,7 +52,9 @@ function take(pid, id, num, label) {
 											qrcode: qrcode,
 											itemId: id,
 											itemNum: num,
-											itemLabel: label
+											itemLabel: label,
+											code: '<s:property value="user.openid" />',
+											staffName: '<s:property value="user.staffName" />'
 										}
 									}).then(function (data) {
 										if (data.success) {

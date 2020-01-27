@@ -69,7 +69,7 @@ function scanQRCode() {
 		scanType: [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
 		success: function(res) {
 			var qrcode = res.resultStr;
-			window.location.href = window.location.href.toString() + "?qrcode=" + qrcode;
+			window.location.href = window.location.href.toString() + "?qrcode=" + qrcode + "&code=<s:property value="user.openid" />";
 		}
 	});
 }

@@ -33,9 +33,9 @@ public class TakeEvidence extends ActionSupport {
 	private Integer itemNum;
 	private String itemLabel;
 	private String data;
-	private String wxId;
-	private String wxName;
+	private String staffName;
 	private Integer id;
+	private String code;// openid
 
 	private final String WX_MEDIA_URL = "http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s";
     private final String JPG = "image/jpeg;charset=UTF-8";
@@ -105,6 +105,8 @@ public class TakeEvidence extends ActionSupport {
 			e.setItemLabel(itemLabel);
 			e.setPhoto(photo);
 			e.setCreateTime(new Date());
+			e.setOpenid(code);
+			e.setStaffName(staffName);
 			evidenceService.save(e);
 		}
 		catch(Exception ex) {
@@ -178,20 +180,12 @@ public class TakeEvidence extends ActionSupport {
 		this.data = data;
 	}
 
-	public String getWxId() {
-		return wxId;
-	}
-
-	public void setWxId(String wxId) {
-		this.wxId = wxId;
-	}
-
 	public String getWxName() {
-		return wxName;
+		return staffName;
 	}
 
 	public void setWxName(String wxName) {
-		this.wxName = wxName;
+		this.staffName = wxName;
 	}
 
 	public EvidenceService getEvidenceService() {
@@ -208,6 +202,14 @@ public class TakeEvidence extends ActionSupport {
 
 	public void setId(Integer id) {
 		this.id = id;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 }
