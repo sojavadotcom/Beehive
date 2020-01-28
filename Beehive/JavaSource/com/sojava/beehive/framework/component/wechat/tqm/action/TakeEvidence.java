@@ -148,10 +148,10 @@ public class TakeEvidence extends ActionSupport {
 		try {
 			out = getResponse().getOutputStream();
 			out.write(buff);
-			out.flush();
+//			out.flush();
 		}
 		finally {
-			out.close();
+//			out.close();
 		}
 	}
 

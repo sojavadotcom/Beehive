@@ -75,6 +75,8 @@ function scanQRCode() {
 }
 function previewPhoto(id) {
 	var url = "https://wx.jxszyyy.org.cn/WeChat/TQM/TakeEvidence.Photo.jpg?wxid=<s:property value="user.openid" />&id=";
+	window.location.href = url + id;
+	return;
 	wx.previewImage({
 		current: url + id,
 		urls: [
