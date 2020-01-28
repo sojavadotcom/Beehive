@@ -241,10 +241,12 @@ public class WxUserServiceImpl implements WxUserService {
 	}
 
 	@Override
-	public User checkWxUser(HttpServletResponse response, String redirectURL, String appid, String secret, WxScope scope, String code, String state, Platform platform) throws ErrorException {
+	public User checkWxUser(HttpServletResponse response, String redirectURL, String appid, String secret, WxScope scope, String code, String state, String wxid, Platform platform) throws ErrorException {
 		User user = null;
 		try {
-			if (code == null || code.trim().equals("")) {
+			String openid = null;
+			UserToken userToken = null;
+			if ((code == null || code.trim().equals("")) && (wxid == null || wxid.trim().equals(""))) {
 				response.sendRedirect(String.format(
 							"https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s#wechat_redirect",
 							appid,
@@ -252,36 +254,10 @@ public class WxUserServiceImpl implements WxUserService {
 							scope.name(),
 							this.STATE
 						));
-			} else {
+			} else if (state != null && !state.trim().equals("")) {
 				if (state.equals(this.STATE)) {
-					UserToken userToken = getToken(appid, secret, code);
-					user = getUser(userToken.getOpenid());
-					if (user == null || !user.getStatus().equals("已激活")) {
-						WxUserInfo wxUserInfo = getWxUserInfo(userToken.getAccessToken(), userToken.getOpenid());
-						if (user == null) {
-							user = new User();
-							user.setAccessToken(userToken.getAccessToken());
-							user.setOpenid(userToken.getOpenid());
-							signup(userToken, wxUserInfo, null, null, null, null, null, null, null, platform, null, "待登记");
-						} else {
-							//access token信息
-							user.setAccessToken(userToken.getAccessToken());
-							user.setOpenid(userToken.getOpenid());
-							user.setRequestTime(new Timestamp(userToken.getStart()));
-							user.setExpiresIn(userToken.getExpiresIn());
-							user.setExpiresTime(new Timestamp(userToken.getStart() + userToken.getExpiresIn() * 1000));
-							//微信用户信息
-							user.setNickname(wxUserInfo.getNickname());
-							user.setSex(wxUserInfo.getSex());
-							user.setProvince(wxUserInfo.getProvince());
-							user.setCity(wxUserInfo.getCity());
-							user.setCountry(wxUserInfo.getCountry());
-							user.setHeadimgurl(wxUserInfo.getHeadimgurl());
-							user.setPrivilege(wxUserInfo.getPrivilege());
-							user.setUnionid(wxUserInfo.getUnionid());
-							signup(user);
-						}
-					}
+					userToken = getToken(appid, secret, code);
+					openid = userToken.getOpenid();
 				}
 				else if (state.equals("10003")) throw new ErrorException("redirect_uri域名与后台配置不一致");
 				else if (state.equals("10004")) throw new ErrorException("此公众号被封禁");
@@ -294,6 +270,42 @@ public class WxUserServiceImpl implements WxUserService {
 				else if (state.equals("10013")) throw new ErrorException("state不能为空");
 				else if (state.equals("10015")) throw new ErrorException("公众号未授权第三方平台，请检查授权状态");
 				else if (state.equals("10016")) throw new ErrorException("不支持微信开放平台的Appid，请使用公众号Appid");
+			} else if (wxid != null && !wxid.trim().equals("")) {
+				openid = wxid;
+			}
+
+			user = getUser(openid);
+			if (userToken != null) {
+				if (user == null || !user.getStatus().equals("已激活")) {
+					WxUserInfo wxUserInfo = getWxUserInfo(userToken.getAccessToken(), userToken.getOpenid());
+					if (user == null) {
+						user = new User();
+						user.setAccessToken(userToken.getAccessToken());
+						user.setOpenid(userToken.getOpenid());
+						signup(userToken, wxUserInfo, null, null, null, null, null, null, null, platform, null, "待登记");
+					} else {
+						//access token信息
+						user.setAccessToken(userToken.getAccessToken());
+						user.setOpenid(userToken.getOpenid());
+						user.setRequestTime(new Timestamp(userToken.getStart()));
+						user.setExpiresIn(userToken.getExpiresIn());
+						user.setExpiresTime(new Timestamp(userToken.getStart() + userToken.getExpiresIn() * 1000));
+						//微信用户信息
+						user.setNickname(wxUserInfo.getNickname());
+						user.setSex(wxUserInfo.getSex());
+						user.setProvince(wxUserInfo.getProvince());
+						user.setCity(wxUserInfo.getCity());
+						user.setCountry(wxUserInfo.getCountry());
+						user.setHeadimgurl(wxUserInfo.getHeadimgurl());
+						user.setPrivilege(wxUserInfo.getPrivilege());
+						user.setUnionid(wxUserInfo.getUnionid());
+						signup(user);
+					}
+				}
+			} else if (user == null) {
+				throw new ErrorException("用户未登记，不能操作");
+			} else if (!user.getStatus().equals("已激活")) {
+				throw new ErrorException("用户未激活，不能操作");
 			}
 		}
 		catch(ErrorException ex) {

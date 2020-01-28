@@ -31,6 +31,7 @@ public class UserAdapter extends ActionSupport {
 	private String state;
 	private User user;
 	private String errmsg;
+	private String wxid;
 
 	@Action(value = "Index", results = {
 				@Result(name = "index", location = "Index.jsp", params = {"user", "%{user}"}),
@@ -48,7 +49,7 @@ public class UserAdapter extends ActionSupport {
 			} else {
 				throw new ErrorException("错误的平台操作");
 			}
-			user = wxUserService.checkWxUser(getResponse(), INDEX_URL, appid, secret, WxScope.snsapi_userinfo, code, state, Platform.valueOf(platform));
+			user = wxUserService.checkWxUser(getResponse(), INDEX_URL, appid, secret, WxScope.snsapi_userinfo, code, state, wxid, Platform.valueOf(platform));
 			if (user != null) {
 				if (user.getStatus() == null || !user.getStatus().equals("已激活")) {
 					rest = "signup";
@@ -139,5 +140,13 @@ public class UserAdapter extends ActionSupport {
 
 	public void setErrmsg(String errmsg) {
 		this.errmsg = errmsg;
+	}
+
+	public String getWxid() {
+		return wxid;
+	}
+
+	public void setWxid(String wxid) {
+		this.wxid = wxid;
 	}
 }

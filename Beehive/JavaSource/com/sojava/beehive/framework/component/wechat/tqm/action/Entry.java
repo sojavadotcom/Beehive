@@ -38,6 +38,7 @@ public class Entry extends ActionSupport {
 	private String code;
 	private String state;
 	private String errmsg;
+	private String wxid;
 
 	@Action(value = "Entry.UserInterface", results = {
 			@Result(name = "UserInterface", location = "UserInterface.jsp")
@@ -73,6 +74,7 @@ public class Entry extends ActionSupport {
 					WxScope.snsapi_base,
 					code,
 					state,
+					wxid,
 					Platform.TQM
 				);
 			if (user != null) {
@@ -111,6 +113,7 @@ public class Entry extends ActionSupport {
 					WxScope.snsapi_base,
 					code,
 					state,
+					wxid,
 					Platform.TQM
 				);
 			if (user != null) {
@@ -219,6 +222,14 @@ public class Entry extends ActionSupport {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getWxid() {
+		return wxid;
+	}
+
+	public void setWxid(String wxid) {
+		this.wxid = wxid;
 	}
 
 }

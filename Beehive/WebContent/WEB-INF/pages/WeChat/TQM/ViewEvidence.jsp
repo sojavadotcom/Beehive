@@ -69,12 +69,12 @@ function scanQRCode() {
 		scanType: [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
 		success: function(res) {
 			var qrcode = res.resultStr;
-			window.location.href = window.location.href.toString() + "?qrcode=" + qrcode + "&code=<s:property value="user.openid" />";
+			window.location.href = window.location.href.toString().replace(/\?.*/ig, "") + "?qrcode=" + qrcode + "&wxid=<s:property value="user.openid" />";
 		}
 	});
 }
 function previewPhoto(id) {
-	var url = "https://wx.jxszyyy.org.cn/WeChat/TQM/TakeEvidence.Photo.shtml?id=";
+	var url = "https://wx.jxszyyy.org.cn/WeChat/TQM/TakeEvidence.Photo.jpg?wxid=<s:property value="user.openid" />&id=";
 	wx.previewImage({
 		current: url + id,
 		urls: [

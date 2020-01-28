@@ -24,5 +24,5 @@ public interface WxUserService {
 	boolean verifyToken(String accessToken, String openid) throws ErrorException;
 	User[] listUser(Criterion[] filters, Order[] orders) throws ErrorException;
 	User getUser(String openid) throws ErrorException;
-	User checkWxUser(HttpServletResponse response, String redirectURL, String appid, String secret, WxScope scope, String code, String state, Platform platform) throws ErrorException;
+	User checkWxUser(HttpServletResponse response, String redirectURL, String appid, String secret, WxScope scope, String code, String state, String wxid, Platform platform) throws ErrorException;
 }

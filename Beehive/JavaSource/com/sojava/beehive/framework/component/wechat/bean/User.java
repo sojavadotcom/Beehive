@@ -16,7 +16,7 @@ public class User implements Serializable {
 	private static final long serialVersionUID = 132244651809462502L;
 
 	@Id
-	@SequenceGenerator(name="USER_ID_GENERATOR", sequenceName="WECHAT.USER_ID")
+	@SequenceGenerator(name="USER_ID_GENERATOR", sequenceName="WECHAT.USER_ID", initialValue = 1, allocationSize = 1)
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="USER_ID_GENERATOR")
 	private Integer id;
 

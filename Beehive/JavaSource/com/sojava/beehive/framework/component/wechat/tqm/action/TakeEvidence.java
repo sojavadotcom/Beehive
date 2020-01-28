@@ -9,8 +9,13 @@ import net.sf.json.JSONObject;
 
 import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.wechat.bean.CaseHistoryEvidence;
+import com.sojava.beehive.framework.component.wechat.bean.User;
+import com.sojava.beehive.framework.component.wechat.define.Platform;
 import com.sojava.beehive.framework.component.wechat.define.WeChatInfo;
+import com.sojava.beehive.framework.component.wechat.define.WxScope;
+import com.sojava.beehive.framework.component.wechat.service.WxUserService;
 import com.sojava.beehive.framework.component.wechat.tqm.service.EvidenceService;
+import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.exception.WarnException;
 import com.sojava.beehive.framework.io.Writer;
 
@@ -21,11 +26,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
 
+import javax.annotation.Resource;
+
 @Namespace("/WeChat/TQM")
 @Controller("WeChat/TQM/TakeEvidence")
 @Scope("prototype")
 public class TakeEvidence extends ActionSupport {
 	private static final long serialVersionUID = 5297527713190499766L;
+
+	@Resource private WxUserService wxUserService;
 
 	private String wxServerId;
 	private String qrcode;
@@ -36,6 +45,8 @@ public class TakeEvidence extends ActionSupport {
 	private String staffName;
 	private Integer id;
 	private String code;// openid
+	private String state;
+	private String wxid;
 
 	private final String WX_MEDIA_URL = "http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s";
     private final String JPG = "image/jpeg;charset=UTF-8";
@@ -119,6 +130,18 @@ public class TakeEvidence extends ActionSupport {
 	@Action("TakeEvidence.Photo")
 	public void photo() throws Exception {
 		super.execute();
+		User user = wxUserService.checkWxUser(
+				getResponse(),
+				"https://wx.jxszyyy.org.cn/WeChat/TQM/TakeEvidence.Photo.shtml?" + (wxid != null ? ("wxid=" + wxid + "&") : "") + "id=" + id,
+				WeChatInfo.TQM_APPID,
+				WeChatInfo.TQM_SECRET,
+				WxScope.snsapi_base,
+				code,
+				state,
+				wxid,
+				Platform.TQM
+			);
+		if (user == null || !user.getStatus().equals("已激活")) throw new ErrorException("用户未登记或未激活，不能操作");
 		byte[] buff = evidenceService.getPhoto(id);
 		getResponse().setContentType(JPG);
 		OutputStream out = null;
@@ -180,12 +203,12 @@ public class TakeEvidence extends ActionSupport {
 		this.data = data;
 	}
 
-	public String getWxName() {
+	public String getStaffName() {
 		return staffName;
 	}
 
-	public void setWxName(String wxName) {
-		this.staffName = wxName;
+	public void setStaffName(String staffName) {
+		this.staffName = staffName;
 	}
 
 	public EvidenceService getEvidenceService() {
@@ -210,6 +233,30 @@ public class TakeEvidence extends ActionSupport {
 
 	public void setCode(String code) {
 		this.code = code;
+	}
+
+	public WxUserService getWxUserService() {
+		return wxUserService;
+	}
+
+	public void setWxUserService(WxUserService wxUserService) {
+		this.wxUserService = wxUserService;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public String getWxid() {
+		return wxid;
+	}
+
+	public void setWxid(String wxid) {
+		this.wxid = wxid;
 	}
 
 }
