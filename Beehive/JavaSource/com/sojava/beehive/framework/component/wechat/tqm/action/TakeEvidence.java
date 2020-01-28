@@ -21,12 +21,12 @@ import com.sojava.beehive.framework.io.Writer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 
 @Namespace("/WeChat/TQM")
 @Controller("WeChat/TQM/TakeEvidence")
@@ -49,7 +49,7 @@ public class TakeEvidence extends ActionSupport {
 	private String wxid;
 
 	private final String WX_MEDIA_URL = "http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s";
-    private final String JPG = "image/jpeg;charset=UTF-8";
+    private final String JPG = "image/jpeg";
 
     private EvidenceService evidenceService;
 
@@ -130,8 +130,9 @@ public class TakeEvidence extends ActionSupport {
 	@Action("TakeEvidence.Photo")
 	public void photo() throws Exception {
 		super.execute();
+		HttpServletResponse response = getResponse();
 		User user = wxUserService.checkWxUser(
-				getResponse(),
+				response,
 				"https://wx.jxszyyy.org.cn/WeChat/TQM/TakeEvidence.Photo.shtml?" + (wxid != null ? ("wxid=" + wxid + "&") : "") + "id=" + id,
 				WeChatInfo.TQM_APPID,
 				WeChatInfo.TQM_SECRET,
@@ -143,16 +144,8 @@ public class TakeEvidence extends ActionSupport {
 			);
 		if (user == null || !user.getStatus().equals("已激活")) throw new ErrorException("用户未登记或未激活，不能操作");
 		byte[] buff = evidenceService.getPhoto(id);
-		getResponse().setContentType(JPG);
-		OutputStream out = null;
-		try {
-			out = getResponse().getOutputStream();
-			out.write(buff);
-//			out.flush();
-		}
-		finally {
-//			out.close();
-		}
+		response.setContentType(JPG);
+		response.getOutputStream().write(buff);
 	}
 
 	public String getWxServerId() {
