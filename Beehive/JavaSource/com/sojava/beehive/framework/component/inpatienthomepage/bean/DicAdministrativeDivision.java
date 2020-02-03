@@ -9,7 +9,7 @@ import javax.persistence.*;
  * 
  */
 @Entity
-@Table(name="dic_administrative_division")
+@Table(name="dic_administrative_division", schema="data_transform")
 @NamedQuery(name="DicAdministrativeDivision.findAll", query="SELECT d FROM DicAdministrativeDivision d")
 public class DicAdministrativeDivision implements Serializable {
 	private static final long serialVersionUID = 652269161030560624L;
