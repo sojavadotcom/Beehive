@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface NcovDataDao {
 
-	List<NcovGoods> goodsSumByDestType(Date date, String srcDept, String type) throws ErrorException;
+	List<NcovGoods> goodsSumByDestType(Date date, String srcDept, String destDept, String type, String kind) throws ErrorException;
 }

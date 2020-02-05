@@ -27,44 +27,48 @@ public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<NcovGoods> goodsSumByDestType(Date datetime, String srcDept, String type) throws ErrorException {
+	public List<NcovGoods> goodsSumByDestType(Date datetime, String srcDept, String destDept, String type, String kind) throws ErrorException {
 		List<NcovGoods> rest = new ArrayList<NcovGoods>();
 
 		Session session = getSession();
 		String sql = "select "
-					 + "a.dept_dest_type"
-					 + "sum(ptkz) as \"普通口罩\""
-					 + "sum(wkkz) as \"外科口罩\""
-					 + "sum(n95) as \"N95口罩\""
-					 + "sum(klfhkz) as \"颗粒防护口罩\""
-					 + "sum(fhf) as \"防护服\""
-					 + "sum(gly) as \"隔离衣\""
-					 + "sum(rjst) as \"乳胶手套\""
-					 + "sum(mz) as \"帽子\""
-					 + "sum(hmj) as \"护目镜\""
-					 + "sum(xt) as \"鞋套\""
-					 + "sum(xdy84) as \"84消毒液\""
-					 + "sum(jj75) as \"酒精75%\""
-					 + "sum(sxdj) as \"手消毒剂\""
-					 + "sum(twj) as \"体温计\""
-					 + "sum(sf) as \"沙方\""
-					 + "sum(jj75_45) as \"酒精75%(4.5L/桶)\""
-					 + "sum(dqjcst_s) as \"丁腈检查手套S码\""
-					 + "sum(dqjcst_l) as \"丁腈检查手套L码\""
+					 + "a.dept_dest_type,"
+					 + "sum(ptkz) as \"普通口罩\","
+					 + "sum(wkkz) as \"外科口罩\","
+					 + "sum(n95) as \"N95口罩\","
+					 + "sum(klfhkz) as \"颗粒防护口罩\","
+					 + "sum(fhf) as \"防护服\","
+					 + "sum(gly) as \"隔离衣\","
+					 + "sum(rjst) as \"乳胶手套\","
+					 + "sum(mz) as \"帽子\","
+					 + "sum(hmj) as \"护目镜\","
+					 + "sum(xt) as \"鞋套\","
+					 + "sum(xdy84) as \"84消毒液\","
+					 + "sum(jj75) as \"酒精75%\","
+					 + "sum(sxdj) as \"手消毒剂\","
+					 + "sum(twj) as \"体温计\","
+					 + "sum(sf) as \"沙方\","
+					 + "sum(jj75_45) as \"酒精75%(4.5L/桶)\","
+					 + "sum(dqjcst_s) as \"丁腈检查手套S码\","
+					 + "sum(dqjcst_l) as \"丁腈检查手套L码\","
 					 + "sum(jx) as \"胶靴\""
 					 + " from "
 					 + " data.ncov_goods a"
 					 + " left join data.dic_catalog b on b.kind='卫材库' and b.type='科系' and b.name=dept_dest_type"
 					 + " where "
-					 + " time=:time"
-					 + " and dept_src=:deptSrc"
-					 + " and type=:type"
-					 + " group by a.dept_dest_type b.sort"
-					 + " order by coalesce(b.sort 99::int2)";
+					 + " date(a.time)=:time"
+					 + (destDept == null ? " and a.dept_src=:deptSrc" : "")
+					 + (destDept == null ? "" : " and a.dept_dest=:deptDest")
+					 + " and a.type=:type"
+					 + " and a.kind=:kind"
+					 + " group by a.dept_dest_type, a.type, a.kind, b.sort"
+					 + " order by coalesce(b.sort, 99)";
 		SQLQuery stmt = session.createSQLQuery(sql);
-		stmt.setTimestamp("time", datetime);
-		stmt.setString("deptSrc", srcDept);
+		stmt.setDate("time", datetime);
+		if (destDept == null) stmt.setString("deptSrc", srcDept);
+		else stmt.setString("deptDest", destDept);
 		stmt.setString("type", type);
+		stmt.setString("kind", kind);
 		List<?> list = stmt.list();
 		for (Object[] items : (List<Object[]>) list) {
 			NcovGoods goods = new NcovGoods();

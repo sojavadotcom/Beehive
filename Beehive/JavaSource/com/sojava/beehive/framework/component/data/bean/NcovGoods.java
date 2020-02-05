@@ -32,12 +32,12 @@ import java.util.Date;
  */
 @Entity
 @Table(name="ncov_goods", schema="data")
-@NamedQuery(name="NcovGood.findAll", query="SELECT n FROM NcovGood n")
+//@NamedQuery(name="NcovGood.findAll", query="SELECT n FROM NcovGood n")
 public class NcovGoods implements Serializable {
 	private static final long serialVersionUID = -7957179269103469250L;
 
 	@Id
-	@SequenceGenerator(name="NCOV_GOODS_ID_GENERATOR", sequenceName="DATA.NCOV_GOODS_ID")
+	@SequenceGenerator(name="NCOV_GOODS_ID_GENERATOR", sequenceName="DATA.NCOV_GOODS_ID", allocationSize=1, schema="report")
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="NCOV_GOODS_ID_GENERATOR")
 	private Integer id;
 
