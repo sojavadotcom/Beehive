@@ -83,4 +83,9 @@ public class FormatUtil implements Serializable {
 	public final static double formatDecimal(String value, int scale, RoundingMode mode) {
 		return new BigDecimal(value).setScale(scale, mode).doubleValue();
 	}
+
+	public final static String formatDate(Date date, String format) {
+		DateFormat df = new SimpleDateFormat(format);
+		return df.format(date);
+	}
 }
