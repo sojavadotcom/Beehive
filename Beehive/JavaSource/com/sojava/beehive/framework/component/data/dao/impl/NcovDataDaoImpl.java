@@ -51,7 +51,8 @@ public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
 					 + "sum(jj75_45) as \"酒精75%(4.5L/桶)\","
 					 + "sum(dqjcst_s) as \"丁腈检查手套S码\","
 					 + "sum(dqjcst_l) as \"丁腈检查手套L码\","
-					 + "sum(jx) as \"胶靴\""
+					 + "sum(jx) as \"胶靴\","
+					 + "a.memo"
 					 + " from "
 					 + " data.ncov_goods a"
 					 + " left join data.dic_catalog b on b.kind='卫材库' and b.type='科系' and b.name=dept_dest_type"
@@ -62,7 +63,7 @@ public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
 					 + (destDept != null ? " and a.dept_src!=a.dept_dest" : "") //避免本科室自己的消耗计入请领
 					 + " and a.type=:type"
 					 + " and a.kind=:kind"
-					 + " group by a.dept_dest_type, a.type, a.kind, b.sort"
+					 + " group by a.dept_dest_type, a.type, a.kind, a.memo, b.sort"
 					 + " order by coalesce(b.sort, 99)";
 		SQLQuery stmt = session.createSQLQuery(sql);
 		stmt.setDate("time", datetime);
@@ -93,6 +94,7 @@ public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
 			goods.setDqjcstS(ValueUtil.get(items[17], 0d));
 			goods.setDqjcstL(ValueUtil.get(items[18], 0d));
 			goods.setJx(ValueUtil.get(items[19], 0d));
+			goods.setMemo((String) items[20]);
 			goods.setType(type);
 
 			rest.add(goods);

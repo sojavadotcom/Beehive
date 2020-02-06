@@ -24,10 +24,12 @@ import javax.annotation.Resource;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
 @Service
@@ -53,6 +55,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 		try {
 			in = new FileInputStream(template);
 			HSSFWorkbook book = new HSSFWorkbook(in);
+			FormulaEvaluator fe = book.getCreationHelper().createFormulaEvaluator();
 			for (int i = 0; i < book.getNumberOfSheets(); i ++) {
 				HSSFSheet sheet = book.getSheetAt(i);
 				sheet.setForceFormulaRecalculation(true);
@@ -166,18 +169,27 @@ public class StatisticsServiceImpl implements StatisticsService {
 							n ++;
 						}
 						//备注
-						if (dataObj.containsKey("memo")) {
-							String memoStr[] = dataObj.getString("memo").split("\\Q:\\E");
-							int[] memoPos = {
-									Integer.parseInt(memoStr[0].split("\\Q,\\E")[1])-1, //start row
-									Integer.parseInt(memoStr[0].split("\\Q,\\E")[0])-1, //start cell
-									Integer.parseInt(memoStr[1].split("\\Q,\\E")[1])-1, //end row
-									Integer.parseInt(memoStr[1].split("\\Q,\\E")[0])-1 //end cell
-								};
-							for(int j = memoPos[0]; j <= memoPos[2]; j ++) {
-								HSSFCell _cell = sheet.getRow(j).getCell(memoPos[1]);
-								_cell.setCellValue(goods.getMemo());
+						if (dataObj.containsKey("memo") && goods.getMemo() != null) {
+							try {
+								String memoStr[] = dataObj.getString("memo").split("\\Q:\\E");
+								JSONObject memoObj = JSONObject.fromObject(goods.getMemo());
+								int[] memoPos = {
+										Integer.parseInt(memoStr[0].split("\\Q,\\E")[1])-1, //start row
+										Integer.parseInt(memoStr[0].split("\\Q,\\E")[0])-1, //start cell
+										Integer.parseInt(memoStr[1].split("\\Q,\\E")[1])-1, //end row
+										Integer.parseInt(memoStr[1].split("\\Q,\\E")[0])-1 //end cell
+									};
+								n = 0;
+								for(int j = memoPos[0]; j <= memoPos[2]; j ++) {
+									HSSFCell _cell = sheet.getRow(j).getCell(memoPos[1]);
+									String _name = items.get(n).toLowerCase();
+									if (memoObj.containsKey(_name)) {
+										_cell.setCellValue(memoObj.getString(_name));
+									}
+									n ++;
+								}
 							}
+							catch(JSONException e) {}
 						}
 					}
 
@@ -220,7 +232,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 						for(int j = totalPos[0]; j <= totalPos[2]; j ++) {
 							Method m = Class.forName(NcovGoods.class.getName()).getMethod("set" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[] {Double.class});
 							HSSFCell _cell = sheet.getRow(j).getCell(totalPos[1]);
-							System.out.println(_cell.getCellFormula() + ";" + _cell.getNumericCellValue());
+							if (_cell.getCellType() == HSSFCell.CELL_TYPE_FORMULA) fe.evaluateFormulaCell(_cell);
 							m.invoke(goods, new Object[] {_cell.getNumericCellValue()});
 							n ++;
 						}
