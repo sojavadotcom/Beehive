@@ -168,7 +168,10 @@ public class StatisticsServiceImpl implements StatisticsService {
 							sheet.getRow(j).getCell(impPos[1]).setCellValue(Double.parseDouble(m.invoke(goods, new Object[0]).toString()));
 							n ++;
 						}
-						//备注
+						/*
+						 * 备注
+						 * {column_name:"memo text..."}
+						 */
 						if (dataObj.containsKey("memo") && goods.getMemo() != null) {
 							try {
 								String memoStr[] = dataObj.getString("memo").split("\\Q:\\E");
