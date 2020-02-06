@@ -98,6 +98,8 @@ public class NcovGoods implements Serializable {
 
 	private String kind;
 
+	private String memo;
+
 	public NcovGoods() {
 	}
 
@@ -285,12 +287,12 @@ public class NcovGoods implements Serializable {
 		this.xt = xt;
 	}
 
-	public String getDeptSrcType() {
+	public String getDeptDestType() {
 		return deptDestType;
 	}
 
-	public void setDeptSrcType(String deptSrcType) {
-		this.deptDestType = deptSrcType;
+	public void setDeptDestType(String deptDestType) {
+		this.deptDestType = deptDestType;
 	}
 
 	public String getType() {
@@ -307,6 +309,14 @@ public class NcovGoods implements Serializable {
 
 	public void setKind(String kind) {
 		this.kind = kind;
+	}
+
+	public String getMemo() {
+		return memo == null ? "" : memo;
+	}
+
+	public void setMemo(String memo) {
+		this.memo = memo;
 	}
 
 }

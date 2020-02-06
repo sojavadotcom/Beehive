@@ -59,6 +59,7 @@ public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
 					 + " date(a.time)=:time"
 					 + (destDept == null ? " and a.dept_src=:deptSrc" : "")
 					 + (destDept == null ? "" : " and a.dept_dest=:deptDest")
+					 + (destDept != null ? " and a.dept_src!=a.dept_dest" : "") //避免本科室自己的消耗计入请领
 					 + " and a.type=:type"
 					 + " and a.kind=:kind"
 					 + " group by a.dept_dest_type, a.type, a.kind, b.sort"

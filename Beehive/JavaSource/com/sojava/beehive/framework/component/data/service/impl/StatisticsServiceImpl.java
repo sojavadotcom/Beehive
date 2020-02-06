@@ -15,13 +15,17 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
 import net.sf.json.JSONObject;
@@ -30,6 +34,15 @@ import net.sf.json.JSONObject;
 public class StatisticsServiceImpl implements StatisticsService {
 
 	@Resource private NcovDataDao ncovDataDao;
+
+	private Map<String, String> deptType;
+
+	public StatisticsServiceImpl() {
+		this.deptType = new HashMap<String, String>();
+		deptType.put("卫材库", "后勤保障");
+		deptType.put("发热门诊", "发热门诊");
+		deptType.put("门诊部", "行政科室");
+	}
 
 	@Override
 	public byte[] goodsReport(Date date, File template, String type) throws ErrorException {
@@ -42,6 +55,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 			HSSFWorkbook book = new HSSFWorkbook(in);
 			for (int i = 0; i < book.getNumberOfSheets(); i ++) {
 				HSSFSheet sheet = book.getSheetAt(i);
+				sheet.setForceFormulaRecalculation(true);
+				sheet.setColumnHidden(0, true);
+				sheet.setActive(true);
 				String sheetName = sheet.getSheetName();
 				HSSFCell cell = null;
 				/*
@@ -149,13 +165,70 @@ public class StatisticsServiceImpl implements StatisticsService {
 							sheet.getRow(j).getCell(impPos[1]).setCellValue(Double.parseDouble(m.invoke(goods, new Object[0]).toString()));
 							n ++;
 						}
+						//备注
+						if (dataObj.containsKey("memo")) {
+							String memoStr[] = dataObj.getString("memo").split("\\Q:\\E");
+							int[] memoPos = {
+									Integer.parseInt(memoStr[0].split("\\Q,\\E")[1])-1, //start row
+									Integer.parseInt(memoStr[0].split("\\Q,\\E")[0])-1, //start cell
+									Integer.parseInt(memoStr[1].split("\\Q,\\E")[1])-1, //end row
+									Integer.parseInt(memoStr[1].split("\\Q,\\E")[0])-1 //end cell
+								};
+							for(int j = memoPos[0]; j <= memoPos[2]; j ++) {
+								HSSFCell _cell = sheet.getRow(j).getCell(memoPos[1]);
+								_cell.setCellValue(goods.getMemo());
+							}
+						}
+					}
+
+					//合计，计入基数
+					if (dataObj.containsKey("total")) {
+						String totalStr[] = dataObj.getString("total").split("\\Q:\\E");
+						int[] totalPos = {
+								Integer.parseInt(totalStr[0].split("\\Q,\\E")[1])-1, //start row
+								Integer.parseInt(totalStr[0].split("\\Q,\\E")[0])-1, //start cell
+								Integer.parseInt(totalStr[1].split("\\Q,\\E")[1])-1, //end row
+								Integer.parseInt(totalStr[1].split("\\Q,\\E")[0])-1 //end cell
+							};
+						int n = 0;
+						NcovGoods goods = null;
+						Date totalDatetime = FormatUtil.parseDateTime(FormatUtil.formatDate(date, "yyyy-MM-dd") + " " + "14:00:00");
+						List<?> goodsList = ncovDataDao.query(NcovGoods.class,
+								new Criterion[] {
+										Restrictions.eq("deptSrc", sheetName),
+										Restrictions.eq("deptDest", sheetName),
+										Restrictions.eq("deptDestType", this.deptType.get(sheetName)),
+										Restrictions.eq("time", totalDatetime),
+										Restrictions.eq("kind", "存量"),
+										Restrictions.eq("type", type)
+									},
+								null,
+								null,
+								false
+							);
+						if (goodsList.size() > 0) goods = (NcovGoods) goodsList.get(0);
+						else {
+							goods = new NcovGoods();
+							goods.setDeptSrc(sheetName);
+							goods.setDeptDest(sheetName);
+							goods.setDeptDestType(this.deptType.get(sheetName));
+							goods.setTime(totalDatetime);
+							goods.setKind("存量");
+							goods.setType(type);
+						}
+
+						for(int j = totalPos[0]; j <= totalPos[2]; j ++) {
+							Method m = Class.forName(NcovGoods.class.getName()).getMethod("set" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[] {Double.class});
+							HSSFCell _cell = sheet.getRow(j).getCell(totalPos[1]);
+							System.out.println(_cell.getCellFormula() + ";" + _cell.getNumericCellValue());
+							m.invoke(goods, new Object[] {_cell.getNumericCellValue()});
+							n ++;
+						}
+						ncovDataDao.save(goods);
 					}
 				}
-				sheet.setColumnHidden(0, true);
-				sheet.setActive(true);
 				cell = sheet.getRow(0).getCell(1);
 				cell.setAsActiveCell();
-				sheet.setForceFormulaRecalculation(true);
 			}
 			out = new ByteArrayOutputStream();
 			book.write(out);
@@ -175,6 +248,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 			throw new ErrorException(getClass(), ex);
 		}
 		catch(IllegalAccessException ex) {
+			throw new ErrorException(getClass(), ex);
+		}
+		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex);
 		}
 		finally {
