@@ -36,6 +36,16 @@ function(dojo) {
 		</script>
 	</div>
 	<div dojoType="dijit.PopupMenuBarItem">
+		<span>Ncov</span>
+		<div dojoType="dijit.DropDownMenu">
+			<div dojoType="dijit.MenuItem" iconClass="iconRepair">物资统计
+				<script type="dojo/event" event="onClick" args="e">
+					bee.open("/Data/Ncov/Goods.Index.shtml");
+				</script>
+			</div>
+		</div>
+	</div>
+	<div dojoType="dijit.PopupMenuBarItem">
 		<span>质控</span>
 		<div dojoType="dijit.DropDownMenu">
 			<div dojoType="dijit.MenuItem" iconClass="iconVerified">门诊退费登记与查询
