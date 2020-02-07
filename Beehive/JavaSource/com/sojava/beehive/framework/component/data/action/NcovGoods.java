@@ -7,9 +7,11 @@ import org.apache.struts2.convention.annotation.ParentPackage;
 import org.apache.struts2.convention.annotation.Result;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 
 import com.sojava.beehive.framework.ActionSupport;
 import com.sojava.beehive.framework.component.data.service.StatisticsService;
+import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.util.FormatUtil;
 
 import java.io.File;
@@ -47,6 +49,9 @@ public class NcovGoods extends ActionSupport {
 		if (action.equals("Index")) {
 			rest = action;
 		} else if (action.equals("Export")) {
+			if (StringUtils.isEmpty(date)) throw new ErrorException("统计日期不能为空");
+			if (StringUtils.isEmpty(type)) throw new ErrorException("数据类型不能为空");
+			if (file == null) throw new ErrorException("报表模板未上传");
 			Date expDate = FormatUtil.parseDate(date);
 			byte[] report = statisticsService.goodsReport(expDate, file, type);
 
