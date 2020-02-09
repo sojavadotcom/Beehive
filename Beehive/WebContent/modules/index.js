@@ -132,8 +132,8 @@ var bee = {
 			return E;
 		}
 	},
-	open: function(uri) {
-//		bee.clear(mainToolbar);
+	open: function(uri, clearMainToolbar) {
+		if (clearMainToolbar) bee.clear(mainToolbar);
 		systemConfig.uri = uri || systemConfig.uri || (systemConfig.isOnline ? "/welcome.html" : "/welcome.html");
 		dijit.byId("box").set("href", (systemConfig.uri.indexOf(".") == -1 ? systemConfig.uri + ".shtml" : systemConfig.uri));
 	},

@@ -78,8 +78,6 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 			}
 		}, dojo.byId("catcherGridNode"));
 		catcher.startup();
-
-		// bee.clear(mainToolbar);
 	});
 });
 </script>

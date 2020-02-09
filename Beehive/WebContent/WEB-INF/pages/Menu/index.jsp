@@ -26,7 +26,7 @@ function(dojo) {
 	<div dojoType="dijit.MenuBarItem">
 		<span>RSS</span>
 		<script type="dojo/event" event="onClick" args="e">
-			bee.open("/Catcher/Index.shtml");
+			bee.open("/Catcher/Index.shtml", true);
 		</script>
 	</div>
 	<div dojoType="dijit.MenuBarItem">
@@ -40,7 +40,7 @@ function(dojo) {
 		<div dojoType="dijit.DropDownMenu">
 			<div dojoType="dijit.MenuItem" iconClass="iconRepair">物资统计
 				<script type="dojo/event" event="onClick" args="e">
-					bee.open("/Data/Ncov/Goods.Index.shtml");
+					bee.open("/Data/Ncov/Entry.Goods.shtml", true);
 				</script>
 			</div>
 		</div>

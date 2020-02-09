@@ -1,18 +1,23 @@
 package com.sojava.beehive.framework.component.data.action;
 
 import org.apache.struts2.convention.annotation.Action;
-import org.apache.struts2.convention.annotation.Actions;
 import org.apache.struts2.convention.annotation.Namespace;
 import org.apache.struts2.convention.annotation.ParentPackage;
-import org.apache.struts2.convention.annotation.Result;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
 import com.sojava.beehive.framework.ActionSupport;
+import com.sojava.beehive.framework.component.data.service.NcovGoodsService;
 import com.sojava.beehive.framework.component.data.service.StatisticsService;
+import com.sojava.beehive.framework.define.Page;
 import com.sojava.beehive.framework.exception.ErrorException;
+import com.sojava.beehive.framework.io.Writer;
 import com.sojava.beehive.framework.util.FormatUtil;
+import com.sojava.beehive.framework.util.RecordUtil;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -22,13 +27,14 @@ import java.util.Date;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
-@Controller("Data/Ncov")
+@Controller("Data/Ncov/Goods")
 @Scope("prototype")
-@Namespace("/Data/Ncov")
+@Namespace("/Data/Ncov/Goods")
 @ParentPackage("json-default")
 public class NcovGoods extends ActionSupport {
 	private static final long serialVersionUID = 2527227111889250699L;
 
+	@Resource private NcovGoodsService ncovGoodsService;
 	@Resource private StatisticsService statisticsService;
 
 	private String date;
@@ -36,41 +42,48 @@ public class NcovGoods extends ActionSupport {
 	private String fileName;
 	private String type;
 
-	@Actions(value = {
-			@Action(value = "Goods.*", results = {
-				@Result(name = "Index", location = "Goods.jsp")
-			})
-		})
-	public String goods() throws Exception {
+	@Action(value = "Query.list")
+	public void list() throws Exception {
 		super.execute();
-		String actionName = this.getActionContext().getName();
-		String action = actionName.split("\\Q.\\E")[1];
-		String rest = null;
-		if (action.equals("Index")) {
-			rest = action;
-		} else if (action.equals("Export")) {
-			if (StringUtils.isEmpty(date)) throw new ErrorException("统计日期不能为空");
-			if (StringUtils.isEmpty(type)) throw new ErrorException("数据类型不能为空");
-			if (file == null) throw new ErrorException("报表模板未上传");
-			Date expDate = FormatUtil.parseDate(date);
-			byte[] report = statisticsService.goodsReport(expDate, file, type);
+		Date time = StringUtils.isEmpty(date) ? new Date() : FormatUtil.parseDate(date);
+		Page page = new Page(getStart(), getEnd());
+		com.sojava.beehive.framework.component.data.bean.NcovGoods[] list = ncovGoodsService.list(time, getOrders(), page);
+		this.setRange(page.getTotal());
+		RecordUtil recordUtil = new RecordUtil();
+		JSONObject result = recordUtil.generateJsonByMapping(list);
+		JSONArray items = result.getJSONArray("items");
 
-			String expFilename = fileName;
-			String format = expFilename.replaceAll("(^.*\\[)|(\\].*$)", "");
-			expFilename = expFilename.replaceAll("\\Q[" + format + "]\\E", FormatUtil.formatDate(expDate, format));
+		new Writer(getRequest(), getResponse()).output(items);
+	}
 
-			HttpServletResponse response = getResponse();
-			response.setContentType("application/octet-stream;charset=UTF-8");
-			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(expFilename, "UTF-8"));
-			OutputStream out = response.getOutputStream();
-			out.write(report);
-			out.flush();
-			out.close();
-		} else {
-			rest = "Index";
-		}
+	@Action(value = "Export")
+	public void export() throws Exception {
+		super.execute();
+		if (StringUtils.isEmpty(date)) throw new ErrorException("统计日期不能为空");
+		if (StringUtils.isEmpty(type)) throw new ErrorException("数据类型不能为空");
+		if (file == null) throw new ErrorException("报表模板未上传");
+		Date expDate = FormatUtil.parseDate(date);
+		byte[] report = statisticsService.goodsReport(expDate, file, type);
 
-		return rest;
+		String expFilename = fileName;
+		String format = expFilename.replaceAll("(^.*\\[)|(\\].*$)", "");
+		expFilename = expFilename.replaceAll("\\Q[" + format + "]\\E", FormatUtil.formatDate(expDate, format));
+
+		HttpServletResponse response = getResponse();
+		response.setContentType("application/octet-stream;charset=UTF-8");
+		response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(expFilename, "UTF-8"));
+		OutputStream out = response.getOutputStream();
+		out.write(report);
+		out.flush();
+		out.close();
+	}
+
+	public NcovGoodsService getNcovGoodsService() {
+		return ncovGoodsService;
+	}
+
+	public void setNcovGoodsService(NcovGoodsService ncovGoodsService) {
+		this.ncovGoodsService = ncovGoodsService;
 	}
 
 	public StatisticsService getStatisticsService() {
