@@ -10,9 +10,9 @@ import org.springframework.stereotype.Controller;
 
 import com.sojava.beehive.framework.ActionSupport;
 
-@Controller("Data/Ncov")
+@Controller("Data/NCP")
 @Scope("prototype")
-@Namespace("/Data/Ncov")
+@Namespace("/Data/NCP")
 @ParentPackage("json-default")
 public class Entry extends ActionSupport {
 	private static final long serialVersionUID = -2380029069271174556L;

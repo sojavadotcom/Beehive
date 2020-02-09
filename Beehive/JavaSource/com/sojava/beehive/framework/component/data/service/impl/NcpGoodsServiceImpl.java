@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NcpGoodsServiceImpl implements NcpGoodsService {
 
-	@Resource private NcpDataDao ncovDataDao;
+	@Resource private NcpDataDao ncpDataDao;
 
 	@Override
 	public NcpGoods[] list(Date date, Order[] orders, Page page) throws ErrorException {
@@ -32,7 +32,7 @@ public class NcpGoodsServiceImpl implements NcpGoodsService {
 				String endTime = FormatUtil.formatDate(date, "yyyy-MM-dd") + " 23:59:59";
 				filter = new Criterion[] {Restrictions.between("time", FormatUtil.parseDateTime(startTime), FormatUtil.parseDateTime(endTime))};
 			}
-			list = ncovDataDao.query(NcpGoods.class, filter, orders, page, false);
+			list = ncpDataDao.query(NcpGoods.class, filter, orders, page, false);
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex);
@@ -41,11 +41,11 @@ public class NcpGoodsServiceImpl implements NcpGoodsService {
 	}
 
 	public NcpDataDao getNcovDataDao() {
-		return ncovDataDao;
+		return ncpDataDao;
 	}
 
-	public void setNcovDataDao(NcpDataDao ncovDataDao) {
-		this.ncovDataDao = ncovDataDao;
+	public void setNcovDataDao(NcpDataDao ncpDataDao) {
+		this.ncpDataDao = ncpDataDao;
 	}
 
 }

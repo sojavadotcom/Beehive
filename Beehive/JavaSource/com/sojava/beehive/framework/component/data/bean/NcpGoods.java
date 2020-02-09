@@ -31,14 +31,14 @@ import java.util.Date;
  *  
  */
 @Entity
-@Table(name="ncov_goods", schema="data")
-//@NamedQuery(name="NcovGood.findAll", query="SELECT n FROM NcovGood n")
+@Table(name="ncp_goods", schema="data")
+//@NamedQuery(name="NcpGood.findAll", query="SELECT n FROM NcpGood n")
 public class NcpGoods implements Serializable {
 	private static final long serialVersionUID = -7957179269103469250L;
 
 	@Id
-	@SequenceGenerator(name="NCOV_GOODS_ID_GENERATOR", sequenceName="DATA.NCOV_GOODS_ID", allocationSize=1, schema="report")
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="NCOV_GOODS_ID_GENERATOR")
+	@SequenceGenerator(name="NCP_GOODS_ID_GENERATOR", sequenceName="DATA.NCP_GOODS_ID", allocationSize=1, schema="report")
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="NCP_GOODS_ID_GENERATOR")
 	private Integer id;
 
 	@Column(name="dept_dest")
