@@ -54,7 +54,7 @@ public class NcpDataDaoImpl extends BeehiveDaoImpl implements NcpDataDao {
 					 + "sum(jx) as \"胶靴\","
 					 + "a.memo"
 					 + " from "
-					 + " data.ncov_goods a"
+					 + " data.ncp_goods a"
 					 + " left join data.dic_catalog b on b.kind='卫材库' and b.type='科系' and b.name=dept_dest_type"
 					 + " where "
 					 + " date(a.time)=:time"

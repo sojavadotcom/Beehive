@@ -37,7 +37,7 @@ public class NcpGoods implements Serializable {
 	private static final long serialVersionUID = -7957179269103469250L;
 
 	@Id
-	@SequenceGenerator(name="NCP_GOODS_ID_GENERATOR", sequenceName="DATA.NCP_GOODS_ID", allocationSize=1, schema="report")
+	@SequenceGenerator(name="NCP_GOODS_ID_GENERATOR", sequenceName="DATA.NCP_GOODS_ID", allocationSize=1, schema="data")
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="NCP_GOODS_ID_GENERATOR")
 	private Integer id;
 

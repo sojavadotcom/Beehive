@@ -18,10 +18,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFFooter;
+import org.apache.poi.hssf.usermodel.HSSFHeader;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
@@ -38,6 +43,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 	@Resource private NcpDataDao ncovDataDao;
 
 	private Map<String, String> deptType;
+	private Date date;
 
 	public StatisticsServiceImpl() {
 		this.deptType = new HashMap<String, String>();
@@ -49,6 +55,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 	@Override
 	public byte[] goodsReport(Date date, File template, String type) throws ErrorException {
 		byte[] report = null;
+		this.date = date;
 
 		FileInputStream in = null;
 		ByteArrayOutputStream out = null;
@@ -63,6 +70,28 @@ public class StatisticsServiceImpl implements StatisticsService {
 				sheet.setActive(true);
 				String sheetName = sheet.getSheetName();
 				HSSFCell cell = null;
+				//处理页眉
+				HSSFHeader header = sheet.getHeader();
+				if (!StringUtils.isEmpty(header.getLeft())) {
+					header.setLeft(expression(header.getLeft())[0]);
+				}
+				if (!StringUtils.isEmpty(header.getCenter())) {
+					header.setCenter(expression(header.getCenter())[0]);
+				}
+				if (!StringUtils.isEmpty(header.getRight())) {
+					header.setRight(expression(header.getRight())[0]);
+				}
+				//处理页脚
+				HSSFFooter footer = sheet.getFooter();
+				if (!StringUtils.isEmpty(footer.getLeft())) {
+					footer.setLeft(expression(footer.getLeft())[0]);
+				}
+				if (!StringUtils.isEmpty(footer.getCenter())) {
+					footer.setCenter(expression(footer.getCenter())[0]);
+				}
+				if (!StringUtils.isEmpty(footer.getRight())) {
+					footer.setRight(expression(footer.getRight())[0]);
+				}
 				/*
 				 * 	读取定义
 				 */
@@ -75,13 +104,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 					int defTitle[] = {Integer.parseInt(def.getString("title").split("\\Q,\\E")[1])-1, Integer.parseInt(def.getString("title").split("\\Q,\\E")[0])-1};
 					cell = sheet.getRow(defTitle[0]).getCell(defTitle[1]);
 					String title = cell.getStringCellValue();
-					String expStr = title.replaceAll("(.*\\[)|(\\].*$)", "");
-					if (expStr.indexOf("date:") != -1) {
-						String formatStr = expStr.split("\\Q:\\E")[1].replaceAll("\\Q]\\E", "");
-						String dateStr = FormatUtil.formatDate(date, formatStr);
-						title = title.replaceAll("\\Q[" + expStr + "]\\E", dateStr);
-						cell.setCellValue(title);
-					}
+					cell.setCellValue(expression(title)[0]);
 				}
 				/*
 				 * 	数据处理
@@ -274,6 +297,27 @@ public class StatisticsServiceImpl implements StatisticsService {
 		}
 
 		return report;
+	}
+
+	public String[] expression(String text) {
+		List<String> rest = new ArrayList<String>();
+		String regex = "\\[.*\\]";
+		Pattern p = Pattern.compile(regex);
+		String textArray[] = text.split("\\]");
+		for(String t : textArray) {
+			Matcher m = p.matcher(t + "]");
+			if (m.find()) {
+				String str = m.group();
+				str = str.substring(1, str.length() - 1);
+				if (str.indexOf("date:") != -1) {
+					String formatStr = str.replaceFirst("^.*:", "");
+					String dateStr = FormatUtil.formatDate(this.date, formatStr);
+					rest.add(text.replaceAll("\\Q[" + str + "]\\E", dateStr));
+				}
+			}
+		}
+
+		return rest.toArray(new String[0]);
 	}
 
 	public NcpDataDao getNcovDataDao() {
