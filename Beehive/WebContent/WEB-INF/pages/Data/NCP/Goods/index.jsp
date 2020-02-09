@@ -34,8 +34,8 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 			val = val||0;
 			return val;
 		}
-		var ncovGoods = new EnhancedGrid({
-			id: "ncovGoodsGrid",
+		var ncpGoods = new EnhancedGrid({
+			id: "ncpGoodsGrid",
 			store: new ObjectStore({objectStore: new JsonRest({
 				sortParam: "sort",
 				queryEngine: [
@@ -43,7 +43,7 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 					{count: 50},
 					{date: nowStr}
 				],
-				target: "/Data/Ncov/Goods/Query.list.shtml"
+				target: "/Data/NCP/Goods/Query.list.shtml"
 			})}),
 			selectionMode: "single",
 			columnReordering: "true",
@@ -85,8 +85,8 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 					position: 'bottom'
 				}
 			}
-		}, dojo.byId("ncovGoodsGridNode"));
-		ncovGoods.startup();
+		}, dojo.byId("ncpGoodsGridNode"));
+		ncpGoods.startup();
 
 		mainToolbar.addChild(new Button({
 			iconClass: "dijitIconNewTask",
@@ -95,7 +95,7 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 				if (dialogExporter == null) {
 					dialogExporter = new Dialog({
 						title: "统计&导出",
-						href: "/Data/Ncov/Entry.GoodsExport.shtml",
+						href: "/Data/NCP/Entry.GoodsExport.shtml",
 						closable: true,
 						executeScripts: true,
 						onHide: function() {
@@ -114,7 +114,7 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 				if (dialogAdd == null) {
 					dialogAdd = new Dialog({
 						title: "物资消耗详情",
-						href: "/Data/Ncov/Entry.GoodsAdd.shtml",
+						href: "/Data/NCP/Entry.GoodsAdd.shtml",
 						closable: true,
 						executeScripts: true,
 						onHide: function() {
@@ -131,12 +131,12 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 </script>
 <div dojoType="dijit.layout.BorderContainer" design="sidebar" gutters="false">
 	<div dojoType="dijit.layout.ContentPane" region="top" style="padding: 0px;">
-		<div jsId="ncovGoodsNavMenu" dojoType="dijit.MenuBar">
+		<div jsId="ncpGoodsNavMenu" dojoType="dijit.MenuBar">
 		<form dojoType="dijit.form.Form">
-			<div jsId="ncovGoods_Search_time" type="text" dojoType="dijit.form.DateTextBox" value="<%= now %>">
+			<div jsId="ncpGoods_Search_time" type="text" dojoType="dijit.form.DateTextBox" value="<%= now %>">
 			<script type="dojo/on" event="change" args="e">
-				var date = ncovGoods_Search_time.value;
-				dijit.byId("ncovGoodsGrid").filter({
+				var date = ncpGoods_Search_time.value;
+				dijit.byId("ncpGoodsGrid").filter({
 					date: (date.getFullYear() + "-" + (date.getMonth()+1) + "-" + date.getDate())||nowStr
 				});
 			</script>
@@ -145,6 +145,6 @@ function(dojo, JsonRest, ObjectStore, EnhancedGrid, EnhancedGridPagination, Enha
 		</div>
 	</div>
 	<div dojoType="dijit.layout.ContentPane" region="center">
-		<div id="ncovGoodsGridNode"></div>
+		<div id="ncpGoodsGridNode"></div>
 	</div>
 </div>

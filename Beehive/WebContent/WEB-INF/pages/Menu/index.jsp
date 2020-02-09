@@ -36,11 +36,11 @@ function(dojo) {
 		</script>
 	</div>
 	<div dojoType="dijit.PopupMenuBarItem">
-		<span>Ncov</span>
+		<span>NCP</span>
 		<div dojoType="dijit.DropDownMenu">
 			<div dojoType="dijit.MenuItem" iconClass="iconRepair">物资统计
 				<script type="dojo/event" event="onClick" args="e">
-					bee.open("/Data/Ncov/Entry.Goods.shtml", true);
+					bee.open("/Data/NCP/Entry.Goods.shtml", true);
 				</script>
 			</div>
 		</div>

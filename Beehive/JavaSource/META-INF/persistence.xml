@@ -91,7 +91,7 @@
 		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryStandard</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.CaseHistoryStandardItem</class>
 		<class>com.sojava.beehive.framework.component.wechat.bean.User</class>
-		<class>com.sojava.beehive.framework.component.data.bean.NcovGoods</class>
+		<class>com.sojava.beehive.framework.component.data.bean.NcpGoods</class>
 		<class>com.sojava.beehive.framework.component.data.bean.DicCatalog</class>
 		<class>com.sojava.beehive.framework.component.data.bean.DicDept</class>
 	</persistence-unit>

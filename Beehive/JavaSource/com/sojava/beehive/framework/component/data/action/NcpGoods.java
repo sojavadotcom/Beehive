@@ -11,7 +11,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import com.sojava.beehive.framework.ActionSupport;
-import com.sojava.beehive.framework.component.data.service.NcovGoodsService;
+import com.sojava.beehive.framework.component.data.service.NcpGoodsService;
 import com.sojava.beehive.framework.component.data.service.StatisticsService;
 import com.sojava.beehive.framework.define.Page;
 import com.sojava.beehive.framework.exception.ErrorException;
@@ -27,14 +27,14 @@ import java.util.Date;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 
-@Controller("Data/Ncov/Goods")
+@Controller("Data/NCP/Goods")
 @Scope("prototype")
-@Namespace("/Data/Ncov/Goods")
+@Namespace("/Data/NCP/Goods")
 @ParentPackage("json-default")
-public class NcovGoods extends ActionSupport {
+public class NcpGoods extends ActionSupport {
 	private static final long serialVersionUID = 2527227111889250699L;
 
-	@Resource private NcovGoodsService ncovGoodsService;
+	@Resource private NcpGoodsService ncovGoodsService;
 	@Resource private StatisticsService statisticsService;
 
 	private String date;
@@ -47,7 +47,7 @@ public class NcovGoods extends ActionSupport {
 		super.execute();
 		Date time = StringUtils.isEmpty(date) ? new Date() : FormatUtil.parseDate(date);
 		Page page = new Page(getStart(), getEnd());
-		com.sojava.beehive.framework.component.data.bean.NcovGoods[] list = ncovGoodsService.list(time, getOrders(), page);
+		com.sojava.beehive.framework.component.data.bean.NcpGoods[] list = ncovGoodsService.list(time, getOrders(), page);
 		this.setRange(page.getTotal());
 		RecordUtil recordUtil = new RecordUtil();
 		JSONObject result = recordUtil.generateJsonByMapping(list);
@@ -78,11 +78,11 @@ public class NcovGoods extends ActionSupport {
 		out.close();
 	}
 
-	public NcovGoodsService getNcovGoodsService() {
+	public NcpGoodsService getNcovGoodsService() {
 		return ncovGoodsService;
 	}
 
-	public void setNcovGoodsService(NcovGoodsService ncovGoodsService) {
+	public void setNcovGoodsService(NcpGoodsService ncovGoodsService) {
 		this.ncovGoodsService = ncovGoodsService;
 	}
 

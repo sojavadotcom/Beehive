@@ -26,7 +26,7 @@ function(dojo, parser) {
 	});
 });
 </script>
-<form jsId="dngFrm" dojoType="dijit.form.Form" action="/Data/Ncov/Goods/Export.s2" method="post" enctype="multipart/form-data">
+<form jsId="dngFrm" dojoType="dijit.form.Form" action="/Data/NCP/Goods/Export.s2" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="fileName" dojoType="dijit.form.TextBox" />
 	<div style="padding: 5px">
 		<label>统计日期：</label>

@@ -26,7 +26,7 @@ function(dojo, parser) {
 	});
 });
 </script>
-<form jsId="dngAddFrm" dojoType="dijit.form.Form" action="/Data/Ncov/Goods/Save.s2" method="post" enctype="multipart/form-data">
+<form jsId="dngAddFrm" dojoType="dijit.form.Form" action="/Data/NCP/Goods/Save.s2" method="post" enctype="multipart/form-data">
 	<div dojoType="dijit/layout/LayoutContainer">
 		<div dojoType="dojox.layout.TableContainer" cols="2" region="center">
 			<input name="date" title="结算日期：" dojoType="dijit.form.DateTextBox" value='<%= FormatUtil.DATE_FORMAT.format(new Date()) %>' required="true" style="width: 150px" />

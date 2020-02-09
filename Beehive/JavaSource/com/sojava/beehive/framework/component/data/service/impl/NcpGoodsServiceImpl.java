@@ -1,8 +1,8 @@
 package com.sojava.beehive.framework.component.data.service.impl;
 
-import com.sojava.beehive.framework.component.data.bean.NcovGoods;
-import com.sojava.beehive.framework.component.data.dao.NcovDataDao;
-import com.sojava.beehive.framework.component.data.service.NcovGoodsService;
+import com.sojava.beehive.framework.component.data.bean.NcpGoods;
+import com.sojava.beehive.framework.component.data.dao.NcpDataDao;
+import com.sojava.beehive.framework.component.data.service.NcpGoodsService;
 import com.sojava.beehive.framework.define.Page;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.util.FormatUtil;
@@ -18,12 +18,12 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NcovGoodsServiceImpl implements NcovGoodsService {
+public class NcpGoodsServiceImpl implements NcpGoodsService {
 
-	@Resource private NcovDataDao ncovDataDao;
+	@Resource private NcpDataDao ncovDataDao;
 
 	@Override
-	public NcovGoods[] list(Date date, Order[] orders, Page page) throws ErrorException {
+	public NcpGoods[] list(Date date, Order[] orders, Page page) throws ErrorException {
 		List<?> list = null;
 		try {
 			Criterion[] filter = null;
@@ -32,19 +32,19 @@ public class NcovGoodsServiceImpl implements NcovGoodsService {
 				String endTime = FormatUtil.formatDate(date, "yyyy-MM-dd") + " 23:59:59";
 				filter = new Criterion[] {Restrictions.between("time", FormatUtil.parseDateTime(startTime), FormatUtil.parseDateTime(endTime))};
 			}
-			list = ncovDataDao.query(NcovGoods.class, filter, orders, page, false);
+			list = ncovDataDao.query(NcpGoods.class, filter, orders, page, false);
 		}
 		catch(Exception ex) {
 			throw new ErrorException(getClass(), ex);
 		}
-		return list != null ? list.toArray(new NcovGoods[0]) : null;
+		return list != null ? list.toArray(new NcpGoods[0]) : null;
 	}
 
-	public NcovDataDao getNcovDataDao() {
+	public NcpDataDao getNcovDataDao() {
 		return ncovDataDao;
 	}
 
-	public void setNcovDataDao(NcovDataDao ncovDataDao) {
+	public void setNcovDataDao(NcpDataDao ncovDataDao) {
 		this.ncovDataDao = ncovDataDao;
 	}
 

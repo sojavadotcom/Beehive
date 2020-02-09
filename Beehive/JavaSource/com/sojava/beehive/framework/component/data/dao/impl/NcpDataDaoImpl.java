@@ -1,7 +1,7 @@
 package com.sojava.beehive.framework.component.data.dao.impl;
 
-import com.sojava.beehive.framework.component.data.bean.NcovGoods;
-import com.sojava.beehive.framework.component.data.dao.NcovDataDao;
+import com.sojava.beehive.framework.component.data.bean.NcpGoods;
+import com.sojava.beehive.framework.component.data.dao.NcpDataDao;
 import com.sojava.beehive.framework.exception.CommonException;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.exception.WarnException;
@@ -22,13 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @Scope("prototype")
 @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, rollbackFor = {CommonException.class, ErrorException.class, WarnException.class, Exception.class, Throwable.class})
-public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
+public class NcpDataDaoImpl extends BeehiveDaoImpl implements NcpDataDao {
 	private static final long serialVersionUID = -1857537182764109596L;
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<NcovGoods> goodsSumByDestType(Date datetime, String srcDept, String destDept, String type, String kind) throws ErrorException {
-		List<NcovGoods> rest = new ArrayList<NcovGoods>();
+	public List<NcpGoods> goodsSumByDestType(Date datetime, String srcDept, String destDept, String type, String kind) throws ErrorException {
+		List<NcpGoods> rest = new ArrayList<NcpGoods>();
 
 		Session session = getSession();
 		String sql = "select "
@@ -73,7 +73,7 @@ public class NcovDataDaoImpl extends BeehiveDaoImpl implements NcovDataDao {
 		stmt.setString("kind", kind);
 		List<?> list = stmt.list();
 		for (Object[] items : (List<Object[]>) list) {
-			NcovGoods goods = new NcovGoods();
+			NcpGoods goods = new NcpGoods();
 			goods.setDeptDest(items[0].toString());
 			goods.setPtkz(ValueUtil.get(items[1], 0d));
 			goods.setWkkz(ValueUtil.get(items[2], 0d));

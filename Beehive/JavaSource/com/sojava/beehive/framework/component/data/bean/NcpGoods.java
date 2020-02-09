@@ -33,7 +33,7 @@ import java.util.Date;
 @Entity
 @Table(name="ncov_goods", schema="data")
 //@NamedQuery(name="NcovGood.findAll", query="SELECT n FROM NcovGood n")
-public class NcovGoods implements Serializable {
+public class NcpGoods implements Serializable {
 	private static final long serialVersionUID = -7957179269103469250L;
 
 	@Id
@@ -100,7 +100,7 @@ public class NcovGoods implements Serializable {
 
 	private String memo;
 
-	public NcovGoods() {
+	public NcpGoods() {
 	}
 
 	public Integer getId() {

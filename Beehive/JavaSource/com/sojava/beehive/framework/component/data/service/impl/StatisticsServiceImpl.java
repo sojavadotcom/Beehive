@@ -1,7 +1,7 @@
 package com.sojava.beehive.framework.component.data.service.impl;
 
-import com.sojava.beehive.framework.component.data.bean.NcovGoods;
-import com.sojava.beehive.framework.component.data.dao.NcovDataDao;
+import com.sojava.beehive.framework.component.data.bean.NcpGoods;
+import com.sojava.beehive.framework.component.data.dao.NcpDataDao;
 import com.sojava.beehive.framework.component.data.service.StatisticsService;
 import com.sojava.beehive.framework.exception.ErrorException;
 import com.sojava.beehive.framework.util.FormatUtil;
@@ -35,7 +35,7 @@ import net.sf.json.JSONObject;
 @Service
 public class StatisticsServiceImpl implements StatisticsService {
 
-	@Resource private NcovDataDao ncovDataDao;
+	@Resource private NcpDataDao ncovDataDao;
 
 	private Map<String, String> deptType;
 
@@ -108,9 +108,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 					Calendar c = Calendar.getInstance();
 					c.setTime(date);
 					c.add(Calendar.DAY_OF_MONTH, -1);
-					List<NcovGoods> list = ncovDataDao.goodsSumByDestType(c.getTime(), sheetName, null, type, "存量");
+					List<NcpGoods> list = ncovDataDao.goodsSumByDestType(c.getTime(), sheetName, null, type, "存量");
 					if (list.size() > 0) {
-						NcovGoods goods = list.get(0);
+						NcpGoods goods = list.get(0);
 						String origStr[] = dataObj.getString("orig").split("\\Q:\\E");
 						int[] origPos = {
 								Integer.parseInt(origStr[0].split("\\Q,\\E")[1])-1, //start row
@@ -120,7 +120,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 							};
 						int n = 0;
 						for(int j = origPos[0]; j <= origPos[2]; j ++) {
-							Method m = Class.forName(NcovGoods.class.getName()).getMethod("get" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[0]);
+							Method m = Class.forName(NcpGoods.class.getName()).getMethod("get" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[0]);
 							sheet.getRow(j).getCell(origPos[1]).setCellValue(Double.parseDouble(m.invoke(goods, new Object[0]).toString()));
 							n ++;
 						}
@@ -138,10 +138,10 @@ public class StatisticsServiceImpl implements StatisticsService {
 						for (int j = expPos[1]; j <= expPos[3]; j ++) {
 							n = 0;
 							String deptDest = sheet.getRow(deptDestRow).getCell(j).getStringCellValue();
-							for (NcovGoods _goods : list) {
+							for (NcpGoods _goods : list) {
 								if (_goods.getDeptDest().equals(deptDest)) {
 									for(int k = expPos[0]; k <= expPos[2]; k ++) {
-										Method m = Class.forName(NcovGoods.class.getName()).getMethod("get" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[0]);
+										Method m = Class.forName(NcpGoods.class.getName()).getMethod("get" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[0]);
 										sheet.getRow(k).getCell(j).setCellValue(Double.parseDouble(m.invoke(_goods, new Object[0]).toString()));
 										n ++;
 									}
@@ -154,7 +154,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 					//入库
 					list = ncovDataDao.goodsSumByDestType(date, dataObj.getString("impDept"), sheetName, type, "消耗");
 					if (list.size() > 0) {
-						NcovGoods goods = list.get(0);
+						NcpGoods goods = list.get(0);
 						String impStr[] = dataObj.getString("imp").split("\\Q:\\E");
 						int[] impPos = {
 								Integer.parseInt(impStr[0].split("\\Q,\\E")[1])-1, //start row
@@ -164,7 +164,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 							};
 						int n = 0;
 						for(int j = impPos[0]; j <= impPos[2]; j ++) {
-							Method m = Class.forName(NcovGoods.class.getName()).getMethod("get" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[0]);
+							Method m = Class.forName(NcpGoods.class.getName()).getMethod("get" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[0]);
 							sheet.getRow(j).getCell(impPos[1]).setCellValue(Double.parseDouble(m.invoke(goods, new Object[0]).toString()));
 							n ++;
 						}
@@ -206,9 +206,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 								Integer.parseInt(totalStr[1].split("\\Q,\\E")[0])-1 //end cell
 							};
 						int n = 0;
-						NcovGoods goods = null;
+						NcpGoods goods = null;
 						Date totalDatetime = FormatUtil.parseDateTime(FormatUtil.formatDate(date, "yyyy-MM-dd") + " " + "14:00:00");
-						List<?> goodsList = ncovDataDao.query(NcovGoods.class,
+						List<?> goodsList = ncovDataDao.query(NcpGoods.class,
 								new Criterion[] {
 										Restrictions.eq("deptSrc", sheetName),
 										Restrictions.eq("deptDest", sheetName),
@@ -221,9 +221,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 								null,
 								false
 							);
-						if (goodsList.size() > 0) goods = (NcovGoods) goodsList.get(0);
+						if (goodsList.size() > 0) goods = (NcpGoods) goodsList.get(0);
 						else {
-							goods = new NcovGoods();
+							goods = new NcpGoods();
 							goods.setDeptSrc(sheetName);
 							goods.setDeptDest(sheetName);
 							goods.setDeptDestType(this.deptType.get(sheetName));
@@ -233,7 +233,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 						}
 
 						for(int j = totalPos[0]; j <= totalPos[2]; j ++) {
-							Method m = Class.forName(NcovGoods.class.getName()).getMethod("set" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[] {Double.class});
+							Method m = Class.forName(NcpGoods.class.getName()).getMethod("set" + items.get(n).substring(0, 1).toUpperCase() + items.get(n).substring(1), new Class[] {Double.class});
 							HSSFCell _cell = sheet.getRow(j).getCell(totalPos[1]);
 							if (_cell.getCellType() == HSSFCell.CELL_TYPE_FORMULA) fe.evaluateFormulaCell(_cell);
 							m.invoke(goods, new Object[] {_cell.getNumericCellValue()});
@@ -276,11 +276,11 @@ public class StatisticsServiceImpl implements StatisticsService {
 		return report;
 	}
 
-	public NcovDataDao getNcovDataDao() {
+	public NcpDataDao getNcovDataDao() {
 		return ncovDataDao;
 	}
 
-	public void setNcovDataDao(NcovDataDao ncovDataDao) {
+	public void setNcovDataDao(NcpDataDao ncovDataDao) {
 		this.ncovDataDao = ncovDataDao;
 	}
 }
