@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 public class NcpGoods extends ActionSupport {
 	private static final long serialVersionUID = 2527227111889250699L;
 
-	@Resource private NcpGoodsService ncovGoodsService;
+	@Resource private NcpGoodsService ncpGoodsService;
 	@Resource private StatisticsService statisticsService;
 
 	private String date;
@@ -47,7 +47,7 @@ public class NcpGoods extends ActionSupport {
 		super.execute();
 		Date time = StringUtils.isEmpty(date) ? new Date() : FormatUtil.parseDate(date);
 		Page page = new Page(getStart(), getEnd());
-		com.sojava.beehive.framework.component.data.bean.NcpGoods[] list = ncovGoodsService.list(time, getOrders(), page);
+		com.sojava.beehive.framework.component.data.bean.NcpGoods[] list = ncpGoodsService.list(time, getOrders(), page);
 		this.setRange(page.getTotal());
 		RecordUtil recordUtil = new RecordUtil();
 		JSONObject result = recordUtil.generateJsonByMapping(list);
@@ -79,11 +79,11 @@ public class NcpGoods extends ActionSupport {
 	}
 
 	public NcpGoodsService getNcovGoodsService() {
-		return ncovGoodsService;
+		return ncpGoodsService;
 	}
 
-	public void setNcovGoodsService(NcpGoodsService ncovGoodsService) {
-		this.ncovGoodsService = ncovGoodsService;
+	public void setNcovGoodsService(NcpGoodsService ncpGoodsService) {
+		this.ncpGoodsService = ncpGoodsService;
 	}
 
 	public StatisticsService getStatisticsService() {
