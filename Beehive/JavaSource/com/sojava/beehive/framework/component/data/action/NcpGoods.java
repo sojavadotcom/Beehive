@@ -3,6 +3,7 @@ package com.sojava.beehive.framework.component.data.action;
 import org.apache.struts2.convention.annotation.Action;
 import org.apache.struts2.convention.annotation.Namespace;
 import org.apache.struts2.convention.annotation.ParentPackage;
+import org.apache.struts2.convention.annotation.Result;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -31,12 +32,14 @@ import javax.servlet.http.HttpServletResponse;
 @Scope("prototype")
 @Namespace("/Data/NCP/Goods")
 @ParentPackage("json-default")
+@Result(name = "error", location = "../../../index.jsp", params = {"errmsg", "%{errmsg}"})
 public class NcpGoods extends ActionSupport {
 	private static final long serialVersionUID = 2527227111889250699L;
 
 	@Resource private NcpGoodsService ncpGoodsService;
 	@Resource private StatisticsService statisticsService;
 
+	private String errmsg;
 	private String date;
 	private File file;
 	private String fileName;
@@ -57,25 +60,41 @@ public class NcpGoods extends ActionSupport {
 	}
 
 	@Action(value = "Export")
-	public void export() throws Exception {
-		super.execute();
-		if (StringUtils.isEmpty(date)) throw new ErrorException("统计日期不能为空");
-		if (StringUtils.isEmpty(type)) throw new ErrorException("数据类型不能为空");
-		if (file == null) throw new ErrorException("报表模板未上传");
-		Date expDate = FormatUtil.parseDate(date);
-		byte[] report = statisticsService.goodsReport(expDate, file, type);
-
-		String expFilename = fileName;
-		String format = expFilename.replaceAll("(^.*\\[)|(\\].*$)", "");
-		expFilename = expFilename.replaceAll("\\Q[" + format + "]\\E", FormatUtil.formatDate(expDate, format));
-
-		HttpServletResponse response = getResponse();
-		response.setContentType("application/octet-stream;charset=UTF-8");
-		response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(expFilename, "UTF-8"));
-		OutputStream out = response.getOutputStream();
-		out.write(report);
-		out.flush();
-		out.close();
+	public String export() throws Exception {
+		String rest = null;
+		try {
+			super.execute();
+			if (StringUtils.isEmpty(date)) throw new ErrorException("统计日期不能为空");
+			if (StringUtils.isEmpty(type)) {
+				type = fileName.indexOf("鸡西市中医医院 - ") == -1 ? "实数" : "虚数";
+			}
+			if (file == null) throw new ErrorException("报表模板未上传");
+			Date expDate = FormatUtil.parseDate(date);
+			byte[] report = null;
+			if (type.equals("实数")) report = statisticsService.goodsReport(expDate, file, type);
+			else if (type.equals("虚数")) report = statisticsService.goodsReportByOutside(expDate, file, type);
+	
+			String expFilename = fileName;
+			String format = expFilename.replaceAll("(^.*\\[)|(\\].*$)", "");
+			expFilename = expFilename.replaceAll("\\Q[" + format + "]\\E", FormatUtil.formatDate(expDate, format));
+	
+			HttpServletResponse response = getResponse();
+			response.setContentType("application/octet-stream;charset=UTF-8");
+			response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(expFilename, "UTF-8"));
+			OutputStream out = response.getOutputStream();
+			out.write(report);
+			out.flush();
+			out.close();
+		}
+		catch(NullPointerException ex) {
+			rest = ERROR;
+			this.errmsg = "对象为空的错误";
+		}
+		catch(Exception ex) {
+			rest = ERROR;
+			this.errmsg = ex.getMessage();
+		}
+		return rest;
 	}
 
 	public NcpGoodsService getNcovGoodsService() {
@@ -92,6 +111,14 @@ public class NcpGoods extends ActionSupport {
 
 	public void setStatisticsService(StatisticsService statisticsService) {
 		this.statisticsService = statisticsService;
+	}
+
+	public String getErrmsg() {
+		return errmsg;
+	}
+
+	public void setErrmsg(String errmsg) {
+		this.errmsg = errmsg;
 	}
 
 	public File getFile() {

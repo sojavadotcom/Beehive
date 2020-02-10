@@ -58,8 +58,8 @@ public class NcpDataDaoImpl extends BeehiveDaoImpl implements NcpDataDao {
 					 + " left join data.dic_catalog b on b.kind='卫材库' and b.type='科系' and b.name=dept_dest_type"
 					 + " where "
 					 + " date(a.time)=:time"
-					 + (destDept == null ? " and a.dept_src=:deptSrc" : "")
-					 + (destDept == null ? "" : " and a.dept_dest=:deptDest")
+					 + (srcDept != null && destDept == null ? " and a.dept_src=:deptSrc" : "")
+					 + (destDept != null ? " and a.dept_dest=:deptDest" : "")
 					 + (destDept != null ? " and a.dept_src!=a.dept_dest" : "") //避免本科室自己的消耗计入请领
 					 + " and a.type=:type"
 					 + " and a.kind=:kind"
@@ -67,8 +67,8 @@ public class NcpDataDaoImpl extends BeehiveDaoImpl implements NcpDataDao {
 					 + " order by coalesce(b.sort, 99)";
 		SQLQuery stmt = session.createSQLQuery(sql);
 		stmt.setDate("time", datetime);
-		if (destDept == null) stmt.setString("deptSrc", srcDept);
-		else stmt.setString("deptDest", destDept);
+		if (destDept == null && srcDept != null) stmt.setString("deptSrc", srcDept);
+		else if (destDept != null) stmt.setString("deptDest", destDept);
 		stmt.setString("type", type);
 		stmt.setString("kind", kind);
 		List<?> list = stmt.list();

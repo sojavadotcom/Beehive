@@ -33,13 +33,6 @@ function(dojo, parser) {
 		<input name="date" dojoType="dijit.form.DateTextBox" value='<%= FormatUtil.DATE_FORMAT.format(new Date()) %>' required="true" style="width: 150px" />
 	</div>
 	<div style="padding: 5px;">
-		<label>数据类型：</label>
-		<select name="type" dojoType="dijit.form.Select" required="true" style="width: 152px">
-			<option value="实数" selected="selected">院内报表</option>
-			<option value="须数"/>院外报表</option>
-		</select>
-	</div>
-	<div style="padding: 5px;">
 		<label>报表模板：</label>
 		<div name="file" multiple="false" type="file" dojoType="dojox.form.Uploader" required="true" label="选择..." force="iframe">
 			<script type="dojo/method" event="onChange" args="list">
@@ -62,6 +55,11 @@ function(dojo, parser) {
 				if(!valid) {}
 				else if (dngFrm.getValues().file == null || dngFrm.getValues().file == "") dojox.dialog.AlertDialog({message: "未选择模板！"}).show();
 				else dngFrm.submit();
+			</script>
+		</button>
+		<button label="关　闭" dojoType="dijit.form.Button">
+			<script type="dojo/on" event="click" args="e">
+				dialogExporter.hide();
 			</script>
 		</button>
 	</div>

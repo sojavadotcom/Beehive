@@ -6,6 +6,7 @@
 	request.setCharacterEncoding("UTF-8");
 %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="/struts-tags" prefix="s" %>
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
@@ -37,7 +38,7 @@ var systemConfig = {
 <body class="claro">
 	<div dojoType="dijit.layout.BorderContainer" design="sidebar" gutters="false" style="width: 100%; height: 100%;">
 		<div id="top" dojoType="dojox.layout.ContentPane" href="/Menu/Entry.shtml" region="top" style="margin: 0px; padding: 0px; height: 70px; overflow: hidden;"></div>
-		<div id="box" dojoType="dojox.layout.ContentPane" region="center"></div>
+		<div id="box" dojoType="dojox.layout.ContentPane" region="center"><s:property value="errmsg" /></div>
 	</div>
 </body>
 </html>

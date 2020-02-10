@@ -14,8 +14,11 @@ import com.sojava.beehive.framework.ActionSupport;
 @Scope("prototype")
 @Namespace("/Data/NCP")
 @ParentPackage("json-default")
+@Result(name = "error", location = "../../index.jsp", params = {"errmsg", "%{errmsg}"})
 public class Entry extends ActionSupport {
 	private static final long serialVersionUID = -2380029069271174556L;
+
+	private String errmsg;
 
 	@Actions(value = {
 			@Action(value = "Entry.*", results = {
@@ -26,18 +29,36 @@ public class Entry extends ActionSupport {
 			})
 		})
 	public String index() throws Exception {
-		super.execute();
-		String actionName = this.getActionContext().getName();
-		String[] actions = actionName.split("\\Q.\\E");
-		String action = actions.length > 0 ? actions[1] : "welcome";
 		String rest = "welcome";
-
-		String[] actionList = {"Goods", "GoodsExport", "GoodsAdd"};
-		for (String act : actionList) {
-			if (action.equals(act)) rest = action;
+		try {
+			super.execute();
+			String actionName = this.getActionContext().getName();
+			String[] actions = actionName.split("\\Q.\\E");
+			String action = actions.length > 0 ? actions[1] : "welcome";
+	
+			String[] actionList = {"Goods", "GoodsExport", "GoodsAdd"};
+			for (String act : actionList) {
+				if (action.equals(act)) rest = action;
+			}
+		}
+		catch(NullPointerException ex) {
+			rest = ERROR;
+			this.errmsg = "对象为空的错误";
+		}
+		catch(Exception ex) {
+			rest = ERROR;
+			this.errmsg = ex.getMessage();
 		}
 
 		return rest;
+	}
+
+	public String getErrmsg() {
+		return errmsg;
+	}
+
+	public void setErrmsg(String errmsg) {
+		this.errmsg = errmsg;
 	}
 
 }

@@ -3,7 +3,6 @@ package com.sojava.beehive.hibernate.dao;
 import java.io.Serializable;
 import java.util.List;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
