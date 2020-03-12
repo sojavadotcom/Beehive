@@ -32,7 +32,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name="ncp_goods", schema="data")
-//@NamedQuery(name="NcpGood.findAll", query="SELECT n FROM NcpGood n")
+//@NamedQuery(name="NcpGoods.findAll", query="SELECT n FROM NcpGoods n")
 public class NcpGoods implements Serializable {
 	private static final long serialVersionUID = -7957179269103469250L;
 

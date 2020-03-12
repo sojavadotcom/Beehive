@@ -94,5 +94,6 @@
 		<class>com.sojava.beehive.framework.component.data.bean.NcpGoods</class>
 		<class>com.sojava.beehive.framework.component.data.bean.DicCatalog</class>
 		<class>com.sojava.beehive.framework.component.data.bean.DicDept</class>
+		<class>com.sojava.beehive.framework.component.data.bean.CovidGoods</class>
 	</persistence-unit>
 </persistence>
